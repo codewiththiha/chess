@@ -1,0 +1,466 @@
+/* Give actual chess squares and licensed pieces distinct, legible treatments. */
+.board-sage {
+  --square-light: #e5e4cf;
+  --square-dark: #788d80;
+}
+.board-walnut {
+  --square-light: #eedfc4;
+  --square-dark: #ad8463;
+}
+.board-ocean {
+  --square-light: #dde8e9;
+  --square-dark: #70939e;
+}
+.board-slate {
+  --square-light: #d9dee2;
+  --square-dark: #7c8794;
+}
+.board-surface {
+  flex: 1;
+  min-width: 0;
+  aspect-ratio: 1;
+  position: relative;
+  border-radius: 5px;
+  box-shadow: 0 3px 7px #17352617;
+}
+.cg-wrap {
+  width: 100%;
+  height: 100%;
+}
+cg-board {
+  background-image: conic-gradient(
+    var(--square-dark) 25%,
+    var(--square-light) 0 50%,
+    var(--square-dark) 0 75%,
+    var(--square-light) 0
+  );
+  background-size: 25% 25%;
+  border-radius: 5px;
+}
+.cg-wrap piece {
+  background-size: 95%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+cg-board square.last-move {
+  background-color: #e8cd4d57;
+}
+cg-board square.selected {
+  background-color: #dfc95792;
+}
+cg-board square.move-dest {
+  background: radial-gradient(#173e3f44 19%, transparent 22%);
+}
+cg-board square.oc.move-dest {
+  background: radial-gradient(transparent 78%, #173e3f44 80%);
+}
+cg-board square.check {
+  background: radial-gradient(
+    ellipse at center,
+    #bc384ad9 0%,
+    #b7364966 45%,
+    transparent 76%
+  );
+}
+cg-board piece.dragging {
+  filter: drop-shadow(0 7px 3px #10271f66);
+}
+.cg-wrap coords {
+  font-family: 'DM Sans Variable', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.8;
+  line-height: 1.1;
+}
+.cg-wrap coords.ranks {
+  left: 4px;
+  top: 4px;
+  width: 12px;
+}
+.cg-wrap coords.ranks coord {
+  transform: none;
+  color: #304b3b;
+}
+.cg-wrap coords.ranks coord:nth-child(even) {
+  color: #f4f6ed;
+}
+.cg-wrap coords.files {
+  left: 0;
+  bottom: 0;
+  height: 15px;
+  text-transform: lowercase;
+}
+.cg-wrap coords.files coord {
+  text-align: right;
+  padding-right: 4px;
+  color: #f4f6ed;
+}
+.cg-wrap coords.files coord:nth-child(even) {
+  color: #304b3b;
+}
+.keyboard-grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: repeat(8, 1fr);
+  pointer-events: none;
+  z-index: 12;
+  border-radius: 5px;
+}
+.keyboard-rank {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+}
+.keyboard-grid button {
+  pointer-events: none;
+  min-width: 0;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+.keyboard-grid button:focus-visible {
+  outline: 4px solid #173d2f;
+  outline-offset: -5px;
+  box-shadow: inset 0 0 0 7px #eef3ec88;
+}
+.evaluation-rail {
+  width: 9px;
+  flex: 0 0 9px;
+  background: #32433b;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: end;
+  box-shadow: inset 0 0 0 1px #20362b20;
+}
+.evaluation-white {
+  background: #fffdf3;
+  width: 100%;
+  transition: height 240ms ease;
+}
+.evaluation-rail.unknown {
+  opacity: 0.5;
+}
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 64px;
+  padding: 11px 0 11px 18px;
+}
+.player-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--color-base-100);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.engine-avatar {
+  background: var(--tint);
+  color: var(--color-primary);
+}
+.player-details {
+  flex: 1;
+  min-width: 0;
+}
+.player-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.color-pebble {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3b413d;
+  border: 1px solid #738076;
+}
+.color-pebble.white {
+  background: #fffdf3;
+}
+.player-meta {
+  font-size: 10px;
+  color: var(--muted);
+  min-height: 17px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.captured-pieces {
+  display: inline-flex;
+  max-width: 200px;
+  flex-wrap: wrap;
+}
+.captured-pieces img {
+  width: 15px;
+  height: 15px;
+  margin-left: -2px;
+}
+.material-count {
+  font-family: var(--mono);
+  font-size: 10px;
+}
+.chess-clock {
+  min-width: 116px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 27px;
+  letter-spacing: -1px;
+  line-height: 1;
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+.chess-clock.running {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+  border-color: var(--color-primary);
+}
+.chess-clock.low-time {
+  color: var(--color-error);
+}
+.chess-clock.low-time.running {
+  background: var(--color-error);
+  color: var(--color-error-content);
+  border-color: var(--color-error);
+}
+.clock-dot {
+  width: 5px;
+  height: 5px;
+  background: currentColor;
+  border-radius: 50%;
+}
+.untimed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 74px;
+  justify-content: end;
+}
+.board-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 15px;
+  gap: 8px;
+  padding-top: 4px;
+}
+.board-utilities,
+.history-controls {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+.board-tools .icon-button {
+  width: 39px;
+  min-width: 39px;
+}
+.board-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0 0 18px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.board-caption button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+}
+.game-actions-menu {
+  position: relative;
+}
+.game-actions-menu summary {
+  list-style: none;
+}
+.game-actions-menu summary::-webkit-details-marker {
+  display: none;
+}
+.action-popover {
+  position: absolute;
+  bottom: 48px;
+  left: 0;
+  width: 220px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: var(--color-base-100);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #17352624;
+  z-index: 15;
+}
+.action-popover button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  width: 100%;
+  text-align: left;
+  padding: 9px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.action-popover button:hover {
+  background: var(--tint);
+}
+.action-popover button:disabled {
+  color: var(--muted);
+  opacity: 0.6;
+}
+.mini-board {
+  width: 80px;
+  height: 80px;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.mini-board span {
+  background: var(--square-light);
+}
+.mini-board span.dark {
+  background: var(--square-dark);
+}
+.mini-board img {
+  width: 100%;
+  height: 100%;
+}
+.pieces-chessnut piece.white.pawn {
+  background-image: url('/pieces/chessnut/wP.svg');
+}
+.pieces-chessnut piece.white.knight {
+  background-image: url('/pieces/chessnut/wN.svg');
+}
+.pieces-chessnut piece.white.bishop {
+  background-image: url('/pieces/chessnut/wB.svg');
+}
+.pieces-chessnut piece.white.rook {
+  background-image: url('/pieces/chessnut/wR.svg');
+}
+.pieces-chessnut piece.white.queen {
+  background-image: url('/pieces/chessnut/wQ.svg');
+}
+.pieces-chessnut piece.white.king {
+  background-image: url('/pieces/chessnut/wK.svg');
+}
+.pieces-chessnut piece.black.pawn {
+  background-image: url('/pieces/chessnut/bP.svg');
+}
+.pieces-chessnut piece.black.knight {
+  background-image: url('/pieces/chessnut/bN.svg');
+}
+.pieces-chessnut piece.black.bishop {
+  background-image: url('/pieces/chessnut/bB.svg');
+}
+.pieces-chessnut piece.black.rook {
+  background-image: url('/pieces/chessnut/bR.svg');
+}
+.pieces-chessnut piece.black.queen {
+  background-image: url('/pieces/chessnut/bQ.svg');
+}
+.pieces-chessnut piece.black.king {
+  background-image: url('/pieces/chessnut/bK.svg');
+}
+.pieces-celtic piece.white.pawn {
+  background-image: url('/pieces/celtic/wP.svg');
+}
+.pieces-celtic piece.white.knight {
+  background-image: url('/pieces/celtic/wN.svg');
+}
+.pieces-celtic piece.white.bishop {
+  background-image: url('/pieces/celtic/wB.svg');
+}
+.pieces-celtic piece.white.rook {
+  background-image: url('/pieces/celtic/wR.svg');
+}
+.pieces-celtic piece.white.queen {
+  background-image: url('/pieces/celtic/wQ.svg');
+}
+.pieces-celtic piece.white.king {
+  background-image: url('/pieces/celtic/wK.svg');
+}
+.pieces-celtic piece.black.pawn {
+  background-image: url('/pieces/celtic/bP.svg');
+}
+.pieces-celtic piece.black.knight {
+  background-image: url('/pieces/celtic/bN.svg');
+}
+.pieces-celtic piece.black.bishop {
+  background-image: url('/pieces/celtic/bB.svg');
+}
+.pieces-celtic piece.black.rook {
+  background-image: url('/pieces/celtic/bR.svg');
+}
+.pieces-celtic piece.black.queen {
+  background-image: url('/pieces/celtic/bQ.svg');
+}
+.pieces-celtic piece.black.king {
+  background-image: url('/pieces/celtic/bK.svg');
+}
+.pieces-cburnett piece.white.pawn {
+  background-image: url('/pieces/cburnett/wP.svg');
+}
+.pieces-cburnett piece.white.knight {
+  background-image: url('/pieces/cburnett/wN.svg');
+}
+.pieces-cburnett piece.white.bishop {
+  background-image: url('/pieces/cburnett/wB.svg');
+}
+.pieces-cburnett piece.white.rook {
+  background-image: url('/pieces/cburnett/wR.svg');
+}
+.pieces-cburnett piece.white.queen {
+  background-image: url('/pieces/cburnett/wQ.svg');
+}
+.pieces-cburnett piece.white.king {
+  background-image: url('/pieces/cburnett/wK.svg');
+}
+.pieces-cburnett piece.black.pawn {
+  background-image: url('/pieces/cburnett/bP.svg');
+}
+.pieces-cburnett piece.black.knight {
+  background-image: url('/pieces/cburnett/bN.svg');
+}
+.pieces-cburnett piece.black.bishop {
+  background-image: url('/pieces/cburnett/bB.svg');
+}
+.pieces-cburnett piece.black.rook {
+  background-image: url('/pieces/cburnett/bR.svg');
+}
+.pieces-cburnett piece.black.queen {
+  background-image: url('/pieces/cburnett/bQ.svg');
+}
+.pieces-cburnett piece.black.king {
+  background-image: url('/pieces/cburnett/bK.svg');
+}
+
+.board-surface.read-only cg-board {
+  cursor: default;
+}
+
+.player-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.player-name .color-pebble {
+  flex-shrink: 0;
+}

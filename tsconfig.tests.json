@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.node.json",
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["node", "svelte", "vite/client"]
+  },
+  "include": ["tests/**/*.ts"]
+}

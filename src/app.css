@@ -1,0 +1,84 @@
+/* Assemble self-hosted typography, Tailwind/daisyUI, and purposeful chess styles. */
+@import '@fontsource-variable/dm-sans/wght.css';
+@import '@fontsource-variable/newsreader/wght.css';
+@import '@fontsource/dm-mono/latin-400.css';
+@import 'tailwindcss';
+@import '@lichess-org/chessground/assets/chessground.base.css';
+@import './styles/theme.css';
+@import './styles/layout.css';
+@import './styles/board.css';
+@import './styles/panels.css';
+@import './styles/dialogs.css';
+@import './styles/responsive.css';
+@plugin 'daisyui' {
+  themes: false;
+  logs: false;
+}
+@plugin 'daisyui/theme' {
+  name: 'chess-light';
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #edf1ef;
+  --color-base-300: #dbe3df;
+  --color-base-content: #23352f;
+  --color-primary: #295e49;
+  --color-primary-content: #ffffff;
+  --color-secondary: #66776f;
+  --color-secondary-content: #ffffff;
+  --color-accent: #a47c45;
+  --color-accent-content: #ffffff;
+  --color-neutral: #23352f;
+  --color-neutral-content: #ffffff;
+  --color-info: #386b86;
+  --color-info-content: #ffffff;
+  --color-success: #295e49;
+  --color-success-content: #ffffff;
+  --color-warning: #95671f;
+  --color-warning-content: #ffffff;
+  --color-error: #9b3740;
+  --color-error-content: #ffffff;
+  --radius-selector: 0.45rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.8rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+@plugin 'daisyui/theme' {
+  name: 'chess-dark';
+  default: false;
+  prefersdark: false;
+  color-scheme: dark;
+  --color-base-100: #21332c;
+  --color-base-200: #17241f;
+  --color-base-300: #35483f;
+  --color-base-content: #e5eee8;
+  --color-primary: #9bd0b8;
+  --color-primary-content: #183729;
+  --color-secondary: #a5b8ad;
+  --color-secondary-content: #17241f;
+  --color-accent: #dab583;
+  --color-accent-content: #17241f;
+  --color-neutral: #e5eee8;
+  --color-neutral-content: #17241f;
+  --color-info: #91bed2;
+  --color-info-content: #17241f;
+  --color-success: #9bd0b8;
+  --color-success-content: #17241f;
+  --color-warning: #e6c787;
+  --color-warning-content: #17241f;
+  --color-error: #f0a6ad;
+  --color-error-content: #17241f;
+  --radius-selector: 0.45rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.8rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}

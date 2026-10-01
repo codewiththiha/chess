@@ -1,0 +1,40 @@
+{
+  "repository": "https://github.com/codewiththiha/gwaymaegyi",
+  "revision": "4e2af5f068e49bf83fe5f1522636c985355b114a",
+  "ciRun": "https://github.com/codewiththiha/gwaymaegyi/actions/runs/36887255210",
+  "version": "0.1.0",
+  "backends": {
+    "portable": {
+      "artifactId": 11174513479,
+      "files": {
+        "LICENSE": "b2487902c7a67d6a88d1392ddb56db42b348fa7c95c5be15ad703a3c778146e2",
+        "MODEL-LICENSE": "9a84dbbdf79f3ce37ebb6e68581cef97802912a2048e7d79c29083e287301361",
+        "controls.mjs": "a501a4d2bdc2d9231bf74fc9bedc7b462c9e023078c6a44797141cee3740e902",
+        "engine-worker.mjs": "94223fc371e2d750c394a5897eece9b21f90cdb7e65f4289695ff6fb483ce25a",
+        "gwaymaegyi_wasm.d.ts": "ce3e1072d28189bf4b9249734421081f93c814e838773e6ba39c199ae2b06816",
+        "gwaymaegyi_wasm.js": "72947c5aa1563a43627216bf91b0751b7d5ab99434cccd468fdd8f47e3423510",
+        "gwaymaegyi_wasm_bg.wasm": "90be8a5503551c5e2986504eb0446e633c92d567b6af8f60f9cd8b8064a7a8cf",
+        "gwaymaegyi_wasm_bg.wasm.d.ts": "9bd12eb21a7b6ae97e9b3a3a4311d39cb9f12eacaf837985658751128c265fea",
+        "loader.mjs": "a83f010ec331334a4fb7df3b999172ede9c2d49437743d0b0dc838d354121073",
+        "scheduler.mjs": "8b5252417e4bb1f4c302934e1f626d45588435c9d0aa878e42fa51c6c75d9902",
+        "worker-runtime.mjs": "99aebab5fc6fb6843ba6cf570d6946902be5e73c4ea20463e4287a9191fc985d"
+      }
+    },
+    "simd128": {
+      "artifactId": 11174653953,
+      "files": {
+        "LICENSE": "b2487902c7a67d6a88d1392ddb56db42b348fa7c95c5be15ad703a3c778146e2",
+        "MODEL-LICENSE": "9a84dbbdf79f3ce37ebb6e68581cef97802912a2048e7d79c29083e287301361",
+        "controls.mjs": "a501a4d2bdc2d9231bf74fc9bedc7b462c9e023078c6a44797141cee3740e902",
+        "engine-worker.mjs": "94223fc371e2d750c394a5897eece9b21f90cdb7e65f4289695ff6fb483ce25a",
+        "gwaymaegyi_wasm.d.ts": "ce3e1072d28189bf4b9249734421081f93c814e838773e6ba39c199ae2b06816",
+        "gwaymaegyi_wasm.js": "72947c5aa1563a43627216bf91b0751b7d5ab99434cccd468fdd8f47e3423510",
+        "gwaymaegyi_wasm_bg.wasm": "fbc217864749bfccbd999766c8ad6b315ff21e26a41a6eac9c04c9a8f4f37bc5",
+        "gwaymaegyi_wasm_bg.wasm.d.ts": "9bd12eb21a7b6ae97e9b3a3a4311d39cb9f12eacaf837985658751128c265fea",
+        "loader.mjs": "a83f010ec331334a4fb7df3b999172ede9c2d49437743d0b0dc838d354121073",
+        "scheduler.mjs": "8b5252417e4bb1f4c302934e1f626d45588435c9d0aa878e42fa51c6c75d9902",
+        "worker-runtime.mjs": "99aebab5fc6fb6843ba6cf570d6946902be5e73c4ea20463e4287a9191fc985d"
+      }
+    }
+  }
+}

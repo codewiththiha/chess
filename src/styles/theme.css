@@ -1,0 +1,181 @@
+/* Define consistent text, input, focus, and reduced-motion states. */
+:root {
+  font-family: 'DM Sans Variable', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --muted: #53685d;
+  --line: #dbe3df;
+  --tint: #edf4ef;
+  --display: 'Newsreader Variable', serif;
+  --mono: 'DM Mono', monospace;
+}
+[data-theme='chess-dark'] {
+  --muted: #b0c1b7;
+  --line: #3c5045;
+  --tint: #2b4236;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--color-base-200);
+  color: var(--color-base-content);
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+a {
+  color: var(--color-primary);
+}
+.btn {
+  min-height: 44px;
+  height: 44px;
+  font-size: 13px;
+  font-weight: 600;
+  padding-inline: 17px;
+  gap: 8px;
+  box-shadow: none;
+  border-radius: 7px;
+  transition:
+    background-color 120ms,
+    border-color 120ms,
+    color 120ms;
+}
+.btn-outline {
+  border-color: var(--line);
+  color: var(--color-base-content);
+  background: var(--color-base-100);
+}
+.btn-outline:hover {
+  background: var(--tint);
+  border-color: var(--color-primary);
+}
+.btn-ghost {
+  border-color: transparent;
+}
+.btn-ghost:hover {
+  background: var(--tint);
+}
+.btn:disabled {
+  color: var(--muted);
+  opacity: 0.5;
+  background: transparent;
+}
+.icon-button {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+}
+.small-button {
+  font-size: 12px;
+  height: 36px;
+  min-height: 36px;
+  padding-inline: 11px;
+}
+.input,
+.select,
+.textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+  border-radius: 7px;
+  box-shadow: none;
+  font-size: 14px;
+}
+.input,
+.select {
+  min-height: 44px;
+  height: 44px;
+}
+.textarea {
+  padding: 13px;
+  line-height: 1.7;
+}
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+  border-color: var(--color-primary);
+}
+.muted,
+.fine-print {
+  color: var(--muted);
+}
+.fine-print {
+  font-size: 11px;
+  line-height: 1.7;
+}
+.mono {
+  font-family: var(--mono);
+}
+.text-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 650;
+  min-height: 36px;
+}
+.text-action:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.inline-error {
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--color-error) 8%, transparent);
+  color: var(--color-error);
+  border-radius: 6px;
+}
+.status-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--muted);
+  border-radius: 50%;
+  flex: 0 0 6px;
+}
+.engine-status.working .status-dot,
+.thinking-status .status-dot {
+  background: var(--color-primary);
+  animation: thinking 1.3s ease-in-out infinite;
+}
+@keyframes thinking {
+  50% {
+    opacity: 0.3;
+  }
+}
+.no-motion *,
+.no-motion *::before,
+.no-motion *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

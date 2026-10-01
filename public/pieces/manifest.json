@@ -1,0 +1,150 @@
+{
+  "repository": "https://github.com/lichess-org/lila",
+  "revision": "0b3a2610c602009378b8193b19cf88d8c9fb3d19",
+  "files": {
+    "chessnut/wP.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/wP.svg",
+      "sha256": "81cde9f22edf3f750a282335a6d1367f011642d5a9bb8a94c6c6859ab1b326ea"
+    },
+    "chessnut/wN.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/wN.svg",
+      "sha256": "f0fac07e481f7b31d1b074e458908f8fcad9ee4abdc76d84c274b8c4f438e388"
+    },
+    "chessnut/wB.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/wB.svg",
+      "sha256": "ec62a67ea0212ec75e151ff673b2ef27e33e1732665839148dfdd27c357ab096"
+    },
+    "chessnut/wR.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/wR.svg",
+      "sha256": "57d662b9b905a603e1cf28e36d61576dfd1a50695b23724c7189cd0f15736f03"
+    },
+    "chessnut/wQ.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/wQ.svg",
+      "sha256": "2d20b17499c7c268ca87f3c4038a3b1335e0a087010037b0d854f2f7f84aa254"
+    },
+    "chessnut/wK.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/wK.svg",
+      "sha256": "f64f2d088fe96a10fa77104cd1a42339e5495f56d6dcfda491298decbda7b2fa"
+    },
+    "chessnut/bP.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/bP.svg",
+      "sha256": "22da60dfa9fc6bfb54b1ee369dc9e3555e567e43eaea0fccad2e0211259ff0aa"
+    },
+    "chessnut/bN.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/bN.svg",
+      "sha256": "8842b49915174de6d224273f9dffd2a84f65dc5fc2b67c83441cfbe1b423d008"
+    },
+    "chessnut/bB.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/bB.svg",
+      "sha256": "933697379921e0a36f17a6863f5324e7f05fa73b243dab3d94e5ce8c37d064c2"
+    },
+    "chessnut/bR.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/bR.svg",
+      "sha256": "b588445132bd2295989b94b058d6ed91605b5dffbb5b4533a2f782848cae1684"
+    },
+    "chessnut/bQ.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/bQ.svg",
+      "sha256": "cf47f78c1ad9a99163e942f70365f8dd2b6d911011a5d8298be3d0596ad924a2"
+    },
+    "chessnut/bK.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/chessnut/bK.svg",
+      "sha256": "9e3c0ec404aec41dfabea96a204712c3feae80a456496ec0398499a1a77e642f"
+    },
+    "celtic/wP.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/wP.svg",
+      "sha256": "191c0d283ffd7292c2494142a56204d32bc26447a0df37e33962fa5f3f674c5b"
+    },
+    "celtic/wN.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/wN.svg",
+      "sha256": "5bb16b24efc7f3958835269572a57c9fbbea920d0b7273fe87857e743a98eac7"
+    },
+    "celtic/wB.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/wB.svg",
+      "sha256": "b467f2849185de0924a69a4e0c1b49d70410302af7638024671fe27856e301a2"
+    },
+    "celtic/wR.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/wR.svg",
+      "sha256": "0c4fe9b03ad21bfb6b9b8b7bc731fe66c3f4db155284edec2fd739d1c1da8659"
+    },
+    "celtic/wQ.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/wQ.svg",
+      "sha256": "9750aea417a338541776362c098bad01f53a8ffbf45a48cb77fd9586026eff79"
+    },
+    "celtic/wK.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/wK.svg",
+      "sha256": "8f8ddf272134dcbae8e50831e22bada71d01719378c7fa83e5f0d981dcd62b91"
+    },
+    "celtic/bP.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/bP.svg",
+      "sha256": "6deef22c5c1ad21338cafbcce42b58202b48cbefc8b3c921e017d578c311cbcb"
+    },
+    "celtic/bN.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/bN.svg",
+      "sha256": "b82f388cb50401a32066b37dfb378f68079f079419ad7a9c850bcf3a5471b440"
+    },
+    "celtic/bB.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/bB.svg",
+      "sha256": "7cdb3c9500f55b4834cfef5cc33f5bafe11ac870d62ede3b3f0fcf48c6bd9397"
+    },
+    "celtic/bR.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/bR.svg",
+      "sha256": "426bc22db33c7fc1851558045a72577e3400e8179c69812b514106ba5be3d9e7"
+    },
+    "celtic/bQ.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/bQ.svg",
+      "sha256": "d54b68ea845b70692280ca634ad8066d6723d3db49a3c32892f76bcf22cdccd3"
+    },
+    "celtic/bK.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/celtic/bK.svg",
+      "sha256": "6169f0454f87277725f0a2c89b14a45aad4a09585e717df2fc6af82318bce5ee"
+    },
+    "cburnett/wP.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/wP.svg",
+      "sha256": "a8bd79f344ea69a577cdd7b11cbab7bbebfc157cce01c6d29b8f2edf1c44068e"
+    },
+    "cburnett/wN.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/wN.svg",
+      "sha256": "43d8bed9cd40836335072a20f52d30237e6e2cbe304ffb13e258fa1d576c156a"
+    },
+    "cburnett/wB.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/wB.svg",
+      "sha256": "8bf4f38cc170686775f81158934301942b07e3f1162e76c6305e76d66aaa0910"
+    },
+    "cburnett/wR.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/wR.svg",
+      "sha256": "05746153e11de3ff4a43d6725f704e226e5d5b49c6ff170ed598d3e9883f2cd5"
+    },
+    "cburnett/wQ.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/wQ.svg",
+      "sha256": "9c0a960b360e08cea48eedab54e852107145de289b81a82fe27942045e2ab665"
+    },
+    "cburnett/wK.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/wK.svg",
+      "sha256": "09837f1f99dae2d05c2a0bfb5ce0fb9f37a95b124de44f428a08ae18d7b7c557"
+    },
+    "cburnett/bP.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/bP.svg",
+      "sha256": "93e11e46deceff0768211a28df3e39c6d3427aa172bdb5e3928b025bd2858587"
+    },
+    "cburnett/bN.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/bN.svg",
+      "sha256": "72e1565fbc9024015dcb6ee28d918c876523119f6f552c0a40d3118c13a67e13"
+    },
+    "cburnett/bB.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/bB.svg",
+      "sha256": "48ff9dba84dae861b1a81ac58f4647e05cee8a827acad1618bf11beaedcce60d"
+    },
+    "cburnett/bR.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/bR.svg",
+      "sha256": "5928b86919ae815f5d35dea8a25f5a84c3f8839468a137e429d42f618185cbcd"
+    },
+    "cburnett/bQ.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/bQ.svg",
+      "sha256": "2d0162d1fe776ac5a4d307d4f6e5960804273edc0d3743f1c97a158f5a64c4b1"
+    },
+    "cburnett/bK.svg": {
+      "source": "https://raw.githubusercontent.com/lichess-org/lila/0b3a2610c602009378b8193b19cf88d8c9fb3d19/public/piece/cburnett/bK.svg",
+      "sha256": "2dc3caba39a67a707ebc27f4e41b727dd5252f4f49da695fc15cc2589dd92a47"
+    }
+  }
+}

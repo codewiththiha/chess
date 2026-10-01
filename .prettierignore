@@ -1,0 +1,10 @@
+node_modules
+dist
+public/engine/portable
+public/engine/simd128
+public/pieces
+public/licenses
+LICENSE
+package-lock.json
+playwright-report
+test-results
