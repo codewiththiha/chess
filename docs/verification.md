@@ -131,3 +131,23 @@ See [the CI guide](ci.md) for browser/file filters, intentional skips, build
 prerequisites, aggregate failure handling, and source-commit validation. Neither
 the personal publishing credential nor credential-bearing URLs are included in
 tracked files or workflow secrets. The separate engine repository is unchanged.
+
+### Executed hosted evidence
+
+Verified on 2026-10-02 (local date), source commit `0e455d8`:
+
+- [Full push run 36916203038](https://github.com/codewiththiha/chess/actions/runs/36916203038):
+  success. Quality/actionlint, 14 CI-script tests, 55 app unit/integration tests,
+  the production build, actual commit checks, and 24 desktop + 24 mobile browser
+  cases all passed. The aggregate check was `Verify / Full verification`.
+- [Selective manual run 36916345995](https://github.com/codewiththiha/chess/actions/runs/36916345995):
+  success. Only browser was selected, with mobile and the regex
+  `import, real review|failed engine assets`. Both matching cases passed.
+  Quality/unit/commit jobs intentionally skipped, production build still ran as
+  the browser prerequisite despite its standalone input being false, and the
+  aggregate was `Verify / Selected verification`, not the full merge gate.
+- Both runs uploaded the production artifact and Playwright HTML/JUnit reports;
+  artifact listing and test counts were confirmed through the actual run/job logs.
+
+These are historical run links for the tested commit; inspect the latest branch
+run for subsequent documentation or code changes. Artifacts expire after 7 days.

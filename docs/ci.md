@@ -218,3 +218,14 @@ Official Playwright CI guidance: [5](https://playwright.dev/docs/ci). Action rel
 links are available at the corresponding `actions/*` GitHub repositories. Hosting,
 GitHub Pages deployment, release publication, and native Rust rebuilds are not
 side effects of these test workflows.
+
+## First-publication proof
+
+The [full push run](https://github.com/codewiththiha/chess/actions/runs/36916203038)
+and [selective mobile run](https://github.com/codewiththiha/chess/actions/runs/36916345995)
+both passed for commit `0e455d8`. The latter intentionally skipped quality/unit/commit
+jobs, ran the required build, passed its two filtered scenarios, and emitted only
+`Verify / Selected verification`. The full run emitted `Verify / Full verification`
+and passed all 55 app + 14 CI-script + 48 browser tests. See
+[verification evidence](verification.md) for exact scope; use Actions history to
+check newer commits rather than treating historical success as current proof.
