@@ -161,7 +161,9 @@ or per-variation mate distance is manufactured.
 
 Run strict checks and actual-browser tests against production output. Unit fault
 simulation is separate from the actual portable/SIMD engine tests. See
-`docs/verification.md` for executed coverage and limitations.
+`docs/verification.md` for executed coverage and limitations. GitHub Actions
+uses the same production artifact for isolated desktop/mobile jobs;
+`docs/ci.md` documents full/default and explicit partial verification.
 
 To update the engine: obtain verified upstream packages, update checksums and
 revision metadata together, rediscover/validate control bounds, preserve notices,

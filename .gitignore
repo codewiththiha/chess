@@ -26,3 +26,8 @@ dist-ssr
 playwright-report/
 test-results/
 *.tsbuildinfo
+
+# Python CI-script bytecode
+__pycache__/
+*.py[cod]
+ci-artifacts/

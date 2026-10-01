@@ -83,8 +83,9 @@ application. It does not erase MIT, Apache, ISC, GPLv2-or-later, or OFL notices.
 When distributing or hosting, provide the actual corresponding frontend source,
 its build inputs/lockfile, and notices, and make the source location accessible to
 users. The in-app Help dialog describes this obligation and exposes license and
-provenance links. Initial delivery remains local only; there is no public frontend
-repository location to falsely advertise.
+provenance links. Corresponding frontend source and build/CI instructions are
+available at https://github.com/codewiththiha/chess. Preserve that location or
+provide the corresponding source for your own modified distribution.
 
 Research links/design inspiration are documented in `docs/research.md`. The
 project's design skill is original guidance, not a copied external skill or an

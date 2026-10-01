@@ -41,7 +41,8 @@ Read README.md, docs/architecture.md, docs/plan.md, and the design skill at
 
 ## Verification
 
-Run `npm run verify` and `npm run test:e2e` for functional changes. Review desktop
+Run `npm run verify:all` for functional or workflow changes. See docs/ci.md for
+selective diagnostic runs; a partial run must not be reported as full verification. Review desktop
 and mobile screenshots, console errors, keyboard paths, promotion, engine
 cancellation, storage restoration, and production asset loading. Record evidence
 in docs/verification.md; never claim a check that was not executed.

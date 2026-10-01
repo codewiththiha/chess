@@ -1,0 +1,60 @@
+# Run full verification automatically and expose explicit, bounded manual selections.
+name: CI
+run-name: CI ${{ github.event_name }} / ${{ github.ref_name }}
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      quality:
+        description: Type checks, lint, formatting, workflow lint, and CI-script tests
+        type: boolean
+        default: true
+      unit:
+        description: Unit/integration tests, including both real WASM binaries
+        type: boolean
+        default: true
+      build:
+        description: Production build (also required whenever browser tests run)
+        type: boolean
+        default: true
+      browser:
+        description: Real-engine Playwright browser tests
+        type: boolean
+        default: true
+      commits:
+        description: Validate actual Conventional Commit messages
+        type: boolean
+        default: true
+      project:
+        description: Browser project (only relevant when browser tests are selected)
+        type: choice
+        default: both
+        options: [both, desktop, mobile]
+      grep:
+        description: Optional Playwright test-title regex (empty runs all scenarios)
+        type: string
+        default: ''
+      unit_filter:
+        description: Optional Vitest file-name filter (for example clocks-review)
+        type: string
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    name: Verify
+    uses: ./.github/workflows/verify.yml
+    with:
+      quality: ${{ github.event_name != 'workflow_dispatch' || inputs.quality }}
+      unit: ${{ github.event_name != 'workflow_dispatch' || inputs.unit }}
+      build: ${{ github.event_name != 'workflow_dispatch' || inputs.build }}
+      browser: ${{ github.event_name != 'workflow_dispatch' || inputs.browser }}
+      commits: ${{ github.event_name != 'workflow_dispatch' || inputs.commits }}
+      project: ${{ github.event_name == 'workflow_dispatch' && inputs.project || 'both' }}
+      grep: ${{ github.event_name == 'workflow_dispatch' && inputs.grep || '' }}
+      unit_filter: ${{ github.event_name == 'workflow_dispatch' && inputs.unit_filter || '' }}

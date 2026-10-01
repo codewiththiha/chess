@@ -32,14 +32,19 @@ There is no external analysis API, account, telemetry, or game-upload backend.
 Assets load from the app's own origin. This is not a service-worker-backed PWA:
 initial loading still requires the static app files to be available.
 
-**Initial delivery is an independent, local-only repository. No GitHub remote
-or push is configured.** The Rust engine repository is separate and unchanged.
+**Source:** https://github.com/codewiththiha/chess
+
+This is an independent frontend repository. The Rust engine repository is
+separate and unchanged. GitHub Actions runs full checks on push/PR, with explicit
+manual selections for partial runs; see the [CI workflow guide](docs/ci.md).
 
 ## Run locally
 
 Use Node.js **24 or newer** and npm. Python 3 is needed for repository checks.
 
 ```sh
+git clone https://github.com/codewiththiha/chess.git
+cd chess
 npm ci
 npm run dev
 ```
@@ -60,10 +65,10 @@ needed. Verified portable and SIMD128 packages are included in `public/engine`.
 ## Verification
 
 ```sh
-npm run verify              # strict Svelte/TS, lint, format, unit tests, build
+npm run verify              # strict Svelte/TS, lint, format, CI-script/unit tests, build
 npx playwright install --only-shell chromium
 npm run test:e2e            # production app, desktop + touch-enabled mobile
-npm run verify:all          # both gates together
+npm run verify:all          # core checks, workflow lint, and both browser projects
 npm run check:commit        # validate the actual HEAD commit message
 ```
 
@@ -74,7 +79,9 @@ than an unrelated application on that port.
 The verification suite contains **55 unit/integration tests** and **48 browser
 executions** (24 scenarios on desktop and emulated mobile). The actual WASM
 binaries are exercised, not replaced with production mocks. Fault simulations
-are confined to tests. See [verification evidence](docs/verification.md).
+are confined to tests. There are also 14 CI-selection/result regression tests.
+See [verification evidence](docs/verification.md) and the [CI guide](docs/ci.md)
+for manual skips, project/file filters, reusable workflows, and report artifacts.
 
 ## Engine controls and honest limits
 
@@ -126,6 +133,7 @@ checkmate is labeled as the winning side.
 - [Build plan and acceptance criteria](docs/plan.md)
 - [Research and decisions](docs/research.md)
 - [Verification and known coverage limits](docs/verification.md)
+- [CI workflows, selective runs, and future test guide](docs/ci.md)
 - [Contributor instructions](agents.md)
 - [Original researched interface-design skill](.agents/skills/chess-interface-design/SKILL.md)
 - [Artwork, engine, and dependency notices](THIRD_PARTY_NOTICES.md)
@@ -143,4 +151,5 @@ Bundled engine/models, artwork, fonts, and dependencies retain their own notices
 Do not remove them. A hosted/distributed build must be accompanied by the
 corresponding GPL-compatible frontend source, license notices, and a source
 location users can actually access. Read [third-party notices](THIRD_PARTY_NOTICES.md)
-before publishing; this initial delivery does not publish or push anything.
+before distributing builds. The source repository is published separately from
+any deployment; CI artifacts do not automatically deploy the application.

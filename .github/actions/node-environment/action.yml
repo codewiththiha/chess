@@ -1,0 +1,14 @@
+# Restore the pinned Node toolchain and install the exact locked dependencies.
+name: Node environment
+description: Set up this project's Node version and reproducible npm dependencies
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version-file: .node-version
+        cache: npm
+        cache-dependency-path: package-lock.json
+    - name: Install dependencies
+      shell: bash
+      run: npm ci --no-audit --no-fund

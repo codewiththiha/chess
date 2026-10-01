@@ -86,6 +86,10 @@
       </p>
       <div class="license-links">
         <a
+          href="https://github.com/codewiththiha/chess"
+          target="_blank"
+          rel="noreferrer">Frontend source<ExternalLink size={12} /></a
+        ><a
           href={`${import.meta.env.BASE_URL}licenses/GPL-3.0.txt`}
           target="_blank"
           rel="noreferrer">Frontend license<ExternalLink size={12} /></a
@@ -104,8 +108,9 @@
         >
       </div>
       <p class="fine-print">
-        Engine revision 4e2af5f. Frontend source is included in this project; a
-        public source location must accompany any hosted distribution.
+        Engine revision 4e2af5f. Frontend source, build instructions, and CI
+        guides are available in the linked repository. Retain notices when
+        distributing.
       </p>
     </section>
   </div>

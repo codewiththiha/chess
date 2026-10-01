@@ -49,7 +49,7 @@ final production run (about 1 minute 48 seconds). Coverage includes:
   focus, reduced motion, 320 px no-horizontal-overflow checks, and automated axe
   WCAG 2 A/AA, 2.1 AA, and 2.2 AA audits in light/dark states.
 
-## Final gate results
+## Initial release gate results (2026-10-01)
 
 | Gate                                               | Final status                                                                |
 | -------------------------------------------------- | --------------------------------------------------------------------------- |
@@ -111,5 +111,23 @@ PWA install/offline guarantee, native SMP/Syzygy execution, or calibrated rating
 measurement is claimed. A single active play tab is the supported workflow.
 
 The separate engine repository remains at `4e2af5f` and is not modified by this
-frontend verification. The new frontend's initial delivery is local-only with no
-remote/push. Vendored binaries/artwork remain checksum-identical to their sources.
+frontend verification. Its initial local-only release was subsequently approved
+for publishing to https://github.com/codewiththiha/chess. CI behavior and
+selective-run instructions are documented in docs/ci.md. Vendored binaries/artwork remain checksum-identical to their sources.
+
+## CI extension (2026-10-02)
+
+The publishing update adds full push/PR verification and selectable manual
+workflows. Local `npm run verify` passed strict types, lint/provenance, formatting,
+55 existing unit/integration tests, 14 CI-selection/result regression tests, and a
+production build. `npm run lint:workflows` passed checksum-pinned actionlint 1.7.12.
+The CI-style prebuilt production run passed all 48 desktop/mobile browser tests
+in about 2 minutes 8 seconds on an isolated port, with HTML and JUnit reports
+created. Full and targeted hosted runs are visible in the repository's
+[Actions history](https://github.com/codewiththiha/chess/actions). Do not infer a
+hosted run result from a locally passing gate; use the actual run conclusion.
+
+See [the CI guide](ci.md) for browser/file filters, intentional skips, build
+prerequisites, aggregate failure handling, and source-commit validation. Neither
+the personal publishing credential nor credential-bearing URLs are included in
+tracked files or workflow secrets. The separate engine repository is unchanged.

@@ -44,5 +44,6 @@ piece themes, and light/dark appearance. Settings and completed moves persist.
 ## Integrity
 
 No unlicensed Chess.com assets, fake ratings, calibrated-accuracy claims, cloud
-backup claims, credentials, or remote push. GPL-compatible SVG sets are vendored.
-The independent local Git repository has no remote until one is provided.
+backup claims, credentials, or unauthorized remote pushes. GPL-compatible SVG sets are vendored.
+The independent frontend repository is published only to the remote explicitly
+provided by the owner. CI defaults to full checks, with documented manual selections.
