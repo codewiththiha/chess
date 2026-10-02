@@ -1,7 +1,9 @@
 # Adapt the generated Android project: keep the webview inside the system bars,
-# and let the pipeline sign the release builds it publishes.
+# draw the launcher icon from the app's own mark, and let the pipeline sign the
+# release builds it publishes.
 from pathlib import Path
 import re
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 ANDROID = ROOT / "src-tauri/gen/android"
@@ -53,6 +55,68 @@ COLOUR = """\
     <color name="app_background">{value}</color>
 </resources>
 """
+
+# An adaptive launcher icon: the mark's plate as the background layer, the pawn
+# as the foreground, drawn from the same numbers as public/favicon.svg. The
+# foreground paths are already sized for the 108-unit canvas.
+ADAPTIVE_BACKGROUND = """\
+<?xml version="1.0" encoding="utf-8"?>
+<!-- {marker} -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="{fill}"
+        android:pathData="{path}" />
+</vector>
+"""
+
+ADAPTIVE_FOREGROUND = """\
+<?xml version="1.0" encoding="utf-8"?>
+<!-- {marker} -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="{fill}"
+        android:pathData="{path}" />
+</vector>
+"""
+
+ADAPTIVE_ICON = """\
+<?xml version="1.0" encoding="utf-8"?>
+<!-- {marker} -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/app_icon_background" />
+    <foreground android:drawable="@drawable/app_icon_foreground" />
+    <monochrome android:drawable="@drawable/app_icon_monochrome" />
+</adaptive-icon>
+"""
+
+MONOCHROME = ADAPTIVE_FOREGROUND
+
+# Devices below API 26 have no adaptive icons, so they get the whole mark — plate,
+# piece, and rule — in one vector drawable, drawn at the mark's own 100 units.
+LEGACY_ICON = """\
+<?xml version="1.0" encoding="utf-8"?>
+<!-- {marker} -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+{paths}</vector>
+"""
+
+LEGACY_PATH = """\
+    <path
+        android:fillColor="{fill}"
+        android:pathData="{path}" />"""
+
 
 SIGNING = """
 // {marker}: sign release builds with the keystore the pipeline supplies, so the
@@ -113,6 +177,57 @@ def write_background(directory: Path, value: str) -> None:
     )
 
 
+def write_launcher_icons() -> list:
+    """Draw the adaptive icon's layers from the app's own mark."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import app_mark
+
+    drawable = MAIN / "res/drawable"
+    drawable.mkdir(parents=True, exist_ok=True)
+    written = [
+        (
+            drawable / "app_icon_background.xml",
+            ADAPTIVE_BACKGROUND.format(
+                marker=MARKER, fill=app_mark.TILE, path=app_mark.android_background_path()
+            ),
+        ),
+        (
+            drawable / "app_icon_foreground.xml",
+            ADAPTIVE_FOREGROUND.format(
+                marker=MARKER, fill=app_mark.INK, path=app_mark.android_foreground_path()
+            ),
+        ),
+        (
+            drawable / "app_icon_monochrome.xml",
+            MONOCHROME.format(
+                marker=MARKER, fill="#ffffff", path=app_mark.android_foreground_path()
+            ),
+        ),
+        (
+            MAIN / "res/mipmap-anydpi-v26/ic_launcher.xml",
+            ADAPTIVE_ICON.format(marker=MARKER),
+        ),
+        (
+            MAIN / "res/mipmap-anydpi/ic_launcher.xml",
+            LEGACY_ICON.format(
+                marker=MARKER,
+                paths="\n".join(
+                    LEGACY_PATH.format(fill=fill, path=path)
+                    for fill, path in (
+                        (app_mark.TILE, app_mark.tile_path()),
+                        (app_mark.INK, app_mark.piece_path(app_mark._Pen())),
+                        (app_mark.RULE_INK, app_mark.rule_path()),
+                    )
+                ),
+            ),
+        ),
+    ]
+    for path, content in written:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+    return [path for path, _ in written]
+
+
 def main() -> None:
     activity = next(MAIN.rglob("MainActivity.kt"), None)
     theme = MAIN / "res/values/themes.xml"
@@ -124,7 +239,9 @@ def main() -> None:
     patch_signing(gradle)
     write_background(MAIN / "res/values", LIGHT_BACKGROUND)
     write_background(MAIN / "res/values-night", DARK_BACKGROUND)
+    icons = write_launcher_icons()
     print(f"Android project adapted: {activity.relative_to(ROOT)}")
+    print(f"Launcher icon drawn from the app mark: {icons[0].relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

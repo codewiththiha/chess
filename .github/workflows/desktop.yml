@@ -39,6 +39,8 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/node-environment
+      - name: Draw the platform icons from the app mark
+        run: npm run icons
       - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
         with:
           toolchain: stable

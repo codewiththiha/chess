@@ -30,10 +30,10 @@ WebAssembly. Licensed SVG pieces. Your browser, not a cloud account.
   Nothing is invented — a line is only used when the event has the facts it asks
   for — and when there is nothing worth saying, the character says **nothing at
   all** rather than narrating a plan it only saw in an engine line.
-  **Opponent speech** is on by default and one icon away in the rail: the
-  character says every line out loud in its own manner — pitch, pace, and the
-  system voice that fits it. Turn it off there or in Appearance; a platform with
-  no voice of its own is simply quiet.
+  **Opponent speech** is off by default and one icon away in the rail: turn it on
+  and the character says every line out loud in its own manner — pitch, pace, and
+  the system voice that fits it. A platform with no voice of its own is simply
+  quiet.
 - **Move naturally:** tap/click, mouse drag, touch drag, or the accessible
   keyboard board. Piece motion respects both your toggle and reduced-motion
   system preferences. Move sound is opt-in.

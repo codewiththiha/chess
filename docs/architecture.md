@@ -85,6 +85,12 @@ Reduced motion overrides piece animations; mobile form text is at least 16 px.
 
 ## Worker boundary
 
+`public/favicon.svg` is the application's mark, drawn by `scripts/app_mark.py`
+from one set of numbers. Everything else that shows the app — the rail, the
+browser tab, the desktop bundles, and the Android launcher icon — is rendered
+from it, so the artwork has a single source and the repo check fails if the
+committed SVG is not what the module draws.
+
 `public/engine/{portable,simd128}` are immutable, checksum-recorded upstream
 packages. The authored `bridge-worker.mjs` adds discovery metadata while using the
 unchanged cooperative runtime. It does not emulate search, modify the engine, or

@@ -34,13 +34,34 @@ for path in [root / "public/engine/manifest.json", root / "public/pieces/manifes
             verified_assets += 1
             if hashlib.sha256((path.parent / filename).read_bytes()).hexdigest() != entry["sha256"]:
                 errors.append(f"Artwork checksum mismatch: {filename}")
-# Windows builds compile the resource file from icons/icon.ico, whether or not
-# the bundle list names it, so a missing icon only shows up on a Windows runner.
+# Platform icons are generated from public/favicon.svg by `npm run icons`, so
+# they are not committed. What can be checked here is that the committed SVG is
+# the one the generator produces, and that the bundle asks for the set the
+# generator writes — including the .ico a Windows build compiles into the shell
+# whether or not the bundle list names it.
+sys.path.insert(0, str(root / "scripts"))
+import app_mark
+
+if (root / "public/favicon.svg").read_text() != app_mark.svg():
+    errors.append("public/favicon.svg is not what scripts/app_mark.py draws")
+
+GENERATED_ICONS = {
+    "icons/32x32.png",
+    "icons/64x64.png",
+    "icons/128x128.png",
+    "icons/128x128@2x.png",
+    "icons/icon.png",
+    "icons/icon.icns",
+    "icons/icon.ico",
+}
 config = json.loads((root / "src-tauri/tauri.conf.json").read_text())
-for name in sorted({*config["bundle"]["icon"], "icons/icon.ico"}):
-    if not (root / "src-tauri" / name).is_file():
-        errors.append(f"The desktop bundle names {name}, which is not in the repository")
+for name in sorted(set(config["bundle"]["icon"]) | {"icons/icon.ico", "icons/icon.icns"}):
+    if name not in GENERATED_ICONS:
+        errors.append(f"The desktop bundle names {name}, which the icon command does not write")
 if errors:
     print("\n".join(errors), file=sys.stderr)
     sys.exit(1)
-print(f"Authored-code summaries, the desktop icons, and {verified_assets} vendored file checksums verified")
+print(
+    "Authored-code summaries, the app mark, and "
+    f"{verified_assets} vendored file checksums verified"
+)

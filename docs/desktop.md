@@ -38,17 +38,46 @@ npm run tauri -- build    # production frontend + bundle for the current OS
 Rust 1.77.2 or newer and the platform's Tauri prerequisites are required **only**
 for desktop packaging; the web build needs neither.
 
-Icons are regenerated from the application's own four-square mark:
+## The app mark
+
+`public/favicon.svg` is the application's mark and the only artwork any platform
+icon is drawn from: **a pawn cut as ink on a printed plate, with the printer's
+rule set off centre**. Flat inks and three paths, no gradient, no shadow, and no
+stroke — which is what keeps it legible at 16px, and the reason the one
+asymmetry, the rule, is the only thing in the composition that is not centred.
+The plate is a squircle (a superellipse with n = 5), so its corners are round the
+way a phone's icon mask is round rather than as a circle stuck onto a square.
+
+Nothing else draws it. `scripts/app_mark.py` holds the geometry and writes the
+SVG, and the repo check fails if the committed file is not what the module
+draws, so the numbers in that module are the single source:
 
 ```sh
-python3 -m pip install pillow      # one-time, for the generator only
-python3 scripts/make-icons.py
+npm run assets:mark     # rewrite public/favicon.svg from the geometry
 ```
 
-The generator writes the PNG set the shell embeds, down to the 512px master, and
-`icons/icon.ico` in every size Windows asks for. A Windows build compiles that
-file into the executable as its resource, so the bundle is incomplete without
-it and the build stops with `icons/icon.ico not found`.
+Android is the one place a second copy is needed, because its launcher icons
+must be vector drawables rather than SVG: `scripts/ci/android_frame.py` asks the
+same module for the paths and writes the adaptive icon's layers — the plate
+across the whole 108-unit canvas, and the pawn scaled so its furthest point
+touches the 66-unit circle that survives every launcher mask. Devices below
+API 26, which have no adaptive icons, get the whole mark as one vector.
+
+## Platform icons
+
+The PNG/ICO/ICNS set the shell embeds is **generated, not committed**, from the
+mark:
+
+```sh
+npm run icons           # tauri icon public/favicon.svg -o src-tauri/icons
+npm run assets          # the mark, then the platform set
+```
+
+`npm run icons` writes `32x32.png` through `icon.png`, `icon.ico` for Windows,
+and `icon.icns` for macOS. A Windows build compiles the `.ico` into the
+executable as its resource, so it must exist even though the bundle list is what
+names it; both desktop workflows run this step before building, and
+`src-tauri/icons/` is ignored by git.
 
 ## Verification
 
