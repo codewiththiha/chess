@@ -607,3 +607,44 @@ and the Android window frame):
   authored summaries, the named icons, and 58 vendored checksums, and
   `npm run lint:workflows` passes actionlint 1.7.12 over the four workflows. The
   release and Android paths were proven on the runners, not locally.
+
+Verified on 2026-10-02 (local date), source commit `0ec73a9` (the app mark):
+
+- [CI push run 37042776530](https://github.com/codewiththiha/chess/actions/runs/37042776530):
+  every job green in 3 minutes 9 seconds — Selection, Commit messages, Quality,
+  Unit and WASM, Production build, Browser (desktop), Browser (mobile), and the
+  aggregate `Verify / Full verification`. Artifacts: `production-37042776530-1`
+  (7,484,901 bytes), `playwright-desktop-1` (283,947 bytes),
+  `playwright-mobile-1` (284,987 bytes).
+- [Desktop push run 37042775973](https://github.com/codewiththiha/chess/actions/runs/37042775973):
+  success in 2 minutes 35 seconds with the new step, which is where the SVG was
+  actually rasterized — the runner's log records fifty files written from
+  `public/favicon.svg`: `ICNS Creating icon.icns`, `ICO Creating icon.ico`, the
+  PNG ladder down from `icon.png`, twenty Android launcher mipmaps
+  (`ic_launcher`, `ic_launcher_round`, `ic_launcher_foreground` at five
+  densities each), and the iOS AppIcon set. `desktop-shell-37042775973-1`
+  (1,763,105 bytes) compiled against them.
+- What the mark is, and what was rejected on the way: four candidates were
+  rasterized and looked at as a contact sheet rather than argued about. Paper
+  grain and a 2° tilt read as noise and as a misalignment at 32px, not as craft,
+  so both were dropped; a cream rule under the piece confused the silhouette and
+  a red one made the mark look like a verdict badge. What stayed is flat ink: the
+  pawn, the printed plate, and one quiet sage rule set right of centre — the only
+  asymmetry in the composition, which is why it is the part that reads as placed
+  rather than generated. The plate is a squircle (n = 5), and the fitted Bézier
+  handle lands within 0.16 of 100 units of the true curve.
+- The Android launcher icon is the mark's own numbers: the plate drawn across the
+  whole 108-unit canvas so no launcher mask can show a gap, and the pawn scaled
+  so its furthest point sits at 32.997 of the 33-unit radius that survives every
+  mask — a measurement, not a guess, and the reason the scale now rounds down
+  rather than to four places. Devices below API 26 get the whole mark as one
+  vector, since they have no adaptive icons.
+- Tests added for the rules that make the mark what it is: flat inks and three
+  paths with no stroke, gradient, or filter; the rule as the only off-centre
+  element; the piece inside the guaranteed circle and touching it; the plate
+  covering the canvas; and the tile being a squircle rather than a rounded
+  rectangle. `python3 -m unittest discover -s tests/ci` is now **28 tests**, all
+  of which also run in the Quality job.
+- Nothing was rendered or installed in this workspace: the icons were produced on
+  the runner, and the local work was geometry, checks, and tests.
+
