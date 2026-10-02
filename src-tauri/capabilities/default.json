@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Expose only the shell's own window and commands to the local web build.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

@@ -1,0 +1,79 @@
+# Build the Tauri desktop shell from the same frontend revision that ships to the web.
+name: Desktop
+run-name: Desktop ${{ github.event_name }} / ${{ github.ref_name }}
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'src-tauri/**'
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - '.github/workflows/desktop.yml'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      bundle:
+        description: Also produce installable Linux bundles (slower)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: desktop-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    shell: bash
+jobs:
+  shell:
+    name: Desktop shell
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/node-environment
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - name: Install the system libraries Tauri links against
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev \
+            librsvg2-dev libsoup-3.0-dev patchelf
+      - name: Build the shared frontend the shell embeds
+        run: npm run build
+      - name: Check formatting
+        working-directory: src-tauri
+        run: cargo fmt --all --check
+      - name: Lint with warnings denied
+        working-directory: src-tauri
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Compile the desktop shell against the real frontend bundle
+        working-directory: src-tauri
+        run: cargo build --release --locked
+      - name: Report the shell toolchain and artifact
+        working-directory: src-tauri
+        run: |
+          rustc --version
+          cargo --version
+          ls -l target/release/gwaymaegyi-chess
+      - name: Produce installable Linux bundles
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.bundle }}
+        run: npm run tauri -- build --bundles deb,rpm,appimage
+      - name: Keep the shell artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: desktop-shell-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            src-tauri/target/release/gwaymaegyi-chess
+            src-tauri/target/release/bundle/**
+          if-no-files-found: error
+          retention-days: 7

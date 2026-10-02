@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "gwaymaegyi chess",
+  "version": "0.1.0",
+  "identifier": "com.codewiththiha.gwaymaegyi",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "gwaymaegyi chess",
+        "width": 1440,
+        "height": 1000,
+        "minWidth": 1024,
+        "minHeight": 720,
+        "resizable": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "category": "Game",
+    "shortDescription": "Local chess against a real Rust/WASM engine",
+    "longDescription": "Plays, records, and reviews chess against the real gwaymaegyi Rust/WASM engine that ships with this application. Games and reviews stay in a local SQLite database.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.png"
+    ],
+    "targets": "all"
+  }
+}
