@@ -207,7 +207,11 @@ export async function importGame(page: Page, pgn: string): Promise<void> {
 /** Home lists exactly one row per stored game, so duplicate records are visible. */
 export async function savedGames(page: Page): Promise<number> {
   await go(page, 'Home');
-  return page.locator('.saved-game').count();
+  const games = page.locator('.saved-game');
+  // Records are written through the SQLite worker, so the list can trail the
+  // last move by a moment; no caller ever expects an empty history here.
+  await expect.poll(() => games.count(), { timeout: 15000 }).toBeGreaterThan(0);
+  return games.count();
 }
 
 export async function savedTitles(page: Page): Promise<string[]> {
