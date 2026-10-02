@@ -2,8 +2,9 @@
 import type { AppState } from '../state/app.svelte';
 import { EngineClient } from '../engine/client';
 import { Cancelled } from '../engine/types';
+import { policyForGame } from '../domain/bots';
 import type { GameActions } from './game';
-import type { ComputeSettings } from '../domain/types';
+import type { ComputeSettings, EngineSettings } from '../domain/types';
 export class SearchController {
   readonly engine = new EngineClient();
   private generation = 0;
@@ -57,7 +58,7 @@ export class SearchController {
     s.thinking = true;
     const start = s.record.startFen;
     const history = s.record.moves.slice(0, s.cursor).map((m) => m.uci);
-    const engine = s.preferenceSnapshot().engine;
+    const engine = this.policy();
     // Study arrows come from the engine's own lines, so ask for as many as shown.
     const settings = analysis
       ? {
@@ -113,6 +114,14 @@ export class SearchController {
         this.onError(e);
       }
     })();
+  }
+  /**
+   * The policy the loaded game plays with: the opponent bot's own style and
+   * strength when it has one, otherwise the settings from the engine dialog.
+   */
+  private policy(): EngineSettings {
+    const s = this.state;
+    return policyForGame(s.preferenceSnapshot().engine, s.record, s.bots);
   }
   async updatePerformance(compute: ComputeSettings): Promise<void> {
     if (this.state.thinking) await this.engine.performance(compute);

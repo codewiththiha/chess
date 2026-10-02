@@ -15,6 +15,7 @@ import {
   terminalResult,
 } from '../domain/games';
 import { ELO_MAX } from '../domain/strength';
+import type { OpponentBot } from '../domain/games';
 import type { AppState } from '../state/app.svelte';
 import type {
   Color,
@@ -38,14 +39,20 @@ export class GameActions {
     this.state.record.updatedAt = Date.now();
   }
 
-  create(options: NewGameOptions): void {
+  create(options: NewGameOptions, bot: OpponentBot | null = null): void {
     this.onCancel();
     const s = this.state;
+    const engine = s.preferences.engine;
     s.record = createGame(
       options,
-      s.preferences.engine.strength === 'full'
-        ? ELO_MAX
-        : s.preferences.engine.elo,
+      bot ??
+        (options.opponent === 'human'
+          ? null
+          : {
+              id: '',
+              name: 'gwaymaegyi',
+              elo: engine.strength === 'full' ? ELO_MAX : engine.elo,
+            }),
     );
     s.premove = null;
     s.cursor = 0;

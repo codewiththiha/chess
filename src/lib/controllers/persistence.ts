@@ -2,6 +2,8 @@
 import { ChessDatabase } from '../data/database';
 import { SavedDataError } from '../data/errors';
 import { readLegacyLibrary, reviewGameId } from '../data/legacy-indexeddb';
+import { devBots, upsertBot, removeBot as dropBot } from '../domain/bots';
+import type { BotProfile } from '../domain/bots';
 import { clockSnapshot } from '../domain/clocks';
 import { importPgn, exportPgn } from '../domain/pgn';
 import type { AppState } from '../state/app.svelte';
@@ -33,6 +35,7 @@ export class PersistenceController {
         s.storageError =
           'Saved settings were invalid. Defaults are in use; your games remain in the local library.';
       }
+      await this.loadBots();
       let game: GameRecord | null = null;
       if (s.preferences.lastGameId) {
         try {
@@ -48,6 +51,32 @@ export class PersistenceController {
     } catch (error) {
       this.unavailable(error);
       return null;
+    }
+  }
+
+  /** Shipped bots are code; the reader's are rows that must survive a reload. */
+  private async loadBots(): Promise<void> {
+    const stored = await this.db.bots();
+    this.state.bots = stored.reduce(
+      (list, bot) => upsertBot(list, bot),
+      devBots(),
+    );
+  }
+
+  async saveBot(bot: BotProfile): Promise<void> {
+    await this.db.saveBot(bot);
+    this.state.bots = upsertBot(this.state.bots, bot);
+    this.state.preferences.botId = bot.id;
+    await this.preferences();
+  }
+
+  async deleteBot(id: string): Promise<void> {
+    await this.db.removeBot(id);
+    this.state.bots = dropBot(this.state.bots, id);
+    if (this.state.preferences.botId === id) {
+      this.state.preferences.botId =
+        this.state.bots.find((bot) => bot.category === 'dev')?.id ?? null;
+      await this.preferences();
     }
   }
 

@@ -7,6 +7,7 @@
   import Promotion from './Promotion.svelte';
   import Confirm from './Confirm.svelte';
   import Help from './Help.svelte';
+  import Bot from './Bot.svelte';
   import type { Session } from '../../controllers/session';
   let { session }: { session: Session } = $props();
   const s = $derived(session.state);
@@ -23,5 +24,7 @@
   />{:else if s.dialog === 'promotion'}<Promotion
     {session}
   />{:else if s.dialog === 'confirm'}<Confirm
+    {session}
+  />{:else if s.dialog === 'bot'}<Bot
     {session}
   />{:else if s.dialog === 'help'}<Help {session} />{/if}

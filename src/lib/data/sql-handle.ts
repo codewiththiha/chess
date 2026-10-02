@@ -27,7 +27,23 @@ export interface StoredGame {
   moves: string;
   clock: string;
   engineElo: number;
+  botId: string | null;
   headers: string;
+}
+
+export interface StoredBot {
+  id: string;
+  name: string;
+  category: string;
+  elo: number;
+  strength: string;
+  mode: string;
+  blurb: string;
+  avatar: string | null;
+  behaviors: string;
+  parameters: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface StoredReview {
@@ -80,8 +96,9 @@ const SCHEMA = [
      termination TEXT NOT NULL,
      moves TEXT NOT NULL,
      clock TEXT NOT NULL,
-     engine_level INTEGER NOT NULL,
+     engine_elo INTEGER NOT NULL,
      headers TEXT NOT NULL,
+     bot_id TEXT,
      reviewed INTEGER NOT NULL DEFAULT 0
    )`,
   `CREATE INDEX IF NOT EXISTS games_dedupe ON games (dedupe)`,
@@ -97,6 +114,21 @@ const SCHEMA = [
      complete INTEGER NOT NULL,
      points TEXT NOT NULL
    )`,
+  `CREATE TABLE IF NOT EXISTS bots (
+     id TEXT PRIMARY KEY,
+     name TEXT NOT NULL,
+     category TEXT NOT NULL,
+     elo INTEGER NOT NULL,
+     strength TEXT NOT NULL,
+     mode TEXT NOT NULL,
+     blurb TEXT NOT NULL,
+     avatar TEXT,
+     behaviors TEXT NOT NULL,
+     parameters TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   )`,
+  `CREATE INDEX IF NOT EXISTS bots_category ON bots (category, elo DESC)`,
   `CREATE TABLE IF NOT EXISTS settings (
      key TEXT PRIMARY KEY,
      value TEXT NOT NULL
@@ -122,6 +154,7 @@ const GAME_FIELDS = [
   'engine_elo',
   'headers',
   'opponent',
+  'bot_id',
 ];
 const GAME_COLUMNS = `${GAME_FIELDS.join(', ')}, reviewed`;
 const GAME_WRITE_COLUMNS = GAME_FIELDS.join(', ');
@@ -162,6 +195,8 @@ export class SqlStore {
       this.handle.exec(
         "ALTER TABLE games ADD COLUMN opponent TEXT NOT NULL DEFAULT 'bot'",
       );
+    if (!columns.has('bot_id'))
+      this.handle.exec('ALTER TABLE games ADD COLUMN bot_id TEXT');
   }
 
   setting(key: string): string | null {
@@ -216,6 +251,7 @@ export class SqlStore {
       engineElo: integer(row.engine_elo, 'engine Elo'),
       headers: text(row.headers, 'headers'),
       opponent: text(row.opponent, 'opponent'),
+      botId: typeof row.bot_id === 'string' ? row.bot_id : null,
     };
   }
 
@@ -283,7 +319,8 @@ export class SqlStore {
          start_fen = excluded.start_fen, chess960 = excluded.chess960, human = excluded.human,
          white = excluded.white, black = excluded.black, result = excluded.result,
          termination = excluded.termination, moves = excluded.moves, clock = excluded.clock,
-         engine_elo = excluded.engine_elo, headers = excluded.headers, opponent = excluded.opponent`,
+         engine_elo = excluded.engine_elo, headers = excluded.headers,
+         opponent = excluded.opponent, bot_id = excluded.bot_id`,
       [
         id,
         row.dedupe,
@@ -303,8 +340,68 @@ export class SqlStore {
         row.engineElo,
         row.headers,
         row.opponent,
+        row.botId,
       ],
     );
+  }
+
+  /** The reader's own bots, newest Elo first; shipped bots live in the code. */
+  listBots(): StoredBot[] {
+    return this.handle
+      .selectObjects(
+        `SELECT id, name, category, elo, strength, mode, blurb, avatar,
+                behaviors, parameters, created_at, updated_at
+         FROM bots ORDER BY elo DESC, name ASC`,
+      )
+      .map((row) => SqlStore.decodeBot(row));
+  }
+
+  private static decodeBot(row: Record<string, unknown>): StoredBot {
+    return {
+      id: text(row.id, 'bot id'),
+      name: text(row.name, 'bot name'),
+      category: text(row.category, 'bot category'),
+      elo: integer(row.elo, 'bot Elo'),
+      strength: text(row.strength, 'bot strength'),
+      mode: text(row.mode, 'bot style'),
+      blurb: text(row.blurb, 'bot description'),
+      avatar: typeof row.avatar === 'string' ? row.avatar : null,
+      behaviors: text(row.behaviors, 'bot behaviors'),
+      parameters: text(row.parameters, 'bot parameters'),
+      createdAt: integer(row.created_at, 'bot creation time'),
+      updatedAt: integer(row.updated_at, 'bot update time'),
+    };
+  }
+
+  writeBot(row: StoredBot): void {
+    this.handle.exec(
+      `INSERT INTO bots (id, name, category, elo, strength, mode, blurb, avatar,
+                         behaviors, parameters, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         name = excluded.name, category = excluded.category, elo = excluded.elo,
+         strength = excluded.strength, mode = excluded.mode, blurb = excluded.blurb,
+         avatar = excluded.avatar, behaviors = excluded.behaviors,
+         parameters = excluded.parameters, updated_at = excluded.updated_at`,
+      [
+        row.id,
+        row.name,
+        row.category,
+        row.elo,
+        row.strength,
+        row.mode,
+        row.blurb,
+        row.avatar,
+        row.behaviors,
+        row.parameters,
+        row.createdAt,
+        row.updatedAt,
+      ],
+    );
+  }
+
+  deleteBot(id: string): void {
+    this.handle.exec('DELETE FROM bots WHERE id = ?', [id]);
   }
 
   private hasReview(id: string): boolean {

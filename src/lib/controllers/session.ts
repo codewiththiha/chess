@@ -11,6 +11,8 @@ import { supportsSimd } from '../engine/protocol';
 import { exportPgn, EXAMPLE_PGN } from '../domain/pgn';
 import { copyText, download } from '../data/files';
 import { categoryLabel, describeTime } from '../domain/time-controls';
+import { botById, newBot, validateBot } from '../domain/bots';
+import type { BotProfile } from '../domain/bots';
 import type { Color, NewGameOptions, Preferences, View } from '../domain/types';
 
 function policyFingerprint(p: Preferences): string {
@@ -131,10 +133,46 @@ export class Session {
 
   startGame(options: NewGameOptions): void {
     this.gameChosen = true;
-    this.game.create(options);
+    const bot =
+      options.opponent === 'bot'
+        ? botById(this.state.bots, options.botId)
+        : null;
+    this.game.create(options, bot);
     this.notify(
-      `${categoryLabel(options.minutes)} · ${describeTime(options.minutes, options.increment)}`,
+      `${bot ? `${bot.name} · ` : ''}${categoryLabel(options.minutes)} · ${describeTime(options.minutes, options.increment)}`,
     );
+  }
+
+  /** Remember the bot Home will start the next game against. */
+  selectBot(id: string): void {
+    this.state.preferences.botId = id;
+    void this.storage.preferences();
+  }
+
+  openBotDialog(bot: BotProfile | null): void {
+    this.state.draftBot = bot ? { ...bot } : newBot('');
+    this.openDialog('bot');
+  }
+
+  async saveBot(bot: BotProfile): Promise<void> {
+    const clean: BotProfile = {
+      ...bot,
+      name: bot.name.trim(),
+      blurb: bot.blurb.trim(),
+    };
+    validateBot(clean);
+    if (clean.category === 'dev') clean.category = 'custom';
+    await this.storage.saveBot(clean);
+    this.state.dialog = null;
+    this.state.draftBot = null;
+    this.notify(`${clean.name} saved.`);
+  }
+
+  async deleteBot(id: string): Promise<void> {
+    await this.storage.deleteBot(id);
+    this.state.dialog = null;
+    this.state.draftBot = null;
+    this.notify('Bot deleted.');
   }
 
   setTimeControl(minutes: number, increment: number): void {

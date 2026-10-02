@@ -1,5 +1,6 @@
 // Store validated games, reviews, and preferences in the local SQLite database.
 import {
+  decodeBotProfile,
   decodeGame,
   decodePreferences,
   text,
@@ -12,10 +13,12 @@ import { SqlClient } from './sql-client';
 import type { DatabaseStatus } from './sql-client';
 import type {
   SqlValue,
+  StoredBot,
   StoredGame,
   StoredReview,
   StoredSummary,
 } from './sql-handle';
+import type { BotProfile } from '../domain/bots';
 import { gameIdentity, isStoredGame } from '../domain/identity';
 import { position } from '../domain/chess';
 import type { GameRecord, Preferences, ReviewRecord } from '../domain/types';
@@ -63,6 +66,7 @@ function encode(record: GameRecord): StoredGame {
     moves: JSON.stringify(record.moves),
     clock: JSON.stringify(record.clock),
     engineElo: record.engineElo,
+    botId: record.botId,
     headers: JSON.stringify(record.headers),
   };
 }
@@ -87,6 +91,7 @@ function decodeGameRow(row: StoredGame): GameRecord {
       clock: parse(row.clock, 'clock'),
       engineElo: row.engineElo,
       opponent: row.opponent === 'human' ? 'human' : 'bot',
+      botId: row.botId,
       headers: parse(row.headers, 'headers'),
     });
   } catch (error) {
@@ -266,6 +271,57 @@ export class ChessDatabase {
 
   async countGames(): Promise<number> {
     return this.call<number>('gameCount');
+  }
+
+  /** The reader's own bots. Shipped bots are code, not rows, so they cannot be lost. */
+  async bots(): Promise<BotProfile[]> {
+    const rows = await this.call<StoredBot[]>('listBots');
+    const bots: BotProfile[] = [];
+    for (const row of rows) {
+      try {
+        bots.push(
+          decodeBotProfile({
+            id: row.id,
+            name: row.name,
+            category: row.category,
+            elo: row.elo,
+            strength: row.strength,
+            mode: row.mode,
+            blurb: row.blurb,
+            avatar: row.avatar,
+            behaviors: parse(row.behaviors, 'bot behaviors'),
+            parameters: parse(row.parameters, 'bot parameters'),
+          }),
+        );
+      } catch (error) {
+        if (error instanceof SavedDataError) throw error;
+        throw new SavedDataError('A saved bot has invalid data.', error);
+      }
+    }
+    return bots;
+  }
+
+  async saveBot(bot: BotProfile): Promise<void> {
+    const now = Date.now();
+    const row: StoredBot = {
+      id: bot.id,
+      name: bot.name,
+      category: bot.category,
+      elo: bot.elo,
+      strength: bot.strength,
+      mode: bot.mode,
+      blurb: bot.blurb,
+      avatar: bot.avatar,
+      behaviors: JSON.stringify(bot.behaviors),
+      parameters: JSON.stringify(bot.parameters),
+      createdAt: now,
+      updatedAt: now,
+    };
+    await this.call('writeBot', row);
+  }
+
+  async removeBot(id: string): Promise<void> {
+    await this.call('deleteBot', id);
   }
 }
 

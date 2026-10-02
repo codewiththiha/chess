@@ -4,7 +4,7 @@
   import { formatClock } from '../domain/clocks';
   import { material } from '../domain/chess';
   import { roleToChar } from 'chessops/util';
-  import { strengthLabel } from '../domain/strength';
+  import { gameOpponentLabel } from '../domain/bots';
   import type { Session } from '../controllers/session';
   import type { Color } from '../domain/types';
   let { session, color }: { session: Session; color: Color } = $props();
@@ -20,22 +20,23 @@
   );
   const advantage = $derived(material(s.fen) * (color === 'white' ? 1 : -1));
   const time = $derived(s.getClock(color));
+  // A bot game shows the bot's own strength; the analysis policy leaves none.
   const engineLabel = $derived(
     s.record.opponent === 'human'
       ? 'Second player'
-      : s.preferences.engine.mode === 'analysis'
-        ? 'Full strength'
-        : strengthLabel(
-            s.preferences.engine.strength,
-            s.preferences.engine.elo,
-          ),
+      : s.gameBot || s.record.opponent === 'bot'
+        ? gameOpponentLabel(s.record, s.bots)
+        : '',
   );
+  const picture = $derived(opponent && s.gameBot ? s.gameBot.avatar : null);
 </script>
 
 <div class="player-row" class:player-active={running}>
   <div class="player-details">
     <div class="player-name">
-      <span class="player-name-text">{name}</span><span
+      {#if picture}<img class="player-pfp" src={picture} alt="" />{/if}<span
+        class="player-name-text">{name}</span
+      ><span
         class="color-pebble"
         role="img"
         class:white={color === 'white'}

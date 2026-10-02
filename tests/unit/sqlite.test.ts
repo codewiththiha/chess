@@ -5,6 +5,7 @@ import { SqlStore } from '../../src/lib/data/sql-handle';
 import type {
   SqlHandle,
   SqlValue,
+  StoredBot,
   StoredGame,
 } from '../../src/lib/data/sql-handle';
 import { gameIdentity } from '../../src/lib/domain/identity';
@@ -29,17 +30,37 @@ function game(overrides: Partial<StoredGame> = {}): StoredGame {
     engineElo: 1600,
     headers: '{}',
     opponent: 'bot',
+    botId: null,
+    ...overrides,
+  };
+}
+
+function bot(overrides: Partial<StoredBot> = {}): StoredBot {
+  return {
+    id: 'bot-one',
+    name: 'Sparring Partner',
+    category: 'custom',
+    elo: 1450,
+    strength: 'elo',
+    mode: 'balanced',
+    blurb: 'Trades early.',
+    avatar: 'data:image/png;base64,AAAA',
+    behaviors: '{}',
+    parameters: '{}',
+    createdAt: 1_000,
+    updatedAt: 1_000,
     ...overrides,
   };
 }
 
 let store: SqlStore;
 let handle: SqlHandle;
+let sqlite: Awaited<ReturnType<typeof sqlite3InitModule>>;
 
-beforeAll(async () => {
-  const sqlite3 = await sqlite3InitModule();
-  const database = new sqlite3.oo1.DB(':memory:', 'ct');
-  handle = {
+/** A private in-memory database, for schema work that must not see the shared one. */
+function freshDatabase(): SqlHandle {
+  const database = new sqlite.oo1.DB(':memory:', 'ct');
+  return {
     selectObjects: (sql: string, params?: SqlValue[]) =>
       database.selectObjects(sql, params ?? []),
     exec: (sql: string, params?: SqlValue[]) => {
@@ -49,6 +70,11 @@ beforeAll(async () => {
       database.close();
     },
   };
+}
+
+beforeAll(async () => {
+  sqlite = await sqlite3InitModule();
+  handle = freshDatabase();
   store = new SqlStore(handle);
 });
 
@@ -57,6 +83,7 @@ beforeEach(() => {
   handle.exec('DELETE FROM games');
   handle.exec('DELETE FROM reviews');
   handle.exec('DELETE FROM settings');
+  handle.exec('DELETE FROM bots');
 });
 
 describe('game records', () => {
@@ -161,6 +188,36 @@ describe('game records', () => {
     expect(store.readReview('reviewed')).toBeNull();
   });
 
+  it('upgrades a database written before Elo, opponent, and bot identities', () => {
+    const legacy = freshDatabase();
+    legacy.exec(`CREATE TABLE games (
+      id TEXT PRIMARY KEY, dedupe TEXT NOT NULL, title TEXT NOT NULL, kind TEXT NOT NULL,
+      created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, start_fen TEXT NOT NULL,
+      chess960 INTEGER NOT NULL, human TEXT NOT NULL, white TEXT NOT NULL, black TEXT NOT NULL,
+      result TEXT NOT NULL, termination TEXT NOT NULL, moves TEXT NOT NULL, clock TEXT NOT NULL,
+      engine_level INTEGER NOT NULL, headers TEXT NOT NULL, reviewed INTEGER NOT NULL DEFAULT 0
+    )`);
+    legacy.exec(
+      `INSERT INTO games VALUES ('old', 'identity', 'Old game', 'play', 1, 2, 'standard',
+        0, 'white', 'You', 'gwaymaegyi', '*', '', '[]', '{}', 1500, '{}', 0)`,
+    );
+    const upgraded = new SqlStore(legacy);
+    upgraded.migrate();
+    const row = upgraded.readGame('old');
+    expect(row?.engineElo).toBe(1500);
+    expect(row?.opponent).toBe('bot');
+    expect(row?.botId).toBeNull();
+    const columns = legacy
+      .selectObjects('PRAGMA table_info(games)')
+      .map((value) => String(value.name));
+    expect(columns).toContain('engine_elo');
+    expect(columns).not.toContain('engine_level');
+    // Running the upgrade twice must not fail or drop the row.
+    upgraded.migrate();
+    expect(upgraded.readGame('old')?.engineElo).toBe(1500);
+    legacy.close();
+  });
+
   it('deletes a game with its review and keeps unrelated rows', () => {
     store.writeGame(game({ id: 'keep', dedupe: 'keep' }));
     store.writeGame(game({ id: 'drop', dedupe: 'drop' }));
@@ -178,6 +235,34 @@ describe('game records', () => {
     store.deleteGame('keep');
     expect(store.allGames().map((row) => row.id)).toEqual(['drop']);
     expect(store.readReview('keep')).toBeNull();
+  });
+
+  it('stores the bot a game was played against on the game row', () => {
+    store.writeGame(game({ botId: 'dev-intern' }));
+    expect(store.readGame('game-one')?.botId).toBe('dev-intern');
+    store.writeGame(game({ botId: null }));
+    expect(store.readGame('game-one')?.botId).toBeNull();
+  });
+
+  it('keeps the reader bots in the database and writes them idempotently', () => {
+    store.writeBot(bot());
+    store.writeBot(bot({ elo: 2600, name: 'Renamed', avatar: null }));
+    const rows = store.listBots();
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: 'bot-one',
+      name: 'Renamed',
+      elo: 2600,
+      avatar: null,
+    });
+    store.writeBot(bot({ id: 'bot-two', elo: 900 }));
+    // Newest Elo first, so the list reads strongest to weakest.
+    expect(store.listBots().map((row) => row.id)).toEqual([
+      'bot-one',
+      'bot-two',
+    ]);
+    store.deleteBot('bot-one');
+    expect(store.listBots().map((row) => row.id)).toEqual(['bot-two']);
   });
 
   it('stores preferences and metadata as settings', () => {

@@ -93,7 +93,7 @@
   >
   <p class="honesty-note">
     <Info size={15} />Elo targets are nominal and uncalibrated—not measured
-    ratings. Ask for a bot in the bot library to play at a named strength.
+    ratings. A bot from the library plays at the strength printed on its card.
   </p>
 </div>
 <div class="settings-block">

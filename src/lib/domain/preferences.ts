@@ -1,5 +1,6 @@
 // Supply honest defaults and validate lossless engine resource budgets.
 import { ELO_MAX, ELO_MIN } from './strength';
+import { DEFAULT_BOT_ID } from './bots';
 import type { ComputeSettings, Preferences } from './types';
 export const U64_MAX = '18446744073709551615';
 export const COMPUTE_PRESETS: Record<
@@ -47,6 +48,7 @@ export function defaultPreferences(): Preferences {
     arrowCount: 3,
     premove: false,
     evaluation: true,
+    botId: DEFAULT_BOT_ID,
     lastGameId: null,
     engine: {
       backend: 'auto',
@@ -87,6 +89,8 @@ export function validatePreferences(p: Preferences): void {
   if (e.strength !== 'elo' && e.strength !== 'full')
     throw new Error('Unknown strength setting.');
   integer(p.arrowCount, 1, 4, 'Arrow count');
+  if (p.botId !== null && typeof p.botId !== 'string')
+    throw new Error('Unknown selected bot.');
   integer(e.hashMiB, 1, 64, 'Hash');
   integer(e.multiPv, 1, 32, 'MultiPV');
   decimal(e.seed, true);

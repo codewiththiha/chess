@@ -14,6 +14,7 @@
     Hourglass,
     Infinity as InfinityIcon,
     SlidersHorizontal,
+    Plus,
   } from '@lucide/svelte';
   import {
     TIME_CONTROL_GROUPS,
@@ -23,6 +24,7 @@
   } from '../domain/time-controls';
   import type { TimeControl } from '../domain/time-controls';
   import { resultText } from '../domain/games';
+  import { botSummary, orderedBots } from '../domain/bots';
   import { exportPgn } from '../domain/pgn';
   import { download } from '../data/files';
   import MiniBoard from './MiniBoard.svelte';
@@ -71,6 +73,9 @@
         chosen.increment > TIME_LIMITS.increment),
   );
   const control = $derived(untimed ? UNTIMED : chosen);
+  // Shipped bots first in their published order, then the reader's own by Elo.
+  const bots = $derived(orderedBots(s.bots));
+  const bot = $derived(s.selectedBot);
   const games = $derived(
     s.library.filter((game) =>
       `${game.title} ${game.white} ${game.black}`
@@ -90,6 +95,7 @@
         ? Math.min(959, Math.max(0, Number(position) || 0))
         : 518,
       opponent,
+      botId: opponent === 'bot' ? (bot?.id ?? null) : null,
     });
   }
   function pick(preset: TimeControl): void {
@@ -234,6 +240,40 @@
       <label class="chess960-toggle"
         ><input type="checkbox" bind:checked={chess960} /> Chess960</label
       >
+      {#if opponent === 'bot'}
+        <div class="bot-picker" role="group" aria-label="Bot">
+          {#each bots as option (option.id)}
+            <span class="bot-card" class:active={option.id === bot?.id}>
+              <button
+                type="button"
+                class="bot-pick"
+                aria-pressed={option.id === bot?.id}
+                title={option.blurb || botSummary(option)}
+                onclick={() => session.selectBot(option.id)}
+                >{#if option.avatar}<img
+                    class="bot-pfp"
+                    src={option.avatar}
+                    alt=""
+                  />{/if}<span class="bot-name">{option.name}</span><span
+                  class="bot-strength-label">{botSummary(option)}</span
+                ></button
+              >{#if option.category === 'custom'}<button
+                  type="button"
+                  class="bot-edit"
+                  aria-label={`Edit ${option.name}`}
+                  onclick={() => session.openBotDialog(option)}
+                  ><Pencil size={13} /></button
+                >{/if}
+            </span>
+          {/each}
+          <button
+            type="button"
+            class="bot-card bot-new"
+            onclick={() => session.openBotDialog(null)}
+            ><Plus size={15} />Add bot</button
+          >
+        </div>
+      {/if}
       {#if chess960}<input
           class="position-input"
           type="number"

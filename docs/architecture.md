@@ -118,12 +118,17 @@ committed at once, an impossible one is dropped with a notice, and neither path 
 write an illegal move.
 Timeout is a draw when the opponent has insufficient mating material.
 
-A record stores who the opponent is: `bot` (the bundled engine) or `human`
+A record also stores which bot it was started against (`bot_id`) and the nominal
+Elo that bot played at, so the game keeps its opponent even if the bot is later
+edited or deleted. A record stores who the opponent is: `bot` (the bundled engine) or `human`
 (two players, where both colours are the reader's and no search is ever started).
 Study is a view, not a pause: for a bot game the search makes the engine's game
 move in either view whenever the latest position is on screen, and only steps back
 to full-strength analysis when it is the reader's turn or the cursor is historical.
-Clocks start when a timed game is ready and keep running while the app is open,
+While a bot game is on screen the engine plays with that bot's policy and
+nominal Elo (`policyForGame`), falling back to the Elo stored on the record when
+the bot has been deleted; every analysis, hint, and review search still runs at
+full strength. Clocks start when a timed game is ready and keep running while the app is open,
 including while another view is on screen; there is no pause control and a
 timeless game (0 minutes) is chosen before the first move. The database receives
 snapshots with no live anchor. Completed actions save immediately; active clocks
@@ -133,17 +138,20 @@ writes the initial placeholder over unread saved preferences.
 SQLite database `gwaymaegyi-chess.sqlite3` (OPFS shared-access-handle pool inside
 the SQLite worker, `/gwaymaegyi-chess` directory):
 
-- `games`: `id` PK, `dedupe` (identity), title/kind, `opponent`, `created_at`/
+- `bots`: `id` PK, name, category, Elo, strength, style, description, picture
+  data URI, behaviors/parameters, timestamps. Shipped bots are code, not rows, so
+  only the reader's own bots are stored and a lost row can never remove them.
+- `games`: `id` PK, `dedupe` (identity), title/kind, `opponent`, `bot_id`, `created_at`/
   `updated_at`, start FEN, chess960, sides, result/termination, moves, clock,
   engine Elo, headers, `reviewed`
 - `reviews`: `game_id` PK referencing one game, fingerprint, engine revision,
   depth, node budget, time limit, completeness, points
 - `settings`: key/value rows (`preferences` holds a versioned value)
 
-Indexes cover the dedupe key and recency. Databases written before the Elo and
-opponent columns existed are upgraded in place: `engine_level` is renamed to
-`engine_elo` and `opponent` is added defaulting to `bot`, so old records stay one
-record each and keep their review. Stored preferences that used a skill level are
+Indexes cover the dedupe key, recency, and bot Elo. Databases written before the
+Elo, opponent, and bot columns existed are upgraded in place: `engine_level` is
+renamed to `engine_elo`, `opponent` is added defaulting to `bot`, and `bot_id` is
+added as null, so old records stay one record each and keep their review. Stored preferences that used a skill level are
 decoded through the engine's published level-to-Elo presets. Duplicate play merges into the oldest
 row, keeping a single review. Multi-game import is legally validated before
 insertion. Zero-ply records are omitted from the listing, not treated as games.

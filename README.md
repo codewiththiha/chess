@@ -13,6 +13,10 @@ WebAssembly. Licensed SVG pieces. Your browser, not a cloud account.
 - **Play against gwaymaegyi:** White or Black, standard chess or any of the 960
   starting positions, custom clocks/increments, promotion, castling, en passant,
   takeback, resignation, and current-position draw claims.
+- **Pick an opponent:** six named bots ship with the app (800 Elo up to uncapped),
+  and you can add your own with a name, strength, playing style, and a picture
+  that stays in the local database. The bot's card is the strength and policy it
+  plays, so a saved game always replays as the opponent it was started against.
 - **Move naturally:** tap/click, mouse drag, touch drag, or the accessible
   keyboard board. Piece motion respects both your toggle and reduced-motion
   system preferences. Move sound is opt-in.
@@ -96,8 +100,8 @@ On Linux, Playwright may also require `npx playwright install-deps chromium`.
 The browser suite uses port 5173; use a dedicated preview for this project rather
 than an unrelated application on that port.
 
-The verification suite contains **83 unit/integration tests** and **56 browser
-executions** (28 scenarios on desktop and touch-enabled mobile; the desktop-only
+The verification suite contains **98 unit/integration tests** and **62 browser
+executions** (31 scenarios on desktop and touch-enabled mobile; the desktop-only
 viewport check is skipped on mobile). The actual WASM binaries are exercised, not
 replaced with production mocks. Fault simulations are confined to tests. There are
 also 14 CI-selection/result regression tests.

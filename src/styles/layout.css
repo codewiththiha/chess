@@ -291,6 +291,83 @@ main {
   gap: 12px;
   flex-wrap: wrap;
 }
+.bot-picker {
+  flex-basis: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+}
+.bot-card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--color-base-100);
+  flex-shrink: 0;
+}
+.bot-card.active {
+  border-color: var(--color-primary);
+}
+.bot-card:hover {
+  background: var(--tint);
+}
+.bot-pick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 10px;
+  text-align: left;
+}
+.bot-card.active .bot-pick {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+.bot-pick .bot-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+.bot-strength-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+.bot-card.active .bot-strength-label {
+  color: inherit;
+  opacity: 0.85;
+}
+.bot-pfp {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  object-fit: cover;
+}
+.bot-edit {
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+}
+.bot-edit:hover {
+  color: var(--color-base-content);
+}
+.bot-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-style: dashed;
+  font-size: 12px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.bot-new:hover {
+  color: var(--color-base-content);
+}
 .custom-control {
   display: flex;
   align-items: center;

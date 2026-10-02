@@ -11,8 +11,19 @@ export const DEFAULT_NEW_GAME: NewGameOptions = {
   chess960: false,
   position: 518,
   opponent: 'bot',
+  botId: null,
 };
-export function createGame(options: NewGameOptions, elo = 1600): GameRecord {
+/** Who answers a bot game: the plain engine, or one of the saved identities. */
+export interface OpponentBot {
+  id: string;
+  name: string;
+  elo: number;
+}
+export function createGame(
+  options: NewGameOptions,
+  bot: OpponentBot | null = null,
+): GameRecord {
+  const elo = bot?.elo ?? 1600;
   const human =
     options.side === 'random'
       ? (crypto.getRandomValues(new Uint8Array(1))[0] ?? 0) % 2
@@ -23,7 +34,7 @@ export function createGame(options: NewGameOptions, elo = 1600): GameRecord {
     ? chess960Fen(options.position)
     : INITIAL_FEN;
   const twoPlayers = options.opponent === 'human';
-  const engineName = 'gwaymaegyi';
+  const engineName = bot?.name ?? 'gwaymaegyi';
   const whiteName = twoPlayers
     ? 'Player 1'
     : human === 'white'
@@ -39,6 +50,7 @@ export function createGame(options: NewGameOptions, elo = 1600): GameRecord {
     id: crypto.randomUUID(),
     kind: 'play',
     title: twoPlayers ? 'Player 1 vs Player 2' : `You vs ${engineName}`,
+    botId: twoPlayers || !bot?.id ? null : bot.id,
     createdAt: Date.now(),
     updatedAt: Date.now(),
     startFen,

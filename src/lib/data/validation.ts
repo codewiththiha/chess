@@ -2,6 +2,12 @@
 import { defaultPreferences, validatePreferences } from '../domain/preferences';
 import { eloForLevel, FULL_STRENGTH_LEVEL } from '../domain/strength';
 import { studyGame } from '../domain/games';
+import {
+  AVATAR_TYPES,
+  BOT_MODES,
+  validateBot,
+  type BotProfile,
+} from '../domain/bots';
 import { moveEntry, fenAt, position } from '../domain/chess';
 import type { GameRecord, Preferences, Result } from '../domain/types';
 export function object(value: unknown): Record<string, unknown> {
@@ -66,6 +72,11 @@ export function decodePreferences(value: unknown): Preferences {
       p.arrowCount === undefined ? defaults.arrowCount : number(p.arrowCount),
     premove: p.premove === undefined ? defaults.premove : bool(p.premove),
     evaluation: bool(p.evaluation),
+    // Preferences saved before the bot library existed have no chosen bot.
+    botId:
+      p.botId === undefined || p.botId === null
+        ? defaults.botId
+        : text(p.botId, 128),
     lastGameId: p.lastGameId === null ? null : text(p.lastGameId, 128),
     engine: {
       backend: choice(e.backend, ['auto', 'portable', 'simd128']),
@@ -138,6 +149,8 @@ export function decodeGame(value: unknown): GameRecord {
   g.termination = text(x.termination, 128);
   g.opponent = x.opponent === 'human' ? 'human' : 'bot';
   g.engineElo = number(x.engineElo);
+  // Records written before the bot library have no opponent identity.
+  g.botId = typeof x.botId === 'string' && x.botId ? text(x.botId, 128) : null;
   g.headers = Object.fromEntries(
     Object.entries(object(x.headers)).map(([k, v]) => [
       text(k, 64),
@@ -172,4 +185,29 @@ export function decodeGame(value: unknown): GameRecord {
   }
   position(fenAt(g, g.moves.length));
   return g;
+}
+
+/** Read a bot row from the local database. */
+export function decodeBotProfile(value: unknown): BotProfile {
+  const b = object(value);
+  const bot: BotProfile = {
+    id: text(b.id, 128),
+    name: text(b.name, 64).trim(),
+    category: b.category === 'dev' ? 'dev' : 'custom',
+    elo: number(b.elo),
+    strength: b.strength === 'full' ? 'full' : 'elo',
+    mode: choice(b.mode, BOT_MODES),
+    blurb: typeof b.blurb === 'string' ? text(b.blurb, 200) : '',
+    avatar: null,
+    behaviors: {},
+    parameters: {},
+  };
+  if (typeof b.avatar === 'string') {
+    const avatar: string = b.avatar;
+    if (!AVATAR_TYPES.some((prefix) => avatar.startsWith(prefix)))
+      throw new Error('Stored bot picture is not a supported image.');
+    bot.avatar = avatar;
+  }
+  validateBot(bot);
+  return bot;
 }

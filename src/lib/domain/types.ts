@@ -49,6 +49,8 @@ export interface Preferences {
   premove: boolean;
   evaluation: boolean;
   engine: EngineSettings;
+  /** Bot picked on Home; the game itself stores the bot it was played against. */
+  botId: string | null;
   lastGameId: string | null;
 }
 export interface ClockState {
@@ -91,6 +93,8 @@ export interface GameRecord {
   opponent: Opponent;
   /** Nominal Elo the engine played at when this record was created. */
   engineElo: number;
+  /** Bot identity this record was started against, when it outlives the library. */
+  botId: string | null;
   headers: Record<string, string>;
 }
 export interface NewGameOptions {
@@ -100,6 +104,8 @@ export interface NewGameOptions {
   chess960: boolean;
   position: number;
   opponent: Opponent;
+  /** Which saved bot answers, when the opponent is a bot. */
+  botId: string | null;
 }
 export interface ReviewPoint {
   ply: number;

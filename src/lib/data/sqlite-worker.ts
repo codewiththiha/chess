@@ -7,6 +7,7 @@ import { SqlStore } from './sql-handle';
 import type {
   SqlHandle,
   SqlValue,
+  StoredBot,
   StoredGame,
   StoredReview,
 } from './sql-handle';
@@ -116,7 +117,26 @@ function asGame(value: unknown): StoredGame {
     moves: asText(row.moves, 'move list'),
     clock: asText(row.clock, 'clock'),
     engineElo: asNumber(row.engineElo, 'engine Elo'),
+    botId: typeof row.botId === 'string' ? row.botId : null,
     headers: asText(row.headers, 'headers'),
+  };
+}
+
+function asBot(value: unknown): StoredBot {
+  const row = asRecord(value, 'bot');
+  return {
+    id: asText(row.id, 'bot id'),
+    name: asText(row.name, 'bot name'),
+    category: asText(row.category, 'bot category'),
+    elo: asNumber(row.elo, 'bot Elo'),
+    strength: asText(row.strength, 'bot strength'),
+    mode: asText(row.mode, 'bot style'),
+    blurb: asText(row.blurb, 'bot description'),
+    avatar: typeof row.avatar === 'string' ? row.avatar : null,
+    behaviors: asText(row.behaviors, 'bot behaviors'),
+    parameters: asText(row.parameters, 'bot parameters'),
+    createdAt: asNumber(row.createdAt, 'bot creation time'),
+    updatedAt: asNumber(row.updatedAt, 'bot update time'),
   };
 }
 
@@ -163,6 +183,12 @@ function dispatch(method: string, args: unknown[]): unknown {
       return store.writeReview(asReview(args[0]));
     case 'deleteReview':
       return store.deleteReview(asText(args[0], 'game id'));
+    case 'listBots':
+      return store.listBots();
+    case 'writeBot':
+      return store.writeBot(asBot(args[0]));
+    case 'deleteBot':
+      return store.deleteBot(asText(args[0], 'bot id'));
     default:
       throw new Error(`Unsupported database operation: ${method}.`);
   }
