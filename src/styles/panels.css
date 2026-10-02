@@ -610,6 +610,12 @@
   border: 1px solid var(--line);
   border-bottom-left-radius: 4px;
 }
+/* The remark about the ply the reader is standing on is the one being read. */
+.coach-moment.coach-current {
+  border-color: var(--color-primary);
+  background: var(--color-base-200);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
 /* The move each remark is about, one tap away from it on the board: a real
    button stretched over the bubble, so the whole remark is the target while the
    pill stays the visible label. */

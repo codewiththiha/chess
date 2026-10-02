@@ -235,16 +235,6 @@ cg-board piece.dragging {
   border-radius: 6px;
   object-fit: cover;
 }
-.color-pebble {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--pebble-dark);
-  border: 1px solid var(--pebble-edge);
-}
-.color-pebble.white {
-  background: var(--rail-fill);
-}
 .player-meta {
   font-size: 10px;
   color: var(--muted);
@@ -551,7 +541,4 @@ cg-board piece.dragging {
   height: 22px;
   border-radius: 6px;
   object-fit: cover;
-}
-.color-pebble {
-  flex-shrink: 0;
 }

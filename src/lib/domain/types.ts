@@ -32,7 +32,8 @@ export interface EngineSettings {
   compute: ComputeSettings;
 }
 export interface Preferences {
-  version: 1;
+  /** Shape of the stored record: 2 since audio moved to opt-in. */
+  version: 1 | 2;
   appearance: 'light' | 'dark' | 'system';
   board: BoardTheme;
   pieces: PieceSet;

@@ -99,34 +99,40 @@ function speechSwitch(page: import('@playwright/test').Page) {
   return page.getByRole('button', { name: 'Opponent speech', exact: true });
 }
 
-test('the reader can silence the characters from the rail', async ({
+/** Talking is opt-in, so a test that wants to hear it has to ask for it. */
+async function turnSpeechOn(page: import('@playwright/test').Page) {
+  await open(page);
+  await speechSwitch(page).click();
+  await expect(speechSwitch(page)).toHaveAttribute('aria-pressed', 'true');
+}
+
+test('the characters are silent until the reader asks them to talk', async ({
   page,
 }) => {
   await stubbedEngine(page);
   await open(page);
-  // Speech is on out of the box, and the rail says so.
+  // Silence is the default, and the rail says so.
+  await expect(speechSwitch(page)).toHaveAttribute('aria-pressed', 'false');
+  await start(page, { preset: '3 min' });
+  await expect(page.locator('.bot-bubble')).toBeVisible();
+  await page.waitForTimeout(600);
+  expect((await spoken(page)).length).toBe(0);
+  // Turning it on from the rail lets the characters talk out loud.
+  await speechSwitch(page).click();
   await expect(speechSwitch(page)).toHaveAttribute('aria-pressed', 'true');
   await start(page, { preset: '3 min' });
   await expect(page.locator('.bot-bubble')).toBeVisible();
   await expect
     .poll(async () => (await spoken(page)).length, { timeout: 5000 })
     .toBeGreaterThan(0);
-  const before = (await spoken(page)).length;
-  // Turning it off from the rail silences the next game.
-  await speechSwitch(page).click();
-  await expect(speechSwitch(page)).toHaveAttribute('aria-pressed', 'false');
-  await start(page, { preset: '3 min' });
-  await expect(page.locator('.bot-bubble')).toBeVisible();
-  await page.waitForTimeout(600);
-  expect((await spoken(page)).length).toBe(before);
   // And it survives a reload, because it is stored like every other setting.
   await page.reload();
-  await expect(speechSwitch(page)).toHaveAttribute('aria-pressed', 'false');
+  await expect(speechSwitch(page)).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('the character speaks its line in its own voice', async ({ page }) => {
   await stubbedEngine(page);
-  await open(page);
+  await turnSpeechOn(page);
   await face(page, 'Kyar Nyo');
   await start(page, { preset: '3 min' });
   await expect(page.locator('.bot-bubble')).toBeVisible();
@@ -157,7 +163,7 @@ test('the character speaks its line in its own voice', async ({ page }) => {
 
 test('the same line is never said twice in a row', async ({ page }) => {
   await stubbedEngine(page);
-  await open(page);
+  await turnSpeechOn(page);
   await face(page, 'Kyaw Gyi');
   await start(page, { preset: '3 min' });
   await expect(page.locator('.bot-bubble')).toBeVisible();

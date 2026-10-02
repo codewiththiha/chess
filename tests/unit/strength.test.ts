@@ -77,4 +77,16 @@ describe('strength model', () => {
     };
     expect(decodePreferences(stored).engine.strength).toBe('full');
   });
+
+  it('starts a stored preference record silent once talking is opt-in', () => {
+    // Talking used to be the default, so a stored record that says "on" is not
+    // a choice the reader made; it is read back silent once, and from then on
+    // the record carries whatever they pick.
+    const talking = { ...defaultPreferences(), version: 1, speech: true };
+    expect(decodePreferences(talking).speech).toBe(false);
+    const chosen = { ...defaultPreferences(), version: 2, speech: true };
+    expect(decodePreferences(chosen).speech).toBe(true);
+    expect(defaultPreferences().speech).toBe(false);
+    expect(defaultPreferences().version).toBe(2);
+  });
 });

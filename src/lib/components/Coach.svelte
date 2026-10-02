@@ -23,10 +23,21 @@
     const move = s.record.moves[ply - 1];
     return `${Math.ceil(ply / 2)}${move?.color === 'black' ? '…' : '.'}`;
   }
-  // A new answer is worth scrolling to; the walkthrough itself is left where it
-  // starts, because it is read from the top down like a list.
+  /** The ply a remark is about, as the attribute the board follows. */
+  function plyAttribute(ply: number | null | undefined): string | undefined {
+    return ply ? String(ply) : undefined;
+  }
+  // A new answer is worth scrolling to; the walkthrough itself is read from the
+  // top down, so the remark the reader is standing on is the one that follows
+  // them: it is lit, and it is brought into view.
   $effect(() => {
-    if (!s.coach.length || !log) return;
+    const ply = s.cursor;
+    if (!log || !s.coach.length) return;
+    const remark = log.querySelector<HTMLElement>(`[data-ply="${ply}"]`);
+    if (remark) {
+      remark.scrollIntoView({ block: 'nearest' });
+      return;
+    }
     if (s.coach.at(-1)?.walk) return;
     log.lastElementChild?.scrollIntoView({ block: 'nearest' });
   });
@@ -47,6 +58,9 @@
         class:coach-you={message.role === 'you'}
         class:coach-answer={message.role !== 'you'}
         class:coach-moment={Boolean(message.ply)}
+        class:coach-current={message.ply === s.cursor}
+        data-ply={plyAttribute(message.ply)}
+        aria-current={message.ply === s.cursor ? 'true' : undefined}
       >
         {#if message.ply}<span class="coach-chip" aria-hidden="true"
             >{move}</span

@@ -40,8 +40,6 @@
   --rail-track: #32433b;
   --rail-track-edge: #20362b20;
   --rail-fill: #fffdf3;
-  --pebble-dark: #3b413d;
-  --pebble-edge: #738076;
   /* Cards, sheets, and the scrim behind them. */
   --shadow-board: #17352617;
   --shadow-card: #17352623;
@@ -64,8 +62,6 @@
   --board-drag-shadow: #00000073;
   --rail-track: #101b17;
   --rail-track-edge: #ffffff14;
-  --pebble-dark: #101b17;
-  --pebble-edge: #7c8f85;
   --shadow-board: #00000038;
   --shadow-card: #0000004d;
   --shadow-sheet: #0000006b;

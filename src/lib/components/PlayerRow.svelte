@@ -38,12 +38,7 @@
       <div class="player-name">
         {#if picture}<img class="player-pfp" src={picture} alt="" />{/if}<span
           class="player-name-text">{name}</span
-        ><span
-          class="color-pebble"
-          role="img"
-          class:white={color === 'white'}
-          aria-label={`${color} pieces`}
-        ></span>
+        >
       </div>
       <div class="player-meta">
         {#if captures.length}

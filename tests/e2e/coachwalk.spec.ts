@@ -161,3 +161,25 @@ test('an ordinary question is still answered in the same thread', async ({
     'centipawn',
   );
 });
+
+test('the walkthrough follows the reader ply by ply', async ({ page }) => {
+  await reviewed(page);
+  const chat = page.getByRole('log', { name: 'Review chat', exact: true });
+  const about = chat.locator('.coach-moment').filter({ hasText: 'Qxf7+' });
+  await expect(about).toHaveCount(1);
+  // The remark knows which ply it is about; that is what lights it up.
+  await expect(about).toHaveAttribute('data-ply', '5');
+  // Standing elsewhere in the game leaves the conversation unmarked.
+  await page.locator('.move-cell[data-ply="6"]').click();
+  await expect(chat.locator('.coach-current')).toHaveCount(0);
+  // Step onto the move the remark is about: exactly that remark is marked and
+  // brought into view, so the reader never has to hunt for it.
+  await page.locator('.move-cell[data-ply="5"]').click();
+  await expect(chat.locator('.coach-current')).toHaveCount(1);
+  await expect(about).toHaveClass(/coach-current/);
+  await expect(about).toHaveAttribute('aria-current', 'true');
+  await expect(about).toBeInViewport();
+  // Stepping on clears it again: one remark at a time, following the board.
+  await page.locator('.move-cell[data-ply="4"]').click();
+  await expect(chat.locator('.coach-current')).toHaveCount(0);
+});

@@ -34,7 +34,7 @@ export const COMPUTE_PRESETS: Record<
 };
 export function defaultPreferences(): Preferences {
   return {
-    version: 1,
+    version: 2,
     appearance: 'light',
     board: 'sage',
     pieces: 'chessnut',
@@ -47,7 +47,8 @@ export function defaultPreferences(): Preferences {
     arrows: true,
     arrowCount: 3,
     premove: false,
-    speech: true,
+    // Silence is the default; the characters speak when the reader asks them to.
+    speech: false,
     feedback: true,
     evaluation: true,
     botId: DEFAULT_BOT_ID,
