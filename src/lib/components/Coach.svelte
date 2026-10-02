@@ -11,6 +11,12 @@
   // What the opponent character said during the game, newest last.
   const opponent = $derived(s.botChat.slice(-6));
   onMount(() => session.coach.open());
+  /** Number the ply the way notation does, so two plies never share a label. */
+  function label(ply: number): string {
+    if (!ply) return 'Start';
+    const move = s.record.moves[ply - 1];
+    return `${Math.ceil(ply / 2)}${move?.color === 'black' ? '…' : '.'}`;
+  }
   function ask(text: string): void {
     session.coach.ask(text);
     draft = '';
@@ -27,8 +33,7 @@
       <h3>{opponent.at(-1)?.name} said</h3>
       {#each opponent as line (line.id)}
         <p class="opponent-line">
-          <span>{line.ply ? `Move ${Math.ceil(line.ply / 2)}` : 'Start'}</span
-          >{line.text}
+          <span>{label(line.ply)}</span>{line.text}
         </p>
       {/each}
     </div>

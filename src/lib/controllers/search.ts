@@ -9,7 +9,9 @@ export class SearchController {
   readonly engine = new EngineClient();
   private generation = 0;
   onError: (error: Error) => void = () => {};
-  onReport: (report: NonNullable<AppState['report']>) => void = () => {};
+  /** Called with the engine's answer and the ply the search was started for. */
+  onReport: (report: NonNullable<AppState['report']>, ply: number) => void =
+    () => {};
   onHint: () => void = () => {};
   constructor(
     private state: AppState,
@@ -57,6 +59,9 @@ export class SearchController {
       s.pos.turn !== s.record.human;
     const analysis = !botTurn;
     if (botTurn) this.game.startIfNeeded();
+    // File the answer against this position: a bot move can be committed while
+    // the final report is still in flight, and the answer is not about that move.
+    const position = s.cursor;
     const generation = ++this.generation;
     s.thinking = true;
     const start = s.record.startFen;
@@ -102,7 +107,7 @@ export class SearchController {
           }
           s.report = report;
           // The opponent can only talk about what the engine has actually found.
-          this.onReport(report);
+          this.onReport(report, position);
         };
         const result = await this.engine.search(compute, update);
         if (generation !== this.generation) return;

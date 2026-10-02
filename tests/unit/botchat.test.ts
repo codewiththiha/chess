@@ -215,6 +215,75 @@ describe('a bot game', () => {
     expect(state.botChat.at(-1)!.text.length).toBeGreaterThan(0);
   });
 
+  it('files a late report against the position it actually describes', () => {
+    startGame('dev-kyaw-gyi');
+    chat.greet();
+    // The engine was asked about the start position, and its answer arrives
+    // after the reader's move: it must not be judged as if it were the move's
+    // own evaluation, and the plan must not be quoted in the reader's voice.
+    chat.observeReport(
+      report({ bestMove: 'e2e4', scoreCp: 20, pv: ['d7d5', 'g1f3', 'b8c6'] }),
+      0,
+    );
+    play('e2e4');
+    chat.observe();
+    chat.observeReport(
+      report({ bestMove: 'e7e5', scoreCp: -20, pv: ['g1f3', 'b8c6', 'f1b5'] }),
+      1,
+    );
+    // The character talks about its own move at ply 2, and the plan it names is
+    // a move for its own side, never the reader's.
+    play('d7d5');
+    chat.observe();
+    chat.observeReport(
+      report({ bestMove: 'g1f3', scoreCp: 20, pv: ['g1f3', 'b8c6', 'f1b5'] }),
+      2,
+    );
+    const plan = lastLine();
+    expect(plan).toContain('Nc6');
+    expect(plan).not.toContain('Nf3');
+  });
+
+  it('ignores a deepening report and waits for the settled answer', () => {
+    startGame('dev-kyaw-gyi');
+    chat.greet();
+    chat.observeReport(report({ bestMove: 'e2e4', scoreCp: 20 }), 0);
+    play('e2e4');
+    chat.observe();
+    // An interim report says nothing yet, so the move is not judged on it.
+    chat.observeReport(
+      report({ finished: false, bestMove: 'e7e5', scoreCp: -20 }),
+      1,
+    );
+    expect(state.botChat).toHaveLength(1);
+    chat.observeReport(report({ bestMove: 'e7e5', scoreCp: -20 }), 1);
+    expect(state.botChat).toHaveLength(2);
+    // The same position judged twice would say the same thing twice.
+    chat.observeReport(report({ bestMove: 'e7e5', scoreCp: -20 }), 1);
+    expect(state.botChat).toHaveLength(2);
+  });
+
+  it('never claims a plan the engine did not give it', () => {
+    startGame('dev-kyaw-gyi');
+    chat.greet();
+    chat.observeReport(report({ bestMove: 'e2e4', scoreCp: 20, pv: [] }), 0);
+    play('e2e4');
+    chat.observe();
+    chat.observeReport(
+      report({ bestMove: 'e7e5', scoreCp: -20, pv: ['g1f3'] }),
+      1,
+    );
+    play('e7e5');
+    chat.observe();
+    // A one-move line holds only the reader's reply, so there is no plan to
+    // report and the character says something else instead.
+    chat.observeReport(
+      report({ bestMove: 'g1f3', scoreCp: 20, pv: ['g1f3'] }),
+      2,
+    );
+    expect(lastLine()).not.toMatch(/I intend|Next:/i);
+  });
+
   it('notices when the reader asks for a hint', () => {
     startGame('dev-nay-chi');
     chat.greet();

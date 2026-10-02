@@ -319,3 +319,12 @@ characters and their voices):
   rather than papered over: the bubble strip pushed the desktop page past the
   viewport (the board now gives back the reserved height) and the dark theme
   needed the bubble's text at full opacity to clear the contrast gate.
+- The same revision then had three more voice bugs found by reading a real
+  transcript from the running app rather than by trusting the unit fixtures: a
+  late engine report was filed against the ply that arrived, not the ply it
+  described; a deepening report earned a verdict before the search settled; and a
+  one-move principal variation made the character claim a plan in the reader's
+  own voice. The controller now files reports by the ply the search started from,
+  waits for `finished`, judges each ply at most once, and says nothing rather than
+  claiming a plan the engine never gave it. Regression tests cover all three, and
+  the same transcript then read `I intend Nc6` — a move for its own side.

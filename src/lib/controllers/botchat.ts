@@ -7,7 +7,7 @@ import {
 } from '../domain/chat';
 import { botForGame } from '../domain/bots';
 import { whiteScore } from '../domain/review';
-import { pvSan } from '../domain/chess';
+import { fenAt, position, pvSan } from '../domain/chess';
 import type { AppState } from '../state/app.svelte';
 import type { MoveEntry } from '../domain/types';
 import type { Report } from '../engine/types';
@@ -31,12 +31,19 @@ interface Pending {
 /** Keep a long game readable: the strip shows the newest line plus a little history. */
 const KEEP = 40;
 
+/** Whose turn it is in a record at a given ply, without touching the cursor. */
+function turnAt(record: AppState['record'], ply: number): 'white' | 'black' {
+  return position(fenAt(record, ply)).turn;
+}
+
 export class BotChatController {
   /** Wall-clock time of the move that is on the board, for the slow-move line. */
   private moveAt = 0;
   /** Position evaluation from the engine, keyed by ply (white's point of view). */
   private readonly evals = new Map<number, Verdict>();
   private pending: Pending | null = null;
+  /** Plies already judged, so one move is never commented on twice. */
+  private readonly judged = new Set<number>();
   private recordId = '';
   private reportedPly = -1;
   private result = '';
@@ -78,6 +85,7 @@ export class BotChatController {
   reset(): void {
     this.state.botChat = [];
     this.evals.clear();
+    this.judged.clear();
     this.pending = null;
     this.recordId = '';
     this.reportedPly = -1;
@@ -91,21 +99,36 @@ export class BotChatController {
    * the position on the board, so it is filed against the current ply and used
    * to judge the move that created the position.
    */
-  observeReport(report: Report): void {
+  observeReport(
+    report: Report,
+    at: number = this.state.record.moves.length,
+  ): void {
     const s = this.state;
     const bot = this.bot();
     if (!bot) return;
-    const ply = s.record.moves.length;
-    const score = whiteScore(report.scoreCp, report.mate, s.pos.turn);
+    // `at` is the ply the search was started for, so a report that arrives after
+    // a move is still filed against the position it actually describes.
+    const ply = at;
+    const score = whiteScore(
+      report.scoreCp,
+      report.mate,
+      turnAt(s.record, ply),
+    );
+    // Answers for older positions are history; they must never overwrite the
+    // scoreboard the character is reading from.
+    if (ply < this.reportedPly) return;
     if (score !== null)
       this.evals.set(ply, { score, best: report.bestMove ?? null });
-    if (ply === this.reportedPly) return;
+    // A search reports as it deepens, so only the settled answer earns a verdict.
+    if (!report.finished || ply === this.reportedPly || this.judged.has(ply))
+      return;
     this.reportedPly = ply;
     const pending = this.pending;
     if (!pending || pending.ply !== ply) return;
     // The engine has now answered for the position this move created, so the
     // move can be judged against the evaluation that existed before it.
     this.pending = null;
+    this.judged.add(ply);
     const loss =
       pending.before !== null && score !== null
         ? Math.max(
@@ -174,11 +197,11 @@ export class BotChatController {
       plies: s.record.moves.length,
     };
     if (report && report.pv.length) {
-      const line = pvSan(s.fen, report.pv, 4);
-      // The line starts with the reader's move, so the character's own plan is
-      // the move after it; that is what it can honestly claim to intend.
+      const line = pvSan(fenAt(s.record, pending.ply), report.pv, 4);
+      // The line starts with the reader's reply, so only its second move is a
+      // move this character could honestly claim to intend.
       facts.reply = line[0];
-      facts.plan = line[1] ?? line[0];
+      facts.plan = line[1];
     }
     const ownLoss = loss !== null && mine ? loss : null;
     const theirLoss = loss !== null && !mine ? loss : null;
