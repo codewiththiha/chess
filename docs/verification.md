@@ -10,8 +10,9 @@ simulation.
 unit suite **83 tests in 11 files**; `svelte-check` 0 errors
 and 0 warnings; `tsc` for the node and test configs clean; oxlint 0/0 with 58
 vendored checksums; Prettier clean; `npm run check` and the production build
-successful; and the full production browser suite **47 passed plus one intentional
-skip in about 2 minutes 20 seconds** (see the counts below). The redesign also
+successful; and the full production browser suite **55 passed plus one intentional
+skip in about 2 minutes 6 seconds** (28 scenarios on each of two projects, see the
+counts below). The redesign also
 removed pause/resume in favour of a pre-game timeless choice, folded review into
 the game card, and replaced IndexedDB with the SQLite database.
 
@@ -213,3 +214,29 @@ redesign plus the desktop shell):
 That desktop job is the first real compilation of `src-tauri/`; treat its log as
 the evidence for the shell, and re-run it after any Rust, frontend, or
 `Cargo.lock` change.
+
+Verified on 2026-10-02 (local date), source commit `264b52f` (the study/bot
+redesign, pushed after the notes above were written):
+
+- [CI push run 36967546135](https://github.com/codewiththiha/chess/actions/runs/36967546135):
+  success on every job — Selection, Commit messages, Quality, Unit and WASM,
+  Production build, Browser (desktop), Browser (mobile), and the aggregate
+  `Verify / Full verification`. The hosted browser jobs reported
+  **Browser (desktop) 28 passed (1.1 m)** and **Browser (mobile) 27 passed plus 1
+  skipped (57.0 s)** against the same 56 executions the local pre-push run
+  produced (55 passed, 1 skipped, 2.1 m), with the desktop-only viewport check as
+  the skip.
+- The intermediate commit `e71f47f` failed the same suite once, on mobile only:
+  the history count was read the moment Home opened, before the SQLite worker had
+  written the newest record. The cause was a missing wait in the test helper, not
+  app behaviour, so `savedGames()` now polls the list; the failing scenario then
+  passed three consecutive local repeats (12/12 with `--repeat-each=2`) and both
+  hosted projects before this revision was pushed.
+- [Desktop push run 36966958295](https://github.com/codewiththiha/chess/actions/runs/36966958295):
+  success for the same app revision. The `Desktop shell` job passed
+  `cargo fmt --all --check`, `cargo clippy --all-targets --locked -- -D warnings`,
+  and finished `cargo build --release --locked` in **2 m 39 s** on rustc 1.99.0,
+  uploading the `desktop-shell-36966958295-1` artifact (1,763,465 bytes). The
+  later revision `264b52f` changes tests only, so this remains the newest
+  compilation of `src-tauri/`; re-dispatch the workflow after any Rust, frontend,
+  or `Cargo.lock` change.
