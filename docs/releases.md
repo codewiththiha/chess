@@ -39,7 +39,9 @@ overwrite (`--clobber`).
 **Actions → Release → Run workflow** takes the tag and a `dry_run` switch. A dry
 run builds every artifact on the same runners with the same signing but keeps
 them as workflow artifacts instead of release assets, which is the way to prove
-a pipeline change before tagging.
+a pipeline change before tagging. It builds the revision that dispatched it
+rather than the tag, so it works before the tag exists; a real release checks
+out the tag itself.
 
 ## Android builds
 

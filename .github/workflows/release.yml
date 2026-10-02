@@ -35,11 +35,26 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       prerelease: ${{ steps.version.outputs.prerelease }}
       dry_run: ${{ steps.version.outputs.dry_run }}
+      ref: ${{ steps.ref.outputs.ref }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.inputs.tag || github.ref_name }}
+          # A dry run builds the revision that dispatched it: the tag it names
+          # is what the release would carry, and it may not exist yet.
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && github.sha || github.event.inputs.tag || github.ref_name }}
           persist-credentials: false
+      - id: ref
+        name: Decide which revision the build jobs check out
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "ref=$SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=$TAG" >> "$GITHUB_OUTPUT"
+          fi
       - id: version
         name: Match the tag to the version the app will ship
         env:
@@ -88,7 +103,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.plan.outputs.tag }}
+          ref: ${{ needs.plan.outputs.ref }}
           persist-credentials: false
       - uses: ./.github/actions/node-environment
       - name: Install the system libraries the Linux shell links against
@@ -130,7 +145,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.plan.outputs.tag }}
+          ref: ${{ needs.plan.outputs.ref }}
           persist-credentials: false
       - uses: ./.github/actions/node-environment
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.0
@@ -226,7 +241,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.plan.outputs.tag }}
+          ref: ${{ needs.plan.outputs.ref }}
           persist-credentials: false
       - uses: ./.github/actions/node-environment
       - name: Package the production build
