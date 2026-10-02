@@ -132,6 +132,7 @@ function asBot(value: unknown): StoredBot {
     strength: asText(row.strength, 'bot strength'),
     mode: asText(row.mode, 'bot style'),
     blurb: asText(row.blurb, 'bot description'),
+    voice: asText(row.voice, 'bot voice'),
     avatar: typeof row.avatar === 'string' ? row.avatar : null,
     behaviors: asText(row.behaviors, 'bot behaviors'),
     parameters: asText(row.parameters, 'bot parameters'),

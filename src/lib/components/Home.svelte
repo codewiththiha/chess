@@ -25,6 +25,7 @@
   import type { TimeControl } from '../domain/time-controls';
   import { resultText } from '../domain/games';
   import { botSummary, orderedBots } from '../domain/bots';
+  import { voiceById } from '../domain/chat';
   import { exportPgn } from '../domain/pgn';
   import { download } from '../data/files';
   import MiniBoard from './MiniBoard.svelte';
@@ -248,7 +249,7 @@
                 type="button"
                 class="bot-pick"
                 aria-pressed={option.id === bot?.id}
-                title={option.blurb || botSummary(option)}
+                title={`${option.blurb ? `${option.blurb} ` : ''}${voiceById(option.voice).about}`}
                 onclick={() => session.selectBot(option.id)}
                 >{#if option.avatar}<img
                     class="bot-pfp"
@@ -256,6 +257,8 @@
                     alt=""
                   />{/if}<span class="bot-name">{option.name}</span><span
                   class="bot-strength-label">{botSummary(option)}</span
+                ><span class="bot-voice-label"
+                  >{voiceById(option.voice).name}</span
                 ></button
               >{#if option.category === 'custom'}<button
                   type="button"

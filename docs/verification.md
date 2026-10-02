@@ -7,7 +7,7 @@ simulation.
 
 **2026-10-02 redesign status.** The gates marked _published_ below describe
 `a27443b`, the last pre-redesign revision. The redesign itself is verified as:
-unit suite **112 tests in 13 files**; `svelte-check` 0 errors
+unit suite **138 tests in 15 files**; `svelte-check` 0 errors
 and 0 warnings; `tsc` for the node and test configs clean; oxlint 0/0 with 58
 vendored checksums; Prettier clean; `npm run check` and the production build
 successful; and the full production browser suite **55 passed plus one intentional
@@ -16,7 +16,9 @@ counts below). The bot library followed the same way: **98 unit tests in 12 file
 and **61 passed plus one skip of 62 browser executions** (31 scenarios on each of
 two projects). The review chat then landed as **112 unit tests in 13 files** and
 **67 passed plus one skip of 68 browser executions** (34 scenarios on each of two
-projects). The redesign also
+projects). The three talking characters followed as **138 unit tests in 15 files**
+and **73 passed plus one skip of 74 browser executions** (37 scenarios on each of
+two projects). The redesign also
 removed pause/resume in favour of a pre-game timeless choice, folded review into
 the game card, and replaced IndexedDB with the SQLite database.
 
@@ -32,7 +34,7 @@ revision and passed; see the hosted evidence below.
 ## Suite and executed coverage
 
 The published unit suite passed **55 tests in 8 files**; the redesign suite
-passes **112 tests in 13 files**, covering everything below plus:
+passes **138 tests in 15 files**, covering everything below plus:
 
 - Orthodox legal moves/perft, both castling conventions, king-already-on-target
   Chess960 castling, en passant, promotion, and all 960 unique legal starts.
@@ -64,6 +66,16 @@ passes **112 tests in 13 files**, covering everything below plus:
 - The SQLite bot rows themselves (idempotent writes, Elo ordering, deletion) and
   an in-memory upgrade of a pre-Elo database, which must rename the level column,
   add the opponent and bot columns, and survive a second migration run.
+- The three voices: that every character has something to say about a greeting,
+  a blunder, its own capture, and a finished game; that a line names the move,
+  the piece, or the pawns it cost; that the same position always produces the
+  same line while different positions do not; that the three escalate from kind
+  to needling to unsparing; and that no line is longer than a bubble or leaves a
+  placeholder unfilled.
+- The reaction logic: a greeting when a bot game starts, a blunder named only
+  after the engine evaluates it, praise only for the move the engine wanted, a
+  plan taken from the engine's own line, silence for a quiet ply, an answer to a
+  hint, and no talking at all in a two-player, study, or imported game.
 - The review chat's intent mapping for the questions people actually type, its
   answers quoting the engine's move, line, score, and a graded loss, its refusals
   when an evaluation or a review is missing, the forced-mate and level cases, and
@@ -85,7 +97,9 @@ that stay off until the setting is enabled, and the bot library: shipped bots on
 Home, a custom bot with a picture that survives a reload and starts a game, and a
 deleted bot leaving the finished game with its own name and Elo, and the review
 chat answering a suggested and a typed question from the live line while
-declining to grade a game that was never reviewed. The skipped case is the desktop-only "fits the viewport without page
+declining to grade a game that was never reviewed, and the characters themselves:
+a greeting on the board, a new line after a real move, the conversation readable
+in study, and no bubbles in a two-player game. The skipped case is the desktop-only "fits the viewport without page
 scrolling" check, which cannot hold on a scrolling narrow layout. Coverage includes:
 
 - Real engine responses to tap/click, mouse drag, CDP touch drag, and keyboard moves.

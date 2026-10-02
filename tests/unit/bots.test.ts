@@ -27,6 +27,7 @@ import {
 import { defaultPreferences } from '../../src/lib/domain/preferences';
 import { decodeBotProfile } from '../../src/lib/data/validation';
 import { ELO_MAX, ELO_MIN } from '../../src/lib/domain/strength';
+import { DEFAULT_VOICE } from '../../src/lib/domain/chat';
 
 /** A one-pixel PNG: the smallest picture the reader could really choose. */
 const PNG =
@@ -37,6 +38,17 @@ function customBot(overrides: Partial<BotProfile> = {}): BotProfile {
 }
 
 describe('shipped bots', () => {
+  it('are the three named characters, in escalating strength', () => {
+    expect(DEV_BOTS.map((bot) => bot.name)).toEqual([
+      'Kyar Nyo',
+      'Nay Chi',
+      'Kyaw Gyi',
+    ]);
+    const elos = DEV_BOTS.map((bot) => bot.elo);
+    expect(elos).toEqual([...elos].toSorted((a, b) => a - b));
+    expect(new Set(DEV_BOTS.map((bot) => bot.voice)).size).toBe(3);
+  });
+
   it('are unique, in range, and use styles the engine lists', () => {
     const ids = DEV_BOTS.map((bot) => bot.id);
     expect(new Set(ids).size).toBe(ids.length);
@@ -51,21 +63,27 @@ describe('shipped bots', () => {
   });
 
   it('names the default bot and describes every bot in one line', () => {
-    expect(botById(devBots(), DEFAULT_BOT_ID)?.name).toBe('Pair Programmer');
-    const uncapped = devBots().find((bot) => bot.strength === 'full');
-    expect(uncapped).toBeDefined();
-    expect(uncapped && botStrengthLabel(uncapped)).toBe('Full strength');
-    expect(botSummary(devBots()[0]!)).toBe('800 Elo · Human-like');
+    expect(botById(devBots(), DEFAULT_BOT_ID)?.name).toBe('Nay Chi');
+    expect(botStrengthLabel(DEV_BOTS[0]!)).toBe('1300 Elo');
+    expect(botStrengthLabel(DEV_BOTS[2]!)).toBe('2500 Elo');
+    expect(botSummary(DEV_BOTS[0]!)).toBe('1300 Elo · Human-like');
   });
 
   it('hands out copies so a caller cannot edit the shipped list', () => {
     const bots = devBots();
     bots[0]!.name = 'Changed';
-    expect(DEV_BOTS[0]!.name).toBe('Intern');
+    expect(DEV_BOTS[0]!.name).toBe('Kyar Nyo');
   });
 });
 
 describe('stored bots', () => {
+  it('keeps a voice for every bot, defaulting the custom ones', () => {
+    expect(newBot('X').voice).toBe(DEFAULT_VOICE);
+    expect(() =>
+      validateBot({ ...customBot(), voice: 'shouty' as BotProfile['voice'] }),
+    ).toThrow('voice');
+  });
+
   it('accepts a picture and rejects text that is not one', () => {
     const bot = customBot({ avatar: PNG });
     expect(() => validateBot(bot)).not.toThrow();
@@ -119,12 +137,12 @@ describe('stored bots', () => {
     const ordered = orderedBots([
       customBot({ id: 'low', elo: 900 }),
       customBot({ id: 'high', elo: 2700 }),
-      DEV_BOTS[3]!,
+      DEV_BOTS[2]!,
       DEV_BOTS[0]!,
     ]);
     expect(ordered.map((bot) => bot.id)).toEqual([
       DEV_BOTS[0]!.id,
-      DEV_BOTS[3]!.id,
+      DEV_BOTS[2]!.id,
       'high',
       'low',
     ]);
@@ -136,20 +154,20 @@ describe('bots decide a bot game', () => {
 
   it('names the bot side and records the identity and its Elo', () => {
     const game = createGame(
-      { ...DEFAULT_NEW_GAME, botId: 'dev-junior' },
-      { id: 'dev-junior', name: 'Junior Dev', elo: 1200 },
+      { ...DEFAULT_NEW_GAME, botId: 'dev-nay-chi' },
+      { id: 'dev-nay-chi', name: 'Nay Chi', elo: 1800 },
     );
-    expect(game.title).toBe('You vs Junior Dev');
-    expect(game.botId).toBe('dev-junior');
-    expect(game.engineElo).toBe(1200);
-    expect(game.black).toBe('Junior Dev');
+    expect(game.title).toBe('You vs Nay Chi');
+    expect(game.botId).toBe('dev-nay-chi');
+    expect(game.engineElo).toBe(1800);
+    expect(game.black).toBe('Nay Chi');
     expect(game.white).toBe('You');
   });
 
   it('leaves a two-player game without a bot', () => {
     const game = createGame(
       { ...DEFAULT_NEW_GAME, opponent: 'human' },
-      { id: 'dev-junior', name: 'Junior Dev', elo: 1200 },
+      { id: 'dev-nay-chi', name: 'Nay Chi', elo: 1800 },
     );
     expect(game.botId).toBeNull();
     expect(game.white).toBe('Player 1');
@@ -158,8 +176,8 @@ describe('bots decide a bot game', () => {
   it('plays the bot style and strength instead of the dialog settings', () => {
     const engine = defaultPreferences().engine;
     const game = createGame(
-      { ...DEFAULT_NEW_GAME, botId: 'dev-attacker' },
-      { id: 'dev-attacker', name: 'Chaos Engineer', elo: 2100 },
+      { ...DEFAULT_NEW_GAME, botId: 'dev-kyaw-gyi' },
+      { id: 'dev-kyaw-gyi', name: 'Kyaw Gyi', elo: 2500 },
     );
     const policy = policyForGame(
       { ...engine, mode: 'human-like', strength: 'full', elo: 3000 },
@@ -167,7 +185,7 @@ describe('bots decide a bot game', () => {
       bots,
     );
     expect(policy.mode).toBe('aggressive');
-    expect(policy.elo).toBe(2100);
+    expect(policy.elo).toBe(2500);
     // The dialog still owns the resource settings the bot does not claim.
     expect(policy.hashMiB).toBe(engine.hashMiB);
   });
@@ -190,7 +208,7 @@ describe('bots decide a bot game', () => {
     expect(policyForGame(engine, twoPlayers, bots)).toEqual(engine);
     expect(policyForGame(engine, studyGame(), bots)).toEqual(engine);
     // A study board stays bot-free even if a bot id lingers on the record.
-    const study = { ...studyGame(), engineElo: 1600, botId: 'dev-intern' };
+    const study = { ...studyGame(), engineElo: 1600, botId: 'dev-kyar-nyo' };
     expect(botForGame(study, bots)).toBeNull();
     expect(policyForGame(engine, study, bots)).toEqual(engine);
   });

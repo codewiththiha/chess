@@ -8,6 +8,8 @@
   let draft = $state('');
   let log: HTMLDivElement;
   const topics = $derived(session.coach.topics());
+  // What the opponent character said during the game, newest last.
+  const opponent = $derived(s.botChat.slice(-6));
   onMount(() => session.coach.open());
   function ask(text: string): void {
     session.coach.ask(text);
@@ -20,6 +22,17 @@
 </script>
 
 <div class="coach">
+  {#if opponent.length}
+    <div class="opponent-words" aria-label="Opponent remarks">
+      <h3>{opponent.at(-1)?.name} said</h3>
+      {#each opponent as line (line.id)}
+        <p class="opponent-line">
+          <span>{line.ply ? `Move ${Math.ceil(line.ply / 2)}` : 'Start'}</span
+          >{line.text}
+        </p>
+      {/each}
+    </div>
+  {/if}
   <div
     class="coach-log"
     bind:this={log}

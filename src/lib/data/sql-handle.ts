@@ -39,6 +39,7 @@ export interface StoredBot {
   strength: string;
   mode: string;
   blurb: string;
+  voice: string;
   avatar: string | null;
   behaviors: string;
   parameters: string;
@@ -122,6 +123,7 @@ const SCHEMA = [
      strength TEXT NOT NULL,
      mode TEXT NOT NULL,
      blurb TEXT NOT NULL,
+     voice TEXT NOT NULL DEFAULT 'kyar-nyo',
      avatar TEXT,
      behaviors TEXT NOT NULL,
      parameters TEXT NOT NULL,
@@ -197,6 +199,16 @@ export class SqlStore {
       );
     if (!columns.has('bot_id'))
       this.handle.exec('ALTER TABLE games ADD COLUMN bot_id TEXT');
+    // Bots stored before the voices existed keep their row and gain the default.
+    const botColumns = new Set(
+      this.handle
+        .selectObjects('PRAGMA table_info(bots)')
+        .map((row) => String(row.name)),
+    );
+    if (!botColumns.has('voice'))
+      this.handle.exec(
+        "ALTER TABLE bots ADD COLUMN voice TEXT NOT NULL DEFAULT 'kyar-nyo'",
+      );
   }
 
   setting(key: string): string | null {
@@ -349,7 +361,7 @@ export class SqlStore {
   listBots(): StoredBot[] {
     return this.handle
       .selectObjects(
-        `SELECT id, name, category, elo, strength, mode, blurb, avatar,
+        `SELECT id, name, category, elo, strength, mode, blurb, voice, avatar,
                 behaviors, parameters, created_at, updated_at
          FROM bots ORDER BY elo DESC, name ASC`,
       )
@@ -365,6 +377,7 @@ export class SqlStore {
       strength: text(row.strength, 'bot strength'),
       mode: text(row.mode, 'bot style'),
       blurb: text(row.blurb, 'bot description'),
+      voice: text(row.voice ?? 'kyar-nyo', 'bot voice'),
       avatar: typeof row.avatar === 'string' ? row.avatar : null,
       behaviors: text(row.behaviors, 'bot behaviors'),
       parameters: text(row.parameters, 'bot parameters'),
@@ -375,14 +388,15 @@ export class SqlStore {
 
   writeBot(row: StoredBot): void {
     this.handle.exec(
-      `INSERT INTO bots (id, name, category, elo, strength, mode, blurb, avatar,
-                         behaviors, parameters, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO bots (id, name, category, elo, strength, mode, blurb, voice,
+                         avatar, behaviors, parameters, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          name = excluded.name, category = excluded.category, elo = excluded.elo,
          strength = excluded.strength, mode = excluded.mode, blurb = excluded.blurb,
-         avatar = excluded.avatar, behaviors = excluded.behaviors,
-         parameters = excluded.parameters, updated_at = excluded.updated_at`,
+         voice = excluded.voice, avatar = excluded.avatar,
+         behaviors = excluded.behaviors, parameters = excluded.parameters,
+         updated_at = excluded.updated_at`,
       [
         row.id,
         row.name,
@@ -391,6 +405,7 @@ export class SqlStore {
         row.strength,
         row.mode,
         row.blurb,
+        row.voice,
         row.avatar,
         row.behaviors,
         row.parameters,

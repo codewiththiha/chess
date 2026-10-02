@@ -12,6 +12,7 @@ import type {
   View,
 } from '../domain/types';
 import type { BotProfile } from '../domain/bots';
+import type { BotLine } from '../domain/chat';
 import type { CoachMessage } from '../domain/coach';
 import type { Discovery, Report } from '../engine/types';
 import type { GameSummary } from '../data/database';
@@ -55,6 +56,8 @@ export class AppState {
   draftBot = $state<BotProfile | null>(null);
   /** Review chat: the reader's questions and the answers drawn from the engine. */
   coach = $state<CoachMessage[]>([]);
+  /** What the opponent character has said, newest last. */
+  botChat = $state<BotLine[]>([]);
   review = $state<ReviewRecord | null>(null);
   reviewRunning = $state(false);
   reviewError = $state('');
@@ -96,6 +99,10 @@ export class AppState {
     );
   }
   /** The bot the loaded record is played against, if any. */
+  /** The newest line from the opponent character, shown as a bubble. */
+  get bubble(): BotLine | null {
+    return this.botChat.at(-1) ?? null;
+  }
   get gameBot(): BotProfile | null {
     return this.record.opponent === 'bot'
       ? botById(this.bots, this.record.botId)

@@ -1,5 +1,7 @@
 // Define opponent identities: the bots that ship with the app and the ones saved locally.
 import { clampElo, ELO_MIN, ELO_MAX, strengthLabel } from './strength';
+import { DEFAULT_VOICE, VOICES } from './chat';
+import type { VoiceId } from './chat';
 import type { EngineMode, EngineSettings, GameRecord } from './types';
 
 export type BotCategory = 'dev' | 'custom';
@@ -14,6 +16,8 @@ export interface BotProfile {
   /** Playing policy the bot asks the engine for. */
   mode: EngineMode;
   blurb: string;
+  /** Which voice the opponent talks with while the game is played. */
+  voice: VoiceId;
   /** Picture the reader supplied, as a small image data URI, or null for none. */
   avatar: string | null;
   behaviors: Record<string, boolean>;
@@ -38,86 +42,54 @@ export const BOT_MODES: readonly EngineMode[] = [
 ];
 
 /**
- * The bots the app ships with. They are plain sparring identities built from the
- * engine settings the interface already exposes (policy + nominal Elo), so every
- * one of them plays exactly what its card claims.
+ * The three opponents the app ships with, in the order they escalate: Kyar Nyo
+ * is kind about your mistakes, Nay Chi is quick with a needle, and Kyaw Gyi
+ * explains exactly how much the mistake cost. Each one plays the strength and
+ * policy on its card and talks with the voice named there.
  */
 export const DEV_BOTS: readonly BotProfile[] = [
   {
-    id: 'dev-intern',
-    name: 'Intern',
+    id: 'dev-kyar-nyo',
+    name: 'Kyar Nyo',
     category: 'dev',
-    elo: 800,
+    elo: 1300,
     strength: 'elo',
     mode: 'human-like',
-    blurb: 'Learning the ropes. Drops pieces, then finds a tactic.',
+    blurb: 'Kind about your mistakes, and still takes the piece.',
+    voice: 'kyar-nyo',
     avatar: null,
     behaviors: {},
     parameters: {},
   },
   {
-    id: 'dev-junior',
-    name: 'Junior Dev',
+    id: 'dev-nay-chi',
+    name: 'Nay Chi',
     category: 'dev',
-    elo: 1200,
+    elo: 1800,
     strength: 'elo',
     mode: 'balanced',
-    blurb: 'Solid for a while, then over-extends.',
+    blurb: 'Plays fast, talks faster, admits nothing until you earn it.',
+    voice: 'nay-chi',
     avatar: null,
     behaviors: {},
     parameters: {},
   },
   {
-    id: 'dev-pair',
-    name: 'Pair Programmer',
+    id: 'dev-kyaw-gyi',
+    name: 'Kyaw Gyi',
     category: 'dev',
-    elo: 1600,
-    strength: 'elo',
-    mode: 'balanced',
-    blurb: 'Even play. Punishes anything loose.',
-    avatar: null,
-    behaviors: {},
-    parameters: {},
-  },
-  {
-    id: 'dev-reviewer',
-    name: 'Code Reviewer',
-    category: 'dev',
-    elo: 1900,
-    strength: 'elo',
-    mode: 'human-like',
-    blurb: 'Quiet, patient, and hard to trick.',
-    avatar: null,
-    behaviors: {},
-    parameters: {},
-  },
-  {
-    id: 'dev-attacker',
-    name: 'Chaos Engineer',
-    category: 'dev',
-    elo: 2100,
+    elo: 2500,
     strength: 'elo',
     mode: 'aggressive',
-    blurb: 'Creates threats first and counts material later.',
-    avatar: null,
-    behaviors: {},
-    parameters: {},
-  },
-  {
-    id: 'dev-principal',
-    name: 'Principal',
-    category: 'dev',
-    elo: ELO_MAX,
-    strength: 'full',
-    mode: 'balanced',
-    blurb: 'Bounded only by the clock. No handicap.',
+    blurb: 'Unsparing. Counts every pawn you drop and names the move.',
+    voice: 'kyaw-gyi',
     avatar: null,
     behaviors: {},
     parameters: {},
   },
 ];
 
-export const DEFAULT_BOT_ID = 'dev-pair';
+export const DEFAULT_BOT_ID = 'dev-nay-chi';
 
 export function devBots(): BotProfile[] {
   return DEV_BOTS.map((bot) => ({ ...bot }));
@@ -147,6 +119,8 @@ export function validateBot(bot: BotProfile): void {
       `Nominal Elo must be an integer from ${ELO_MIN} to ${ELO_MAX}.`,
     );
   if (!BOT_MODES.includes(bot.mode)) throw new Error('Unknown bot style.');
+  if (!VOICES.some((voice) => voice.id === bot.voice))
+    throw new Error('Unknown bot voice.');
   if (bot.avatar !== null && !isAvatarDataUri(bot.avatar))
     throw new Error(
       'The bot picture must be a small PNG, JPEG, or WebP image.',
@@ -269,6 +243,7 @@ export function newBot(name: string): BotProfile {
     strength: 'elo',
     mode: 'balanced',
     blurb: '',
+    voice: DEFAULT_VOICE,
     avatar: null,
     behaviors: {},
     parameters: {},

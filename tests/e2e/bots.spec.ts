@@ -28,25 +28,33 @@ async function openSaved(page: import('@playwright/test').Page, title: string) {
   await expect(page.locator('.player-row')).toHaveCount(2);
 }
 
-test('shipped bots are offered on Home and one starts a game', async ({
+test('the three characters are offered on Home and one starts a game', async ({
   page,
 }) => {
   await open(page);
-  await expect(card(page, 'Intern').locator('.bot-strength-label')).toHaveText(
-    '800 Elo · Human-like',
-  );
+  await expect(picker(page).locator('.bot-card')).toHaveCount(4);
   await expect(
-    card(page, 'Principal').locator('.bot-strength-label'),
-  ).toHaveText('Full strength · Balanced');
-  await card(page, 'Intern').locator('.bot-pick').click();
-  await expect(card(page, 'Intern').locator('.bot-pick')).toHaveAttribute(
+    card(page, 'Kyar Nyo').locator('.bot-strength-label'),
+  ).toHaveText('1300 Elo · Human-like');
+  await expect(
+    card(page, 'Kyaw Gyi').locator('.bot-strength-label'),
+  ).toHaveText('2500 Elo · Attacking');
+  // Each card says how the character will talk to the reader.
+  await expect(card(page, 'Kyar Nyo').locator('.bot-voice-label')).toHaveText(
+    'Gentle',
+  );
+  await expect(card(page, 'Kyaw Gyi').locator('.bot-voice-label')).toHaveText(
+    'Ruthless',
+  );
+  await card(page, 'Kyaw Gyi').locator('.bot-pick').click();
+  await expect(card(page, 'Kyaw Gyi').locator('.bot-pick')).toHaveAttribute(
     'aria-pressed',
     'true',
   );
   await start(page, { preset: '3 min' });
-  // The bot is the opponent identity, so the board names it and shows its Elo.
-  await expect(row(page, 'Intern').locator('.player-meta')).toContainText(
-    '800 Elo',
+  // The character is the opponent identity, so the board names it with its Elo.
+  await expect(row(page, 'Kyaw Gyi').locator('.player-meta')).toContainText(
+    '2500 Elo',
   );
   // No picture was supplied, so no placeholder is drawn anywhere.
   await expect(page.locator('.player-pfp')).toHaveCount(0);
@@ -69,12 +77,16 @@ test('a custom bot with a picture survives a reload and plays a game', async ({
   });
   await expect(page.locator('.bot-picture img')).toBeVisible();
   await page.getByLabel('Bot Elo').fill('900');
+  await page.getByRole('button', { name: 'Ruthless', exact: true }).click();
   await page.getByRole('button', { name: 'Attacking', exact: true }).click();
   await page.getByRole('button', { name: 'Save bot', exact: true }).click();
   await expect(
     card(page, 'Rook Robot').locator('.bot-strength-label'),
   ).toHaveText('900 Elo · Attacking');
   await expect(card(page, 'Rook Robot').locator('img')).toBeVisible();
+  await expect(card(page, 'Rook Robot').locator('.bot-voice-label')).toHaveText(
+    'Ruthless',
+  );
 
   // Bots are rows in the local database, not session state.
   await page.reload();

@@ -123,7 +123,11 @@
       <div class="workspace">
         <section class="board-column" aria-label="Board and players">
           <!-- aria-busy: the board is only interactive once the engine is ready. -->
-          <div class="board-shell" aria-busy={!s.ready}>
+          <div
+            class="board-shell"
+            aria-busy={!s.ready}
+            class:has-talk={s.record.opponent === 'bot' && s.botChat.length > 0}
+          >
             <PlayerRow
               {session}
               color={s.orientation === 'white' ? 'black' : 'white'}

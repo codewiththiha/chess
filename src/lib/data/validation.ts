@@ -8,6 +8,7 @@ import {
   validateBot,
   type BotProfile,
 } from '../domain/bots';
+import { VOICES } from '../domain/chat';
 import { moveEntry, fenAt, position } from '../domain/chess';
 import type { GameRecord, Preferences, Result } from '../domain/types';
 export function object(value: unknown): Record<string, unknown> {
@@ -198,6 +199,10 @@ export function decodeBotProfile(value: unknown): BotProfile {
     strength: b.strength === 'full' ? 'full' : 'elo',
     mode: choice(b.mode, BOT_MODES),
     blurb: typeof b.blurb === 'string' ? text(b.blurb, 200) : '',
+    voice: choice(
+      b.voice,
+      VOICES.map((voice) => voice.id),
+    ),
     avatar: null,
     behaviors: {},
     parameters: {},

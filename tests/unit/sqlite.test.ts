@@ -44,6 +44,7 @@ function bot(overrides: Partial<StoredBot> = {}): StoredBot {
     strength: 'elo',
     mode: 'balanced',
     blurb: 'Trades early.',
+    voice: 'nay-chi',
     avatar: 'data:image/png;base64,AAAA',
     behaviors: '{}',
     parameters: '{}',
@@ -253,6 +254,7 @@ describe('game records', () => {
       id: 'bot-one',
       name: 'Renamed',
       elo: 2600,
+      voice: 'nay-chi',
       avatar: null,
     });
     store.writeBot(bot({ id: 'bot-two', elo: 900 }));

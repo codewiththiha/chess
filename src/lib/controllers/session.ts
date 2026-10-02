@@ -5,6 +5,7 @@ import { GameActions } from './game';
 import { SearchController } from './search';
 import { ReviewController } from './review';
 import { CoachController } from './coach';
+import { BotChatController } from './botchat';
 import { PersistenceController } from './persistence';
 import { moveSound } from './sound';
 import { validatePreferences } from '../domain/preferences';
@@ -27,6 +28,7 @@ export class Session {
   readonly search = new SearchController(this.state, this.game);
   readonly review = new ReviewController(this.state, this.storage.db);
   readonly coach = new CoachController(this.state);
+  readonly chat = new BotChatController(this.state);
   private tick: ReturnType<typeof setInterval> | null = null;
   private saveTick: ReturnType<typeof setInterval> | null = null;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -44,6 +46,8 @@ export class Session {
     this.game.onChange = () => this.changed();
     this.game.onNotice = (text) => this.notify(text, true);
     this.search.onError = (error) => this.notify(error.message, true);
+    this.search.onReport = (report) => this.chat.observeReport(report);
+    this.search.onHint = () => this.chat.heardHint();
     this.storage.onMerged = () =>
       this.notify('That game was already saved, so it was kept as one game.');
     this.review.onStored = () => void this.storage.refresh();
@@ -86,6 +90,7 @@ export class Session {
 
   private changed(): void {
     const s = this.state;
+    this.chat.observe();
     const marker = `${s.record.id}:${s.record.moves.map((m) => m.uci).join(',')}`;
     if (marker !== this.marker) {
       this.review.cancel();
@@ -141,6 +146,7 @@ export class Session {
         ? botById(this.state.bots, options.botId)
         : null;
     this.game.create(options, bot);
+    this.chat.greet();
     this.notify(
       `${bot ? `${bot.name} · ` : ''}${categoryLabel(options.minutes)} · ${describeTime(options.minutes, options.increment)}`,
     );
@@ -270,6 +276,7 @@ export class Session {
   async openSaved(id: string, view: View = 'play'): Promise<void> {
     this.gameChosen = true;
     this.coach.reset();
+    this.chat.reset();
     try {
       const record = await this.storage.db.game(id);
       if (!record) throw new Error('Game is no longer saved.');
@@ -293,6 +300,7 @@ export class Session {
   async importGames(text: string): Promise<void> {
     this.gameChosen = true;
     this.coach.reset();
+    this.chat.reset();
     const records = await this.storage.import(text);
     const first = records[0];
     if (!first) return;

@@ -141,6 +141,14 @@ the SQLite worker, `/gwaymaegyi-chess` directory):
 - `bots`: `id` PK, name, category, Elo, strength, style, description, picture
   data URI, behaviors/parameters, timestamps. Shipped bots are code, not rows, so
   only the reader's own bots are stored and a lost row can never remove them.
+- `botchat.ts` (controller + `domain/chat.ts`): the opponent's voice. The
+  controller folds every engine report into a verdict per ply (score plus the
+  move the engine wanted), files the move that created the position, and judges
+  it only once the engine has answered for that position — so a blunder is named
+  with its real centipawn cost and its real replacement, and praise is reserved
+  for the move the engine itself chose. Lines are pure functions of voice, event,
+  and ply, so the same position always produces the same remark; a quiet ply
+  produces no line at all. Two-player and study records are never claimed.
 - `coach.ts` (controller + `domain/coach.ts`): the review chat. It builds one
   `CoachPosition` from the live report when the analysis describes the position
   on screen and from the stored review point otherwise, classifies the question

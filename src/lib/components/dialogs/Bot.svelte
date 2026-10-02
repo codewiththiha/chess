@@ -11,6 +11,7 @@
     type BotProfile,
   } from '../../domain/bots';
   import { ELO_MAX, ELO_MIN } from '../../domain/strength';
+  import { VOICES } from '../../domain/chat';
   import { readPicture } from '../../data/files';
   import type { EngineMode } from '../../domain/types';
   import type { Session } from '../../controllers/session';
@@ -105,6 +106,20 @@
             }}><Trash2 size={15} />Remove picture</button
           >{/if}
       </div>
+      <fieldset>
+        <legend>Voice</legend>
+        <div class="bot-styles">
+          {#each VOICES as voice}<button
+              type="button"
+              class:active={draft.voice === voice.id}
+              aria-pressed={draft.voice === voice.id}
+              title={voice.about}
+              onclick={() => {
+                if (draft) draft.voice = voice.id;
+              }}>{voice.name}</button
+            >{/each}
+        </div>
+      </fieldset>
       <fieldset>
         <legend>Style</legend>
         <div class="bot-styles">

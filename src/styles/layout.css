@@ -130,9 +130,13 @@ main {
   min-height: 0;
 }
 .board-shell {
-  width: min(100%, calc(100dvh - 214px));
+  /* The bubble strip adds height, so the square board gives that height back. */
+  width: min(100%, calc(100dvh - var(--talk-reserve, 214px)));
   max-width: none;
   margin: 0;
+}
+.board-shell.has-talk {
+  --talk-reserve: 254px;
 }
 .board-shell .player-row {
   min-height: 52px;
@@ -334,6 +338,18 @@ main {
   font-family: var(--mono);
   font-size: 10px;
   color: var(--muted);
+}
+.bot-voice-label {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.bot-card.active .bot-voice-label {
+  border-color: currentcolor;
+  color: inherit;
+  opacity: 0.85;
 }
 .bot-card.active .bot-strength-label {
   color: inherit;

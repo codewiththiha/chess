@@ -9,6 +9,8 @@ export class SearchController {
   readonly engine = new EngineClient();
   private generation = 0;
   onError: (error: Error) => void = () => {};
+  onReport: (report: NonNullable<AppState['report']>) => void = () => {};
+  onHint: () => void = () => {};
   constructor(
     private state: AppState,
     private game: GameActions,
@@ -41,6 +43,7 @@ export class SearchController {
   }
   run(hint = false, override?: ComputeSettings): void {
     const s = this.state;
+    if (hint) this.onHint();
     if (!s.ready || s.pos.isEnd() || s.view === 'home') return;
     /**
      * Study is a view, not a pause: when the engine owes a game move it makes one
@@ -92,10 +95,14 @@ export class SearchController {
         await this.engine.position(start, history);
         if (generation !== this.generation) return;
         const update = (report: NonNullable<AppState['report']>) => {
-          if (generation === this.generation) {
-            if (hint) s.hint = report;
-            else s.report = report;
+          if (generation !== this.generation) return;
+          if (hint) {
+            s.hint = report;
+            return;
           }
+          s.report = report;
+          // The opponent can only talk about what the engine has actually found.
+          this.onReport(report);
         };
         const result = await this.engine.search(compute, update);
         if (generation !== this.generation) return;
