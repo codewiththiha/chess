@@ -36,6 +36,11 @@ jobs:
       prerelease: ${{ steps.version.outputs.prerelease }}
       dry_run: ${{ steps.version.outputs.dry_run }}
       ref: ${{ steps.ref.outputs.ref }}
+      # Empty on a dry run, which is how a job knows it must not touch the
+      # release. An expression that falls back from an empty string to the tag
+      # would evaluate to the tag, an empty string being falsy in a GitHub
+      # expression, which once published a desktop bundle from a dry run.
+      release_tag: ${{ steps.ref.outputs.release_tag }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -44,7 +49,7 @@ jobs:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && github.sha || github.event.inputs.tag || github.ref_name }}
           persist-credentials: false
       - id: ref
-        name: Decide which revision the build jobs check out
+        name: Decide which revision the build jobs check out and whether they publish
         env:
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
           TAG: ${{ github.event.inputs.tag || github.ref_name }}
@@ -52,8 +57,10 @@ jobs:
         run: |
           if [[ "$DRY_RUN" == "true" ]]; then
             echo "ref=$SHA" >> "$GITHUB_OUTPUT"
+            echo "release_tag=" >> "$GITHUB_OUTPUT"
           else
             echo "ref=$TAG" >> "$GITHUB_OUTPUT"
+            echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
           fi
       - id: version
         name: Match the tag to the version the app will ship
@@ -64,7 +71,7 @@ jobs:
           python3 scripts/ci/release.py
           echo "dry_run=$DRY_RUN" >> "$GITHUB_OUTPUT"
       - name: Open the release every job uploads to
-        if: ${{ steps.version.outputs.dry_run != 'true' }}
+        if: steps.ref.outputs.release_tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
@@ -127,7 +134,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          tagName: ${{ needs.plan.outputs.dry_run == 'true' && '' || needs.plan.outputs.tag }}
+          tagName: ${{ needs.plan.outputs.release_tag }}
           releaseName: gwaymaegyi chess ${{ needs.plan.outputs.version }}
           releaseDraft: false
           prerelease: ${{ needs.plan.outputs.prerelease }}
@@ -215,7 +222,7 @@ jobs:
       - name: Build one APK per architecture
         run: npm run tauri -- android build --apk --split-per-abi
       - name: Publish the Android builds
-        if: ${{ needs.plan.outputs.dry_run != 'true' }}
+        if: needs.plan.outputs.release_tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.plan.outputs.tag }}
@@ -224,7 +231,7 @@ jobs:
           printf 'Uploading %d Android files\n' "${#assets[@]}"
           gh release upload "$TAG" "${assets[@]}" --clobber
       - name: Keep the Android builds
-        if: ${{ needs.plan.outputs.dry_run == 'true' }}
+        if: needs.plan.outputs.release_tag == ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: android-${{ github.run_id }}-${{ github.run_attempt }}
@@ -251,13 +258,13 @@ jobs:
           npm run build
           tar -czf "gwaymaegyi-chess-$VERSION-web.tar.gz" -C dist .
       - name: Publish the web bundle
-        if: ${{ needs.plan.outputs.dry_run != 'true' }}
+        if: needs.plan.outputs.release_tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.plan.outputs.tag }}
         run: gh release upload "$TAG" ./*.tar.gz --clobber
       - name: Keep the web bundle
-        if: ${{ needs.plan.outputs.dry_run == 'true' }}
+        if: needs.plan.outputs.release_tag == ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: web-${{ github.run_id }}-${{ github.run_attempt }}
