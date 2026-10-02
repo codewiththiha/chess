@@ -353,3 +353,9 @@ their lines):
 - One regression test in the browser suite failed once and passed on its own
   four repeats, so its cause was not the speech work; it is left unweakened
   rather than papered over with a longer timeout.
+
+A documentation-only push does not build the desktop shell: that workflow is
+filtered to `src-tauri/**`, `src/**`, `public/**`, `index.html`, and the package
+manifests. [CI run 36976450261](https://github.com/codewiththiha/chess/actions/runs/36976450261)
+for the doc commit after `8738c8b` shows exactly that — the verify workflow
+passed and no desktop run was created.
