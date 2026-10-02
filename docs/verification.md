@@ -380,3 +380,19 @@ filtered to `src-tauri/**`, `src/**`, `public/**`, `index.html`, and the package
 manifests. [CI run 36976450261](https://github.com/codewiththiha/chess/actions/runs/36976450261)
 for the doc commit after `8738c8b` shows exactly that — the verify workflow
 passed and no desktop run was created.
+
+Verified on 2026-10-02 (local date), source commit `3b295eb` (the voice fix and
+the spoken lines driven in a real browser):
+
+- [CI push run 36978282533](https://github.com/codewiththiha/chess/actions/runs/36978282533):
+  success on every job. The hosted unit job printed **15 files / 145 tests
+  passed**; Browser (desktop) **40 passed (1.5 m)** and Browser (mobile) **39
+  passed plus 1 skipped (1.5 m)** — the same 80 executions as the local pre-push
+  run (79 passed, 1 skipped, 3.2 m), three of them new speech scenarios on each
+  project. Artifacts: `production-36978282533-1` (7,450,915 bytes),
+  `playwright-desktop-1` (273,154 bytes), `playwright-mobile-1` (275,177 bytes).
+- [Desktop push run 36978282282](https://github.com/codewiththiha/chess/actions/runs/36978282282):
+  success (4.8 m), artifact `desktop-shell-36978282282-1` (1,763,465 bytes).
+- Local gates at `3b295eb` before the push: `npm run check` 0 errors 0 warnings,
+  `npm run lint` clean, `format:check` clean, **145 unit tests in 15 files**,
+  **79 passed plus one skip of 80 browser executions**, `npm run verify` green.
