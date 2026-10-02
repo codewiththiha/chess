@@ -505,3 +505,24 @@ verification` all passed. Artifacts: `production-36997298100-1` (7,482,154
   before pushing — for `1. e4 e5 2. Qh5 Nc6 3. Qxf7+ Kxf7` it reported the real
   counts, named the queen on f7 with nothing defending it and its value, and
   offered the engine's own `Bc4` with the reason taken from the board.
+
+Verified on 2026-10-02 (local date), source commit `5287f91` (the coach first,
+and in plain words):
+
+- [CI push run 37000336252](https://github.com/codewiththiha/chess/actions/runs/37000336252):
+  success on every job — Selection, Commit messages, Production build, Quality,
+  Unit and WASM, Browser (desktop), Browser (mobile), and the aggregate
+  `Verify / Full verification`. Artifacts: `production-37000336252-1`
+  (7,483,531 bytes), `playwright-desktop-1` (281,799 bytes),
+  `playwright-mobile-1` (283,632 bytes).
+- [Desktop push run 37000335984](https://github.com/codewiththiha/chess/actions/runs/37000335984):
+  success. `Desktop shell` compiled, artifact `desktop-shell-37000335984-1`
+  (1,763,465 bytes).
+- The local pre-push run behind it: **184 unit tests in 18 files**; the
+  production browser suite **89 passed plus one intentional skip of 90**
+  executions in about 3 minutes 44 seconds; Prettier, oxlint, and `svelte-check`
+  clean, production build successful. The walkthrough text was read back from a
+  real reviewed game before pushing: the conversation sits 53 px into the card
+  with its full 258 px in view, and for `1. e4 e5 2. Qh5 Nc6 3. Qxf7+ Kxf7` it
+  said _"a blunder… you are clearly worse here… that hands your queen on f7
+  straight to the king… Bc4 was the move"_ with no measurement in sight.
