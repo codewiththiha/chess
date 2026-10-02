@@ -647,3 +647,49 @@ Verified on 2026-10-02 (local date), source commit `0ec73a9` (the app mark):
   of which also run in the Quality job.
 - Nothing was rendered or installed in this workspace: the icons were produced on
   the runner, and the local work was geometry, checks, and tests.
+
+Verified on 2026-10-02 (local date), source commit `75e08a9`, tag `v0.1.1` (the
+first release that carries the app mark):
+
+- [Release run 37044899505](https://github.com/codewiththiha/chess/actions/runs/37044899505):
+  all seven jobs green in 10 minutes 6 seconds from the tag — Prepare 9s, Web
+  bundle 20s, the desktop matrix in 3m 36s to 8m 28s, and Android 9m 48s.
+  Published [v0.1.1](https://github.com/codewiththiha/chess/releases/tag/v0.1.1):
+  sixteen assets, 249.0 MB, including the five signed APKs, the universal
+  `app-universal-release.apk` (37.92 MB), `app-universal-release.aab` (26.81 MB),
+  and `gwaymaegyi-chess-0.1.1-web.tar.gz` (7.59 MB).
+- [CI run 37044908088](https://github.com/codewiththiha/chess/actions/runs/37044908088)
+  on the same revision: every job green in 3 minutes 20 seconds. It had to be
+  dispatched by hand, because the revision that fixes the formatting is a
+  documentation-only change and the push filters skip CI for those — worth
+  knowing before tagging a docs-only commit: **the tag gets a run, the commit
+  may not**.
+- The push before it, [CI 37044259695](https://github.com/codewiththiha/chess/actions/runs/37044259695),
+  failed the Quality job on one thing: `docs/verification.md` ended with two
+  newlines, which Prettier rejects. The fix is `75e08a9`, and the lesson is in
+  the tooling: the record, plus every JSON, YAML, and TS file that changed, is
+  now checked with the **pinned Prettier 3.9.9** — fetched to `/tmp` and run the
+  way `scripts/ci/workflows.py` fetches actionlint — before tagging, not after.
+  [Desktop 37044259291](https://github.com/codewiththiha/chess/actions/runs/37044259291)
+  passed on that same commit, so the version bump itself was sound.
+- What the released artifacts actually contain, read back from the published
+  files rather than assumed:
+  - **`app-arm64-release.apk`** (10,859,808 bytes): the manifest carries
+    `com.codewiththiha.gwaymaegyi`, version `0.1.1`, version code `1001`, and
+    `com.codewiththiha.gwaymaegyi.MainActivity`; the resource table names
+    `ic_launcher` with `app_icon_background`, `app_icon_foreground`, and
+    `app_icon_monochrome` — the launcher icon drawn from the mark. (AGP shortens
+    resource file paths in a release build, so the names only appear in
+    `resources.arsc`, not in the entry listing.)
+  - **`gwaymaegyi.chess_0.1.1_amd64.deb`**: four installed icons, and the
+    256px one carries the mark's own fingerprint — tile green `(41, 94, 73)` at
+    the plate, cream `(229, 228, 207)` on the pawn, and sage `(166, 188, 174)`
+    on the rule right of centre, with a transparent corner outside the squircle.
+    That pixel test is what separates this mark from the old four-square one,
+    which had cream in that spot.
+- The version bump moved four files that must agree — `src-tauri/tauri.conf.json`
+  (what the release gate reads), `package.json` and its lock, and
+  `src-tauri/Cargo.toml` — plus the crate's own `Cargo.lock` entry, without which
+  the desktop job's `cargo build --locked` would have refused to run.
+  `tests/ci/test_release.py` now checks all four instead of two, and the check
+  was shown to fail when the crate is left behind.
