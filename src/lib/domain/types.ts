@@ -47,6 +47,8 @@ export interface Preferences {
   arrowCount: number;
   /** Let a move be queued while the opponent is thinking. */
   premove: boolean;
+  /** Let the opponent characters say their lines out loud. */
+  speech: boolean;
   evaluation: boolean;
   engine: EngineSettings;
   /** Bot picked on Home; the game itself stores the bot it was played against. */

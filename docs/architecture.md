@@ -148,7 +148,12 @@ the SQLite worker, `/gwaymaegyi-chess` directory):
   with its real centipawn cost and its real replacement, and praise is reserved
   for the move the engine itself chose. Lines are pure functions of voice, event,
   and ply, so the same position always produces the same remark; a quiet ply
-  produces no line at all. Two-player and study records are never claimed.
+  produces no line at all. Two-player and study records are never claimed. A
+  `SpeechController` may then say the line through the platform's own speech
+  engine: the utterance plan is a pure function (text, character, available
+  voices) so it can be tested without a speaking platform, it prefers a voice
+  that matches the character, it never repeats the last line, and a platform that
+  refuses to speak is ignored rather than allowed to break a game.
 - `coach.ts` (controller + `domain/coach.ts`): the review chat. It builds one
   `CoachPosition` from the live report when the analysis describes the position
   on screen and from the stored review point otherwise, classifies the question

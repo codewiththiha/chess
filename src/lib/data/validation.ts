@@ -72,6 +72,8 @@ export function decodePreferences(value: unknown): Preferences {
     arrowCount:
       p.arrowCount === undefined ? defaults.arrowCount : number(p.arrowCount),
     premove: p.premove === undefined ? defaults.premove : bool(p.premove),
+    // Preferences saved before the characters talked have no speech setting.
+    speech: p.speech === undefined ? defaults.speech : bool(p.speech),
     evaluation: bool(p.evaluation),
     // Preferences saved before the bot library existed have no chosen bot.
     botId:

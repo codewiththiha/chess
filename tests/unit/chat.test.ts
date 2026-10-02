@@ -5,9 +5,12 @@ import {
   DEFAULT_VOICE,
   VOICES,
   chatLine,
+  pickSpeechVoice,
+  planUtterance,
   talksAt,
   voiceById,
   type ChatKind,
+  type SpeechVoice,
 } from '../../src/lib/domain/chat';
 
 const KINDS: ChatKind[] = [
@@ -150,5 +153,57 @@ describe('the three voices', () => {
           expect(line.length, `${voice.id} ${kind}`).toBeLessThan(140);
           expect(line).not.toMatch(/\{[a-z]+\}/);
         }
+  });
+});
+
+describe('saying the lines out loud', () => {
+  const platform: SpeechVoice[] = [
+    { name: 'Daniel', lang: 'en-GB' },
+    { name: 'Samantha', lang: 'en-US' },
+    { name: 'Kyaw', lang: 'my-MM' },
+  ];
+
+  it('plans an utterance with the character manner', () => {
+    const gentle = planUtterance('Good move.', 'kyar-nyo', platform)!;
+    expect(gentle.text).toBe('Good move.');
+    expect(gentle.voiceName).toBe('Samantha');
+    expect(gentle.lang).toBe('en-US');
+    expect(gentle.pitch).toBeGreaterThan(1);
+    const cold = planUtterance('Qxf7. Sit with that.', 'kyaw-gyi', platform)!;
+    expect(cold.voiceName).toBe('Daniel');
+    expect(cold.pitch).toBeLessThan(1);
+    expect(cold.rate).toBeLessThan(gentle.rate);
+  });
+
+  it('picks voices per character and never invents one', () => {
+    expect(pickSpeechVoice(platform, voiceById('nay-chi').speech)?.name).toBe(
+      'Samantha',
+    );
+    expect(pickSpeechVoice(platform, voiceById('kyaw-gyi').speech)?.name).toBe(
+      'Daniel',
+    );
+    // No matching platform voice means the first English one, or nothing.
+    const unisex: SpeechVoice[] = [{ name: 'Voice 1', lang: 'en-US' }];
+    expect(pickSpeechVoice(unisex, voiceById('kyaw-gyi').speech)?.name).toBe(
+      'Voice 1',
+    );
+    expect(pickSpeechVoice([], voiceById('kyaw-gyi').speech)).toBeNull();
+    // A platform that only offers a Burmese voice still gets a voice, because
+    // speaking in the platform's own language beats staying silent.
+    expect(
+      pickSpeechVoice(
+        [{ name: 'Kyaw', lang: 'my-MM' }],
+        voiceById('kyaw-gyi').speech,
+        'my',
+      )?.lang,
+    ).toBe('my-MM');
+  });
+
+  it('says nothing when there is nothing to say', () => {
+    expect(planUtterance('   ', 'kyar-nyo', platform)).toBeNull();
+    // Without a platform voice it still speaks, in the default language.
+    const bare = planUtterance('Check.', 'kyar-nyo', [])!;
+    expect(bare.voiceName).toBeNull();
+    expect(bare.lang).toBe('en');
   });
 });

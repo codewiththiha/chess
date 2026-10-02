@@ -6,6 +6,7 @@ import { SearchController } from './search';
 import { ReviewController } from './review';
 import { CoachController } from './coach';
 import { BotChatController } from './botchat';
+import { SpeechController } from './speech';
 import { PersistenceController } from './persistence';
 import { moveSound } from './sound';
 import { validatePreferences } from '../domain/preferences';
@@ -29,6 +30,7 @@ export class Session {
   readonly review = new ReviewController(this.state, this.storage.db);
   readonly coach = new CoachController(this.state);
   readonly chat = new BotChatController(this.state);
+  readonly speech = new SpeechController(this.state);
   private tick: ReturnType<typeof setInterval> | null = null;
   private saveTick: ReturnType<typeof setInterval> | null = null;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -91,6 +93,8 @@ export class Session {
   private changed(): void {
     const s = this.state;
     this.chat.observe();
+    const said = s.bubble;
+    if (said) this.speech.speak(said.text);
     const marker = `${s.record.id}:${s.record.moves.map((m) => m.uci).join(',')}`;
     if (marker !== this.marker) {
       this.review.cancel();
@@ -146,7 +150,10 @@ export class Session {
         ? botById(this.state.bots, options.botId)
         : null;
     this.game.create(options, bot);
+    this.speech.cancel();
     this.chat.greet();
+    const greeting = this.state.bubble;
+    if (greeting) this.speech.speak(greeting.text);
     this.notify(
       `${bot ? `${bot.name} · ` : ''}${categoryLabel(options.minutes)} · ${describeTime(options.minutes, options.increment)}`,
     );
@@ -226,8 +233,9 @@ export class Session {
     prefs: Preferences,
     notice = 'Settings saved.',
   ): Promise<void> {
-    // Startup restores stored preferences once; never let those two writes race.
+    // Startup restores stored preferences once; never let those two write races.
     if (this.mounting) await this.mounting;
+    if (!prefs.speech) this.speech.cancel();
     validatePreferences(prefs);
     if (prefs.engine.backend === 'simd128' && !supportsSimd())
       throw new Error(

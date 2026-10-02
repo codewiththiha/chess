@@ -63,6 +63,11 @@
       detail: 'Queue a move while the engine is thinking.',
     },
     {
+      key: 'speech',
+      title: 'Opponent speech',
+      detail: 'Let the character say its lines out loud.',
+    },
+    {
       key: 'evaluation',
       title: 'Evaluation rail',
       detail: 'A compact, signed position evaluation.',

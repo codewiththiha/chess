@@ -54,12 +54,111 @@ export type ChatKind =
   | 'draw'
   | 'hint';
 
+export interface SpeechProfile {
+  /** How fast the character talks, relative to the system voice. */
+  rate: number;
+  pitch: number;
+  /** Which kind of system voice to look for, when the platform offers a choice. */
+  gender: 'feminine' | 'masculine';
+}
+
 export interface Voice {
   id: VoiceId;
   name: string;
   /** One line describing the voice, shown where the reader picks it. */
   about: string;
+  /** How it sounds when the platform can speak the lines. */
+  speech: SpeechProfile;
   lines: Partial<Record<ChatKind, readonly string[]>>;
+}
+
+/** The part of a platform voice this app needs; kept small so it can be tested. */
+export interface SpeechVoice {
+  name: string;
+  lang: string;
+}
+
+export interface Utterance {
+  text: string;
+  lang: string;
+  rate: number;
+  pitch: number;
+  voiceName: string | null;
+}
+
+const FEMININE = [
+  'female',
+  'woman',
+  'amy',
+  'zira',
+  'samantha',
+  'victoria',
+  'karen',
+  'moira',
+  'tessa',
+  'fiona',
+  'serena',
+  'joanna',
+  'aria',
+  'jenny',
+  'salli',
+  'nicky',
+];
+const MASCULINE = [
+  'male',
+  'man',
+  'david',
+  'mark',
+  'daniel',
+  'alex',
+  'fred',
+  'george',
+  'oliver',
+  'thomas',
+  'guy',
+  'ryan',
+  'brian',
+  'matthew',
+  'aaron',
+];
+
+/** Find a platform voice for one character, never inventing one that is absent. */
+export function pickSpeechVoice(
+  voices: readonly SpeechVoice[],
+  profile: SpeechProfile,
+  lang = 'en',
+): SpeechVoice | null {
+  const candidates = voices.filter((voice) =>
+    voice.lang.toLowerCase().startsWith(lang),
+  );
+  const words = profile.gender === 'feminine' ? FEMININE : MASCULINE;
+  const named = candidates.find((voice) =>
+    words.some((word) => voice.name.toLowerCase().includes(word)),
+  );
+  return named ?? candidates[0] ?? null;
+}
+
+/**
+ * What to hand the platform's speech engine for one line, or null when there is
+ * nothing to say. Pure, so the plan can be tested without a speaking platform.
+ */
+export function planUtterance(
+  text: string,
+  voiceId: string | null | undefined,
+  voices: readonly SpeechVoice[] = [],
+  lang = 'en',
+): Utterance | null {
+  const line = text.trim();
+  if (!line) return null;
+  const profile = voiceById(voiceId).speech;
+  const chosen = pickSpeechVoice(voices, profile, lang);
+  return {
+    text: line,
+    lang: chosen?.lang ?? lang,
+    rate: profile.rate,
+    pitch: profile.pitch,
+    voiceName: chosen?.name ?? null,
+  };
 }
 
 const PIECE: Record<Role, string> = {
@@ -92,6 +191,7 @@ const KYAR_NYO: Voice = {
   id: 'kyar-nyo',
   name: 'Gentle',
   about: 'Warm, chatty, and kind about your mistakes. Still takes the piece.',
+  speech: { rate: 1, pitch: 1.15, gender: 'feminine' },
   lines: {
     greet: [
       "Hi! Good luck — let's have a nice one.",
@@ -199,6 +299,7 @@ const NAY_CHI: Voice = {
   name: 'Confident',
   about:
     'Plays fast, talks faster. Needles you, then admits when you are right.',
+  speech: { rate: 1.12, pitch: 1.02, gender: 'feminine' },
   lines: {
     greet: [
       "Let's go. I don't like long games.",
@@ -296,6 +397,7 @@ const KYAW_GYI: Voice = {
   id: 'kyaw-gyi',
   name: 'Ruthless',
   about: 'Unsparing. Names every mistake, counts every pawn, applauds nothing.',
+  speech: { rate: 0.92, pitch: 0.75, gender: 'masculine' },
   lines: {
     greet: [
       'You have my attention. Briefly.',

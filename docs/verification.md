@@ -7,7 +7,7 @@ simulation.
 
 **2026-10-02 redesign status.** The gates marked _published_ below describe
 `a27443b`, the last pre-redesign revision. The redesign itself is verified as:
-unit suite **138 tests in 15 files**; `svelte-check` 0 errors
+unit suite **144 tests in 15 files**; `svelte-check` 0 errors
 and 0 warnings; `tsc` for the node and test configs clean; oxlint 0/0 with 58
 vendored checksums; Prettier clean; `npm run check` and the production build
 successful; and the full production browser suite **55 passed plus one intentional
@@ -18,7 +18,9 @@ two projects). The review chat then landed as **112 unit tests in 13 files** and
 **67 passed plus one skip of 68 browser executions** (34 scenarios on each of two
 projects). The three talking characters followed as **138 unit tests in 15 files**
 and **73 passed plus one skip of 74 browser executions** (37 scenarios on each of
-two projects). The redesign also
+two projects). Speaking the lines added the utterance plan to the unit suite
+(**144 tests in 15 files**), and the browser suite stayed at **73 passed plus one
+skip**. The redesign also
 removed pause/resume in favour of a pre-game timeless choice, folded review into
 the game card, and replaced IndexedDB with the SQLite database.
 
@@ -34,7 +36,7 @@ revision and passed; see the hosted evidence below.
 ## Suite and executed coverage
 
 The published unit suite passed **55 tests in 8 files**; the redesign suite
-passes **138 tests in 15 files**, covering everything below plus:
+passes **144 tests in 15 files**, covering everything below plus:
 
 - Orthodox legal moves/perft, both castling conventions, king-already-on-target
   Chess960 castling, en passant, promotion, and all 960 unique legal starts.
@@ -72,6 +74,9 @@ passes **138 tests in 15 files**, covering everything below plus:
   same line while different positions do not; that the three escalate from kind
   to needling to unsparing; and that no line is longer than a bubble or leaves a
   placeholder unfilled.
+- The speech plan: that each character gets a voice of the right sort, its own
+  rate and pitch, the platform's language, and nothing at all for an empty line —
+  and that no platform voice is ever invented.
 - The reaction logic: a greeting when a bot game starts, a blunder named only
   after the engine evaluates it, praise only for the move the engine wanted, a
   plan taken from the engine's own line, silence for a quiet ply, an answer to a
