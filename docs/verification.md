@@ -550,3 +550,60 @@ Verified on 2026-10-02 (local date), source commit `1c66a3f` (the interface pass
   and phone (390×844) in four views per shell: Home, a bot game, study analyze,
   and the review walkthrough, with the engine's arrows drawn and the verdict mark
   on the moved piece inspected close up.
+
+Verified on 2026-10-02 (local date), source commits `8e6a48c`, `8651750`, `53106d3`,
+`1193689`, `bab68b7`, tag `v0.1.0` (the review follow-through, the release pipeline,
+and the Android window frame):
+
+- [CI push run 37022725594](https://github.com/codewiththiha/chess/actions/runs/37022725594):
+  success on every job for the three review fixes and the first release workflow;
+  [Desktop push run 37022725034](https://github.com/codewiththiha/chess/actions/runs/37022725034):
+  success, `Desktop shell` compiled.
+- [Release dry run 37027111798](https://github.com/codewiththiha/chess/actions/runs/37027111798)
+  on `1193689`: all seven jobs — Prepare, the four desktop platforms, Android, and
+  the web bundle — with eleven artifacts kept: `android-37027111798-1` (81,243,277
+  bytes), `web-37027111798-1` (7,586,653 bytes), `linux-amd64-appimage` (84,908,724
+  bytes), `linux-amd64-deb` (6,079,912 bytes), `linux-x86_64-rpm` (6,082,039 bytes),
+  `darwin-aarch64-app` (6,128,516 bytes), `darwin-aarch64-dmg` (6,100,285 bytes),
+  `darwin-x64-app` (6,163,070 bytes), `darwin-x64-dmg` (6,156,162 bytes),
+  `windows-x64-nsis` (5,788,082 bytes), `windows-x64-msi` (6,602,938 bytes).
+  [CI 37027102378](https://github.com/codewiththiha/chess/actions/runs/37027102378)
+  and [Desktop 37027102032](https://github.com/codewiththiha/chess/actions/runs/37027102032)
+  passed on the same commit.
+- The published release: [v0.1.0](https://github.com/codewiththiha/chess/releases/tag/v0.1.0),
+  built by [run 37034115586](https://github.com/codewiththiha/chess/actions/runs/37034115586)
+  from the tag on `bab68b7` in 9 minutes 57 seconds, all seven jobs green. Sixteen
+  assets, 249.0 MB: nine desktop bundles, five signed Android APKs
+  (`app-arm`, `app-arm64`, `app-x86`, `app-x86_64`, and the 37.92 MB universal
+  `app-universal-release.apk`), `app-universal-release.aab` (26.81 MB) for Play
+  Console, and `gwaymaegyi-chess-0.1.0-web.tar.gz` (7.59 MB). The signing key was
+  generated on the runner because `ANDROID_KEYSTORE_BASE64` and its passwords are
+  not set yet, so each release is signed differently until they are, as
+  [releases.md](releases.md) says.
+- The Android job generated its project on the runner and adapted it: the log
+  records `Android project adapted: src-tauri/gen/android/app/src/main/java/com/codewiththiha/gwaymaegyi/MainActivity.kt`,
+  after which `android init`, the universal APK, the AAB, and the four per-ABI
+  APKs all built (`app-{arm,arm64,x86,x86_64}-release.apk`).
+- Three defects the runners found that the local gates could not, each fixed and
+  re-run: the first dry run died checking out a tag that did not exist, so
+  `Prepare` now resolves the revision (a dry run builds the dispatching commit, a
+  release builds the tag); the Windows job stopped in `tauri-build` with
+  `icons/icon.ico not found`, so the icon set gained the .ico, the bundle names
+  it, and `scripts/check_repo.py` now fails when a named icon is missing; and the
+  second dry run published after all — the expression that fell back from an empty
+  string to the tag evaluated to the tag, creating release 401915625 at `53106d3`
+  with nine desktop bundles. That release was deleted, its tag re-pointed to
+  `bab68b7`, and `tests/ci/test_workflows.py` now fails if any workflow falls back
+  through an empty string or a publish step loses its guard.
+- Where the release time goes, measured: the Playwright headless shell restores
+  from cache in about a second (103 MB) instead of downloading, the Rust artifacts
+  are cached per platform, and the Android job keeps its own cache key. The apt
+  part of `playwright install --with-deps` is the one step that varies with the
+  mirror: 13 to 20 seconds in three jobs and 402 seconds in a fourth, which is
+  what turned one CI run into 9 minutes 16 seconds. Documentation-only pushes
+  start no workflow at all, which is why this record is not itself a run.
+- Local gates for the whole step, with nothing compiled or installed here: the CI
+  script suite is **21 tests**, `python3 scripts/check_repo.py` verifies the
+  authored summaries, the named icons, and 58 vendored checksums, and
+  `npm run lint:workflows` passes actionlint 1.7.12 over the four workflows. The
+  release and Android paths were proven on the runners, not locally.

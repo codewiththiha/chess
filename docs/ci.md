@@ -24,7 +24,7 @@ nothing is an error, not a green check.
 | Job                        | What it does                                                                             |
 | -------------------------- | ---------------------------------------------------------------------------------------- |
 | Selection                  | Validates typed booleans, project/filter bounds, and build prerequisites                 |
-| Quality                    | Strict Svelte/TS, oxlint/provenance, Prettier, 18 CI-script regression tests, actionlint |
+| Quality                    | Strict Svelte/TS, oxlint/provenance, Prettier, 21 CI-script regression tests, actionlint |
 | Unit and WASM              | Vitest unit/integration suite, including the real Portable/SIMD128 binaries              |
 | Production build           | Vite build; uploads the production output used by browser jobs                           |
 | Browser (desktop/mobile)   | Independent jobs test the same downloaded production build with Chromium                 |
