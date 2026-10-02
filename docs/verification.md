@@ -526,3 +526,27 @@ and in plain words):
   with its full 258 px in view, and for `1. e4 e5 2. Qh5 Nc6 3. Qxf7+ Kxf7` it
   said _"a blunder… you are clearly worse here… that hands your queen on f7
   straight to the king… Bc4 was the move"_ with no measurement in sight.
+
+Verified on 2026-10-02 (local date), source commit `1c66a3f` (the interface pass):
+
+- [CI push run 37005680842](https://github.com/codewiththiha/chess/actions/runs/37005680842):
+  success on every job. [Desktop push run 37005680471](https://github.com/codewiththiha/chess/actions/runs/37005680471):
+  success, `Desktop shell` compiled.
+- Local gates before it: **184 unit tests in 18 files**; the production browser
+  suite **89 passed plus one intentional skip of 90**; Prettier, oxlint, and
+  `svelte-check` clean.
+- What the pass corrected, each found by measuring the running production build
+  rather than by eye: the `.side-choice` class collision that rendered Home's
+  "Play a bot" picker as a 96px-tall empty box built for the dialog's picture
+  tiles (the picker is now `.segmented`, the same control as the study tabs);
+  Chessground's stock arrow colours, which computed to `#003088` and `#15781B`
+  on both appearances and are now the theme's info and accent; grade dots that
+  each sat at a different x because they were laid out inside the move buttons
+  (they now fill a column of their own, measured at exactly two x positions for
+  the two colours); a progress element rendered at its default chunky height
+  next to a `Reviewed7 / 7` run-on caption; and a `minmax(392px, 1fr)` grid that
+  overflowed a 390px phone by 15px, which `min(392px, 100%)` fixes.
+- The interface was then read through in light and dark on desktop (1440×1000)
+  and phone (390×844) in four views per shell: Home, a bot game, study analyze,
+  and the review walkthrough, with the engine's arrows drawn and the verdict mark
+  on the moved piece inspected close up.
