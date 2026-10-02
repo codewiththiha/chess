@@ -27,9 +27,10 @@ export class SpeechController {
   }
 
   /**
-   * Say one line in the character's own manner. Speaking is skipped when the
-   * reader turned it off, when the tab is in the background, and when the same
-   * line would be repeated.
+   * Say one line in the character's own manner. Speaking is skipped only when
+   * the reader turned it off or the same line would be repeated, so a browser
+   * that hides the tab — or reports it hidden while it loads — is never a silent
+   * failure on its own.
    */
   speak(text: string): void {
     const synthesis = engine();
@@ -40,7 +41,6 @@ export class SpeechController {
       this.voices(),
     );
     if (!plan || plan.text === this.spoken) return;
-    if (typeof document !== 'undefined' && document.hidden) return;
     this.spoken = plan.text;
     synthesis.cancel();
     try {

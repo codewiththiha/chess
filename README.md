@@ -18,15 +18,22 @@ WebAssembly. Licensed SVG pieces. Your browser, not a cloud account.
   can add your own with a name, strength, playing style, voice, and a picture that
   stays in the local database. A bot's card is the strength and policy it plays,
   so a saved game always replays as the opponent it was started against.
-- **They have a voice:** the character talks while you play. It greets you, names
-  the pawns a blunder cost once the engine has actually evaluated the move, says
-  what it intends after its own, and answers a hint with a remark. Each voice
-  escalates with strength — Kyar Nyo apologises for winning material, Nay Chi
-  needles you, Kyaw Gyi counts every concession. Every line comes from the engine's
-  own evaluation and its own line, so the trash talk is never invented. Turn on
-  **Opponent speech** in Appearance and the character says the lines out loud in
-  its own manner — pitch, pace, and the system voice that fits it. Speech is off
-  until you ask for it, and a platform with no voice of its own is simply quiet.
+- **They have a voice:** the character talks while you play, and never says the
+  same thing twice. It greets you, names the pawns a blunder cost once the engine
+  has actually evaluated the move, gives you credit for the move the engine itself
+  wanted, and answers a hint with a remark. It jokes when a valued piece falls —
+  the queen and the rooks have prices, and each character makes its own joke about
+  them — and now and then, more often from the gentler ones, it stops teasing and
+  teaches: **the move the engine preferred instead**. Each voice escalates with
+  strength: Kyar Nyo apologises for winning material, Nay Chi needles you, Kyaw
+  Gyi counts every concession.
+  Nothing is invented — a line is only used when the event has the facts it asks
+  for — and when there is nothing worth saying, the character says **nothing at
+  all** rather than narrating a plan it only saw in an engine line.
+  **Opponent speech** is on by default and one icon away in the rail: the
+  character says every line out loud in its own manner — pitch, pace, and the
+  system voice that fits it. Turn it off there or in Appearance; a platform with
+  no voice of its own is simply quiet.
 - **Move naturally:** tap/click, mouse drag, touch drag, or the accessible
   keyboard board. Piece motion respects both your toggle and reduced-motion
   system preferences. Move sound is opt-in.
@@ -114,7 +121,7 @@ On Linux, Playwright may also require `npx playwright install-deps chromium`.
 The browser suite uses port 5173; use a dedicated preview for this project rather
 than an unrelated application on that port.
 
-The verification suite contains **145 unit/integration tests** and **80 browser
+The verification suite contains **151 unit/integration tests** and **80 browser
 executions** (37 scenarios on desktop and touch-enabled mobile; the desktop-only
 viewport check is skipped on mobile). The actual WASM binaries are exercised, not
 replaced with production mocks. Fault simulations are confined to tests. There are

@@ -147,8 +147,16 @@ the SQLite worker, `/gwaymaegyi-chess` directory):
   it only once the engine has answered for that position — so a blunder is named
   with its real centipawn cost and its real replacement, and praise is reserved
   for the move the engine itself chose. Lines are pure functions of voice, event,
-  and ply, so the same position always produces the same remark; a quiet ply
-  produces no line at all. Two-player and study records are never claimed. A
+  ply, and the lines already used in this game, so the same position always
+  produces the same remark and a remark is never repeated; a line that wants a
+  fact the event does not have (the better move, the piece that fell, what it was
+  worth) is skipped rather than guessed at, and a ply with nothing worth saying
+  produces no line at all. A mistake is answered with a remark, and every second
+  to fourth mistake — the cadence is the character's own `teaches` number, gentler
+  means more often — is answered with the engine's own move in the position the
+  reader was looking at. A capture of a rook or a queen gets its own joke, and the
+  joke counts what the piece was worth. Two-player and study records are never
+  claimed. A
   `SpeechController` may then say the line through the platform's own speech
   engine: the utterance plan is a pure function (text, character, available
   voices) so it can be tested without a speaking platform, it prefers a voice
@@ -156,7 +164,10 @@ the SQLite worker, `/gwaymaegyi-chess` directory):
   refuses to speak is ignored rather than allowed to break a game. A known voice
   name is enough to match the character's gender, but a general word such as
   "male" only counts on its own — otherwise "Samantha" would be picked to sound
-  like a man.
+  like a man. Speech is on by default, and the one switch lives in the rail as
+  well as in Appearance, so a reader can silence the character without opening a
+  dialog; the bubble never repeats the name of the opponent already named in the
+  row above it.
 - `coach.ts` (controller + `domain/coach.ts`): the review chat. It builds one
   `CoachPosition` from the live report when the analysis describes the position
   on screen and from the stored review point otherwise, classifies the question

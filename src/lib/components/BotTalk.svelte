@@ -13,8 +13,8 @@
 
 {#if line}
   <div class="bot-talk" aria-live="polite">
-    <p class="bot-bubble" data-ply={line.ply}>
-      <span class="bot-bubble-name">{line.name}</span>{line.text}
+    <p class="bot-bubble" data-ply={line.ply} title={line.name}>
+      {line.text}
     </p>
   </div>
 {/if}

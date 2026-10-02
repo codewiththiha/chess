@@ -1,13 +1,16 @@
 // Watch the game and let the opponent say what it actually sees.
 import {
   chatLine,
+  isPrize,
+  pieceWorth,
+  voiceById,
   type BotLine,
   type ChatFacts,
   type ChatKind,
 } from '../domain/chat';
 import { botForGame } from '../domain/bots';
 import { whiteScore } from '../domain/review';
-import { fenAt, position, pvSan } from '../domain/chess';
+import { bestSan, fenAt, position } from '../domain/chess';
 import type { AppState } from '../state/app.svelte';
 import type { MoveEntry } from '../domain/types';
 import type { Report } from '../engine/types';
@@ -49,6 +52,10 @@ export class BotChatController {
   private result = '';
   private lastRemark = -9;
   private lastAhead = -9;
+  /** Lines already used in this game, so nothing is ever said twice. */
+  private readonly said = new Set<string>();
+  /** Mistakes the reader has made, which decides when advice replaces a remark. */
+  private mistakes = 0;
   constructor(private readonly state: AppState) {}
 
   /** The character that talks in the loaded game, if the opponent is a bot. */
@@ -61,8 +68,15 @@ export class BotChatController {
     const s = this.state;
     const bot = this.bot();
     if (!bot) return;
-    const text = chatLine(bot.voice, kind, facts, ply * 7 + kind.length);
+    const text = chatLine(
+      bot.voice,
+      kind,
+      facts,
+      ply * 7 + kind.length,
+      this.said,
+    );
     if (!text) return;
+    this.said.add(text);
     s.botChat = [
       ...s.botChat,
       { id: crypto.randomUUID(), name: bot.name, ply, text },
@@ -84,6 +98,8 @@ export class BotChatController {
 
   reset(): void {
     this.state.botChat = [];
+    this.said.clear();
+    this.mistakes = 0;
     this.evals.clear();
     this.judged.clear();
     this.pending = null;
@@ -139,7 +155,7 @@ export class BotChatController {
             ),
           )
         : null;
-    this.judge(pending, loss, report);
+    this.judge(pending, loss);
   }
 
   /** Notice a new move, a resignation, or a finished game. */
@@ -179,30 +195,29 @@ export class BotChatController {
     this.say('hint', {}, ply);
   }
 
-  private judge(
-    pending: Pending,
-    loss: number | null,
-    report: Report | null,
-  ): void {
+  private judge(pending: Pending, loss: number | null): void {
     const s = this.state;
     const bot = this.bot();
     if (!bot) return;
     const human = s.record.human;
     const mine = pending.move.color !== human;
+    const victim = pending.move.captured ?? undefined;
+    // What the engine wanted in the position this move was played from, which
+    // is the only move a character may honestly offer as advice.
+    const wanted = this.evals.get(pending.ply - 1)?.best ?? null;
+    const better =
+      !mine && wanted
+        ? (bestSan(fenAt(s.record, pending.ply - 1), wanted) ?? undefined)
+        : undefined;
     const facts: ChatFacts = {
       move: pending.move.san,
-      victim: pending.move.captured ?? undefined,
+      victim,
+      value: victim ? pieceWorth(victim) : undefined,
+      better,
       seconds: pending.seconds,
       loss: loss ?? undefined,
       plies: s.record.moves.length,
     };
-    if (report && report.pv.length) {
-      const line = pvSan(fenAt(s.record, pending.ply), report.pv, 4);
-      // The line starts with the reader's reply, so only its second move is a
-      // move this character could honestly claim to intend.
-      facts.reply = line[0];
-      facts.plan = line[1];
-    }
     const ownLoss = loss !== null && mine ? loss : null;
     const theirLoss = loss !== null && !mine ? loss : null;
     if (ownLoss !== null && ownLoss >= 120) {
@@ -210,20 +225,20 @@ export class BotChatController {
       return;
     }
     if (mine) {
-      this.ownMove(facts, pending, report);
+      this.ownMove(facts, pending);
       return;
     }
     this.readerMove(facts, pending, theirLoss);
   }
 
-  /** The character rates its own move, then says what it is playing for. */
-  private ownMove(
-    facts: ChatFacts,
-    pending: Pending,
-    report: Report | null,
-  ): void {
+  /** The character rates its own move; an ordinary move passes without comment. */
+  private ownMove(facts: ChatFacts, pending: Pending): void {
     if (facts.victim) {
-      this.say('bot-capture', facts, pending.ply);
+      this.say(
+        isPrize(pending.move.captured) ? 'bot-prize' : 'bot-capture',
+        facts,
+        pending.ply,
+      );
       return;
     }
     if (pending.move.check) {
@@ -234,14 +249,15 @@ export class BotChatController {
       this.say('bot-promotion', facts, pending.ply);
       return;
     }
-    if (report && facts.plan) {
-      this.say('bot-plan', facts, pending.ply);
-      return;
-    }
+    // Nothing special happened, so the character says nothing at all.
     this.trend(pending.ply);
   }
 
-  /** The character answers the reader's move, hardest when it was a blunder. */
+  /**
+   * The character answers the reader's move. A real mistake is answered with a
+   * remark, and now and then — more often for the gentler characters — with the
+   * move the engine preferred instead. Anything ordinary passes in silence.
+   */
   private readerMove(
     facts: ChatFacts,
     pending: Pending,
@@ -253,8 +269,13 @@ export class BotChatController {
       wanted !== null
         ? pending.move.uci === wanted
         : loss !== null && loss <= 10;
-    if (loss !== null && loss >= 200) {
-      this.say('your-blunder', facts, pending.ply);
+    if (loss !== null && loss >= 80) {
+      this.mistakes += 1;
+      const teachEvery = voiceById(this.bot()?.voice).teaches;
+      const teach = this.mistakes % teachEvery === 0 && Boolean(facts.better);
+      if (teach) this.say('your-advice', facts, pending.ply);
+      else if (loss >= 200) this.say('your-blunder', facts, pending.ply);
+      else this.say('your-slip', facts, pending.ply);
       return;
     }
     if (wasBest) {
@@ -262,7 +283,11 @@ export class BotChatController {
       return;
     }
     if (facts.victim) {
-      this.say('your-capture', facts, pending.ply);
+      this.say(
+        isPrize(pending.move.captured) ? 'your-prize' : 'your-capture',
+        facts,
+        pending.ply,
+      );
       return;
     }
     if (pending.move.check) {
@@ -273,17 +298,8 @@ export class BotChatController {
       this.say('your-promotion', facts, pending.ply);
       return;
     }
-    if (loss !== null && loss >= 80) {
-      this.say('your-slip', facts, pending.ply);
-      return;
-    }
     if (pending.seconds >= 20) {
       this.say('your-slow', facts, pending.ply);
-      return;
-    }
-    // Ordinary moves get a light comment now and then, not every single ply.
-    if (pending.ply - this.lastRemark >= 3) {
-      this.say('your-quiet', facts, pending.ply);
       return;
     }
     this.trend(pending.ply);

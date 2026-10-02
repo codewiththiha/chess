@@ -8,6 +8,8 @@
     Settings2,
     Palette,
     CircleHelp,
+    Volume2,
+    VolumeX,
   } from '@lucide/svelte';
   import type { Session } from '../controllers/session';
   import type { View } from '../domain/types';
@@ -44,6 +46,19 @@
     {/each}
   </div>
   <div class="rail-group rail-bottom">
+    <button
+      class="rail-button"
+      class:active={s.preferences.speech}
+      aria-label="Opponent speech"
+      aria-pressed={s.preferences.speech}
+      title={s.preferences.speech
+        ? 'Opponent speech: on'
+        : 'Opponent speech: off'}
+      onclick={() => session.toggleSpeech()}
+      >{#if s.preferences.speech}<Volume2 size={19} />{:else}<VolumeX
+          size={19}
+        />{/if}</button
+    >
     <button
       class="rail-button rail-optional"
       aria-label="Import PGN"

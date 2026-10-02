@@ -47,7 +47,7 @@ export function defaultPreferences(): Preferences {
     arrows: true,
     arrowCount: 3,
     premove: false,
-    speech: false,
+    speech: true,
     evaluation: true,
     botId: DEFAULT_BOT_ID,
     lastGameId: null,

@@ -3,38 +3,29 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_VOICE,
+  REQUIRED_KINDS,
   VOICES,
   chatLine,
+  isPrize,
   pickSpeechVoice,
+  pieceWorth,
   planUtterance,
   talksAt,
   voiceById,
-  type ChatKind,
   type SpeechVoice,
 } from '../../src/lib/domain/chat';
 
-const KINDS: ChatKind[] = [
-  'greet',
-  'your-best',
-  'your-slip',
-  'your-blunder',
-  'your-capture',
-  'your-check',
-  'your-promotion',
-  'your-slow',
-  'bot-capture',
-  'bot-check',
-  'bot-promotion',
-  'bot-plan',
-  'bot-slips',
-  'bot-ahead',
-  'bot-behind',
-  'level',
-  'win',
-  'lose',
-  'draw',
-  'hint',
-];
+const KINDS = REQUIRED_KINDS;
+/** Every fact a line could ask for, so the length check exercises all of them. */
+const FACTS = {
+  move: 'Nf3',
+  victim: 'rook' as const,
+  better: 'Bb5',
+  value: 5,
+  loss: 250,
+  seconds: 42,
+  plies: 20,
+};
 
 describe('the three voices', () => {
   it('are the characters the app ships, each with a manner', () => {
@@ -81,20 +72,79 @@ describe('the three voices', () => {
     for (const line of lines) expect(line.length).toBeGreaterThan(0);
   });
 
-  it('names the captured piece and the plan it intends', () => {
+  it('names the captured piece and what it was worth', () => {
     const capture = chatLine('nay-chi', 'bot-capture', { victim: 'rook' }, 3);
     expect(capture).toContain('rook');
-    const plan = chatLine(
-      'kyar-gyi',
-      'bot-plan',
-      {
-        reply: 'Nf3',
-        plan: 'Bc5',
-      },
-      7,
+    expect(pieceWorth('rook')).toBe(5);
+    expect(pieceWorth('pawn')).toBe(1);
+    expect(isPrize('rook')).toBe(true);
+    expect(isPrize('knight')).toBe(false);
+    expect(isPrize(undefined)).toBe(false);
+    // A joke about a valued piece names the piece, and the price comes up
+    // whenever the line counts it — both are honest, so both are allowed.
+    const prizes = [0, 1, 2, 3, 4].map(
+      (seed) =>
+        chatLine(
+          'kyaw-gyi',
+          'bot-prize',
+          { victim: 'queen', value: 9 },
+          seed,
+        ) ?? '',
     );
-    expect(plan).toContain('Nf3');
-    expect(plan).toContain('Bc5');
+    for (const line of prizes) expect(line).toContain('queen');
+    expect(prizes.join(' ')).toContain('9');
+  });
+
+  it('hands out the engine better move as advice, in every character', () => {
+    for (const voice of VOICES) {
+      const said = [0, 1, 2, 3, 4, 5].map(
+        (seed) =>
+          chatLine(
+            voice.id,
+            'your-advice',
+            { move: 'Qh5', better: 'Nf3' },
+            seed,
+          ) ?? '',
+      );
+      for (const line of said) {
+        expect(line, voice.id).toContain('Nf3');
+        expect(line).not.toContain('Qh5');
+      }
+    }
+    // The characters differ in how often they teach, and Kyaw Gyi least.
+    expect(voiceById('kyar-nyo').teaches).toBeLessThan(
+      voiceById('kyaw-gyi').teaches,
+    );
+  });
+
+  it('skips a line that needs a fact this event does not have', () => {
+    // No piece was taken, so no prize line may be chosen — and the search must
+    // fall through to the lines that do fit rather than leaving a blank.
+    for (let seed = 0; seed < 20; seed++) {
+      const line = chatLine('nay-chi', 'bot-prize', {}, seed);
+      expect(line).toBeNull();
+      const advice = chatLine('kyar-nyo', 'your-advice', { move: 'e4' }, seed);
+      expect(advice).toBeNull();
+    }
+    // With the fact present the same kind speaks again.
+    expect(chatLine('nay-chi', 'bot-prize', { victim: 'rook' }, 0)).toContain(
+      'rook',
+    );
+  });
+
+  it('never says the same line twice', () => {
+    const used = new Set<string>();
+    const facts = { move: 'e4', victim: 'rook' as const, value: 5 };
+    let lines = 0;
+    for (let seed = 0; seed < 12; seed++) {
+      const line = chatLine('kyaw-gyi', 'bot-prize', facts, seed, used);
+      if (!line) continue;
+      expect(used.has(line)).toBe(false);
+      used.add(line);
+      lines += 1;
+    }
+    // There are five prize jokes, and they run out rather than repeating.
+    expect(lines).toBe(5);
   });
 
   it('is deterministic for one position and varies across positions', () => {
@@ -128,27 +178,16 @@ describe('the three voices', () => {
     );
     expect(behind.join(' ')).toMatch(/behind|better/i);
     expect(chatLine('kyaw-gyi', 'lose', {}, 1)).toMatch(/won|played well/i);
-    expect(chatLine('kyar-nyo', 'win', {}, 1)).toMatch(/game|enjoyed|won/i);
+    expect(chatLine('kyar-nyo', 'win', {}, 1)).toMatch(
+      /game|enjoyed|won|work|way/i,
+    );
   });
 
   it('keeps every line short enough to sit in a bubble', () => {
     for (const voice of VOICES)
       for (const kind of KINDS)
         for (let seed = 0; seed < 40; seed++) {
-          const line = chatLine(
-            voice.id,
-            kind,
-            {
-              move: 'Nf3',
-              victim: 'knight',
-              reply: 'Bb5',
-              plan: 'O-O',
-              loss: 250,
-              seconds: 42,
-              plies: 20,
-            },
-            seed,
-          );
+          const line = chatLine(voice.id, kind, FACTS, seed);
           if (line === null) continue;
           expect(line.length, `${voice.id} ${kind}`).toBeLessThan(140);
           expect(line).not.toMatch(/\{[a-z]+\}/);

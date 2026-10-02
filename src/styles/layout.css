@@ -136,7 +136,7 @@ main {
   margin: 0;
 }
 .board-shell.has-talk {
-  --talk-reserve: 254px;
+  --talk-reserve: 236px;
 }
 .board-shell .player-row {
   min-height: 52px;

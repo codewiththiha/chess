@@ -159,6 +159,19 @@ export class Session {
     );
   }
 
+  /** The reader turned the characters' speech on or off, from the rail. */
+  toggleSpeech(): void {
+    const next = {
+      ...this.state.preferenceSnapshot(),
+      speech: !this.state.preferences.speech,
+    };
+    if (!next.speech) this.speech.cancel();
+    void this.applyPreferences(
+      next,
+      next.speech ? 'Opponent speech on.' : 'Opponent speech off.',
+    );
+  }
+
   /** Remember the bot Home will start the next game against. */
   selectBot(id: string): void {
     this.state.preferences.botId = id;
