@@ -396,3 +396,26 @@ the spoken lines driven in a real browser):
 - Local gates at `3b295eb` before the push: `npm run check` 0 errors 0 warnings,
   `npm run lint` clean, `format:check` clean, **145 unit tests in 15 files**,
   **79 passed plus one skip of 80 browser executions**, `npm run verify` green.
+
+Verified on 2026-10-02 (local date), source commit `59ed95c` (the talk rewrite:
+advice, jokes about big pieces, no filler, no names in bubbles):
+
+- [CI push run 36988473727](https://github.com/codewiththiha/chess/actions/runs/36988473727):
+  success on every job. The hosted unit job printed **15 files / 151 tests
+  passed**; Browser (desktop) **40 passed (1.2 m)** and Browser (mobile) **39
+  passed plus 1 skipped (1.3 m)**, matching the local pre-push run (79 passed, 1
+  skipped, 3.5 m). Artifacts: `production-36988473727-1` (7,459,430 bytes),
+  `playwright-desktop-1` (272,430 bytes), `playwright-mobile-1` (274,985 bytes).
+- [Desktop push run 36988474509](https://github.com/codewiththiha/chess/actions/runs/36988474509):
+  success (4.4 m), artifact `desktop-shell-36988474509-1` (1,763,465 bytes).
+- Local gates at `59ed95c` before the push: `npm run check` 0 errors 0 warnings,
+  `npm run lint` clean, `format:check` clean, **151 unit tests in 15 files**,
+  **79 passed plus one skip of 80 browser executions**, `npm run verify` green.
+- The conversation was read from the running app again rather than trusted to
+  fixtures. A real game (1. e4 d5 2. Qh5 dxe4 3. Qxf7+ Kxf7 4. g4 e5 5. a4 Nc6)
+  produced exactly six remarks, each matching the move in the record: the loose
+  queen at ply 3, the pawn the character took at ply 4 (`dxe4`), the advice
+  naming `d3` for the position the reader then blundered in, the queen it won at
+  ply 6, a slip for `g4`, and advice for `a4` two mistakes later. The ordinary
+  plies stayed silent, the queue of utterances out loud matched the bubbles word
+  for word, and no bubble carried the speaker's name.
