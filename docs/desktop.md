@@ -43,8 +43,12 @@ Icons are regenerated from the application's own four-square mark:
 ```sh
 python3 -m pip install pillow      # one-time, for the generator only
 python3 scripts/make-icons.py
-npm run tauri -- icon src-tauri/icons/icon.png   # optional .ico/.icns set
 ```
+
+The generator writes the PNG set the shell embeds, down to the 512px master, and
+`icons/icon.ico` in every size Windows asks for. A Windows build compiles that
+file into the executable as its resource, so the bundle is incomplete without
+it and the build stops with `icons/icon.ico not found`.
 
 ## Verification
 

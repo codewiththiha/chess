@@ -34,7 +34,13 @@ for path in [root / "public/engine/manifest.json", root / "public/pieces/manifes
             verified_assets += 1
             if hashlib.sha256((path.parent / filename).read_bytes()).hexdigest() != entry["sha256"]:
                 errors.append(f"Artwork checksum mismatch: {filename}")
+# Windows builds compile the resource file from icons/icon.ico, whether or not
+# the bundle list names it, so a missing icon only shows up on a Windows runner.
+config = json.loads((root / "src-tauri/tauri.conf.json").read_text())
+for name in sorted({*config["bundle"]["icon"], "icons/icon.ico"}):
+    if not (root / "src-tauri" / name).is_file():
+        errors.append(f"The desktop bundle names {name}, which is not in the repository")
 if errors:
     print("\n".join(errors), file=sys.stderr)
     sys.exit(1)
-print(f"Authored-code summaries and {verified_assets} vendored file checksums verified")
+print(f"Authored-code summaries, the desktop icons, and {verified_assets} vendored file checksums verified")
