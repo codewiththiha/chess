@@ -475,3 +475,23 @@ both fixes):
   passed plus 1 skipped (1.6 m)**, matching the local pre-push run (79 passed, 1
   skipped, 3.6 m). Artifacts: `production-36990652463-1` (7,459,430 bytes),
   `playwright-desktop-1` (273,557 bytes), `playwright-mobile-1` (275,341 bytes).
+
+Verified on 2026-10-02 (local date), source commit `0cd5bfd` (the coached review):
+
+- [CI push run 36997298100](https://github.com/codewiththiha/chess/actions/runs/36997298100):
+  success. Selection, Quality, Commit messages, Production build, Unit and WASM,
+  Browser (mobile), Browser (desktop), and the aggregate `Verify / Full
+verification` all passed. Artifacts: `production-36997298100-1` (7,482,154
+  bytes), `playwright-desktop-1` (281,941 bytes), `playwright-mobile-1` (283,176
+  bytes).
+- [Desktop push run 36997297751](https://github.com/codewiththiha/chess/actions/runs/36997297751):
+  success. `Desktop shell` compiled, artifact `desktop-shell-36997297751-1`
+  (1,763,465 bytes).
+- The local pre-push run behind it: **181 unit tests in 18 files**; the
+  production browser suite **89 passed plus one intentional skip of 90**
+  executions (45 scenarios on each of two projects) in about 4 minutes 28
+  seconds; Prettier and oxlint clean, `svelte-check` 0/0, production build
+  successful. The walkthrough text was read back from a real reviewed game
+  before pushing — for `1. e4 e5 2. Qh5 Nc6 3. Qxf7+ Kxf7` it reported the real
+  counts, named the queen on f7 with nothing defending it and its value, and
+  offered the engine's own `Bc4` with the reason taken from the board.
