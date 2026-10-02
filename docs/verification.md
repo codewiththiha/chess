@@ -301,3 +301,21 @@ and `b33d207` (the review chat), both pushed after the notes above:
 
 Every count above is the value printed by the job that produced it; none is
 estimated from a local run.
+
+Verified on 2026-10-02 (local date), source commit `6446b2f` (the three named
+characters and their voices):
+
+- [CI push run 36973467685](https://github.com/codewiththiha/chess/actions/runs/36973467685):
+  success on every job. The hosted unit job printed **15 files / 138 tests
+  passed**; Browser (desktop) **37 passed (1.4 m)** and Browser (mobile) **36
+  passed plus 1 skipped (1.4 m)** — the same 74 executions as the local pre-push
+  run (73 passed, 1 skipped, 2.9 m). Artifacts: `production-36973467685-1`
+  (7,446,562 bytes), `playwright-desktop-1` (267,985 bytes), `playwright-mobile-1`
+  (270,230 bytes).
+- [Desktop push run 36973467465](https://github.com/codewiththiha/chess/actions/runs/36973467465):
+  success, artifact `desktop-shell-36973467465-1` (1,763,465 bytes). The Rust
+  shell built against the frontend that ships the characters.
+- Two regressions were caught by the browser suite before that push and fixed
+  rather than papered over: the bubble strip pushed the desktop page past the
+  viewport (the board now gives back the reserved height) and the dark theme
+  needed the bubble's text at full opacity to clear the contrast gate.
