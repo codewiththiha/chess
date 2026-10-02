@@ -4,6 +4,7 @@ import type { Dialog, StudyTab } from '../state/app.svelte';
 import { GameActions } from './game';
 import { SearchController } from './search';
 import { ReviewController } from './review';
+import { CoachController } from './coach';
 import { PersistenceController } from './persistence';
 import { moveSound } from './sound';
 import { validatePreferences } from '../domain/preferences';
@@ -25,6 +26,7 @@ export class Session {
   readonly storage = new PersistenceController(this.state);
   readonly search = new SearchController(this.state, this.game);
   readonly review = new ReviewController(this.state, this.storage.db);
+  readonly coach = new CoachController(this.state);
   private tick: ReturnType<typeof setInterval> | null = null;
   private saveTick: ReturnType<typeof setInterval> | null = null;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -133,6 +135,7 @@ export class Session {
 
   startGame(options: NewGameOptions): void {
     this.gameChosen = true;
+    this.coach.reset();
     const bot =
       options.opponent === 'bot'
         ? botById(this.state.bots, options.botId)
@@ -266,6 +269,7 @@ export class Session {
 
   async openSaved(id: string, view: View = 'play'): Promise<void> {
     this.gameChosen = true;
+    this.coach.reset();
     try {
       const record = await this.storage.db.game(id);
       if (!record) throw new Error('Game is no longer saved.');
@@ -288,6 +292,7 @@ export class Session {
 
   async importGames(text: string): Promise<void> {
     this.gameChosen = true;
+    this.coach.reset();
     const records = await this.storage.import(text);
     const first = records[0];
     if (!first) return;

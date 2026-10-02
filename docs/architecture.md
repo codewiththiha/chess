@@ -141,6 +141,14 @@ the SQLite worker, `/gwaymaegyi-chess` directory):
 - `bots`: `id` PK, name, category, Elo, strength, style, description, picture
   data URI, behaviors/parameters, timestamps. Shipped bots are code, not rows, so
   only the reader's own bots are stored and a lost row can never remove them.
+- `coach.ts` (controller + `domain/coach.ts`): the review chat. It builds one
+  `CoachPosition` from the live report when the analysis describes the position
+  on screen and from the stored review point otherwise, classifies the question
+  by intent, and composes the reply from that evidence: the engine's move, its
+  principal variation in SAN, the score, the graded loss, and the reply inside
+  the line. It never runs a search of its own and never invents a fact — a
+  missing evaluation or a missing review produces an explicit refusal, and the
+  chat lives in Study so the arrows it refers to are on screen.
 - `games`: `id` PK, `dedupe` (identity), title/kind, `opponent`, `bot_id`, `created_at`/
   `updated_at`, start FEN, chess960, sides, result/termination, moves, clock,
   engine Elo, headers, `reviewed`

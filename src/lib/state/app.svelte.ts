@@ -12,6 +12,7 @@ import type {
   View,
 } from '../domain/types';
 import type { BotProfile } from '../domain/bots';
+import type { CoachMessage } from '../domain/coach';
 import type { Discovery, Report } from '../engine/types';
 import type { GameSummary } from '../data/database';
 
@@ -52,6 +53,8 @@ export class AppState {
   bots = $state<BotProfile[]>(devBots());
   /** Bot being edited or created in the bot dialog. */
   draftBot = $state<BotProfile | null>(null);
+  /** Review chat: the reader's questions and the answers drawn from the engine. */
+  coach = $state<CoachMessage[]>([]);
   review = $state<ReviewRecord | null>(null);
   reviewRunning = $state(false);
   reviewError = $state('');

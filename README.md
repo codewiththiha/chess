@@ -30,6 +30,10 @@ WebAssembly. Licensed SVG pieces. Your browser, not a cloud account.
 - **Review real moves:** cancellable, resumable per-position engine searches,
   evaluation chart with keyboard navigation, and transparent centipawn-loss
   annotations. Search budgets accompany cached results.
+- **Ask about the game:** a review chat answers in plain words using the engine's
+  own evaluation, principal variation, and your stored grades. It names the move
+  it would play, the reply it expects, and the centipawns a slip cost — and says
+  plainly when it has no evaluation or no review to quote.
 - **Tune the actual engine:** all 11 discovered behavior switches and 38 numeric
   parameters, policy/strength/seed/hash/MultiPV, scheduling and search limits,
   live performance updates, and Automatic/Portable/SIMD128 selection.
@@ -100,8 +104,8 @@ On Linux, Playwright may also require `npx playwright install-deps chromium`.
 The browser suite uses port 5173; use a dedicated preview for this project rather
 than an unrelated application on that port.
 
-The verification suite contains **98 unit/integration tests** and **62 browser
-executions** (31 scenarios on desktop and touch-enabled mobile; the desktop-only
+The verification suite contains **112 unit/integration tests** and **68 browser
+executions** (34 scenarios on desktop and touch-enabled mobile; the desktop-only
 viewport check is skipped on mobile). The actual WASM binaries are exercised, not
 replaced with production mocks. Fault simulations are confined to tests. There are
 also 14 CI-selection/result regression tests.

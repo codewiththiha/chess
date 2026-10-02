@@ -7,14 +7,16 @@ simulation.
 
 **2026-10-02 redesign status.** The gates marked _published_ below describe
 `a27443b`, the last pre-redesign revision. The redesign itself is verified as:
-unit suite **98 tests in 12 files**; `svelte-check` 0 errors
+unit suite **112 tests in 13 files**; `svelte-check` 0 errors
 and 0 warnings; `tsc` for the node and test configs clean; oxlint 0/0 with 58
 vendored checksums; Prettier clean; `npm run check` and the production build
 successful; and the full production browser suite **55 passed plus one intentional
 skip in about 2 minutes 6 seconds** (28 scenarios on each of two projects, see the
 counts below). The bot library followed the same way: **98 unit tests in 12 files**
 and **61 passed plus one skip of 62 browser executions** (31 scenarios on each of
-two projects). The redesign also
+two projects). The review chat then landed as **112 unit tests in 13 files** and
+**67 passed plus one skip of 68 browser executions** (34 scenarios on each of two
+projects). The redesign also
 removed pause/resume in favour of a pre-game timeless choice, folded review into
 the game card, and replaced IndexedDB with the SQLite database.
 
@@ -30,7 +32,7 @@ revision and passed; see the hosted evidence below.
 ## Suite and executed coverage
 
 The published unit suite passed **55 tests in 8 files**; the redesign suite
-passes **98 tests in 12 files**, covering everything below plus:
+passes **112 tests in 13 files**, covering everything below plus:
 
 - Orthodox legal moves/perft, both castling conventions, king-already-on-target
   Chess960 castling, en passant, promotion, and all 960 unique legal starts.
@@ -62,6 +64,10 @@ passes **98 tests in 12 files**, covering everything below plus:
 - The SQLite bot rows themselves (idempotent writes, Elo ordering, deletion) and
   an in-memory upgrade of a pre-Elo database, which must rename the level column,
   add the opponent and bot columns, and survive a second migration run.
+- The review chat's intent mapping for the questions people actually type, its
+  answers quoting the engine's move, line, score, and a graded loss, its refusals
+  when an evaluation or a review is missing, the forced-mate and level cases, and
+  which questions it offers for the position on screen.
 - Worker startup sharing, immediate cancellation, safe reinitialization, Auto
   fallback, stale-message suppression, clone errors, crash/restart, and stale
   queued-policy cancellation. Worker fault injection is isolated test scaffolding;
@@ -71,13 +77,15 @@ passes **98 tests in 12 files**, covering everything below plus:
   lossless seed, legal bounded/distinct MultiPV roots, and deterministic score
   agreement on the tested position. No local Rust compilation is involved.
 
-The redesign browser suite runs **31 scenarios × 2 projects = 62 executions**:
-**61 passed and one intentional skip**. The added scenarios cover two-player mode
+The redesign browser suite runs **34 scenarios × 2 projects = 68 executions**:
+**67 passed and one intentional skip**. The added scenarios cover two-player mode
 (both colours moved by hand, no engine reply), a bot game that keeps playing while
 study is on screen, arrows that appear in study and never during play, and premoves
 that stay off until the setting is enabled, and the bot library: shipped bots on
 Home, a custom bot with a picture that survives a reload and starts a game, and a
-deleted bot leaving the finished game with its own name and Elo. The skipped case is the desktop-only "fits the viewport without page
+deleted bot leaving the finished game with its own name and Elo, and the review
+chat answering a suggested and a typed question from the live line while
+declining to grade a game that was never reviewed. The skipped case is the desktop-only "fits the viewport without page
 scrolling" check, which cannot hold on a scrolling narrow layout. Coverage includes:
 
 - Real engine responses to tap/click, mouse drag, CDP touch drag, and keyboard moves.

@@ -437,3 +437,71 @@
   max-height: none;
   flex: 1;
 }
+
+.coach {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.coach-log {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 190px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.coach-message {
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 7px 10px;
+  border-radius: 10px;
+  max-width: 92%;
+}
+.coach-you {
+  align-self: flex-end;
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+.coach-answer {
+  align-self: flex-start;
+  background: var(--tint);
+}
+.coach-topics {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.topic-chip {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.topic-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-base-content);
+}
+.coach-ask {
+  display: flex;
+  gap: 7px;
+}
+.coach-ask input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--color-base-100);
+  font-size: 12px;
+}
+.coach-ask .btn {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 11px;
+}

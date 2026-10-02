@@ -18,6 +18,7 @@
   import { pvSan } from '../domain/chess';
   import { REVIEW_PRESETS } from '../controllers/review';
   import EvaluationChart from './review/EvaluationChart.svelte';
+  import Coach from './Coach.svelte';
   import type { Session } from '../controllers/session';
   import type { StudyTab } from '../state/app.svelte';
   let { session }: { session: Session } = $props();
@@ -248,4 +249,5 @@
         </p>{/if}
     {/if}
   {/if}
+  <Coach {session} />
 </section>
