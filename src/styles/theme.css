@@ -9,11 +9,59 @@
   --tint: #edf4ef;
   --display: 'Newsreader Variable', serif;
   --mono: 'DM Mono', monospace;
+  /* Board finishes: the square pair of each selectable wood or stone. */
+  --board-sage-light: #e5e4cf;
+  --board-sage-dark: #788d80;
+  --board-walnut-light: #eedfc4;
+  --board-walnut-dark: #ad8463;
+  --board-ocean-light: #dde8e9;
+  --board-ocean-dark: #70939e;
+  --board-slate-light: #d9dee2;
+  --board-slate-dark: #7c8794;
+  /* Squares that answer what the reader just did. */
+  --board-last-move: #e8cd4d57;
+  --board-selected: #dfc95792;
+  --board-destination: #173e3f44;
+  --board-check: #bc384ad9;
+  --board-check-soft: #b7364966;
+  --board-coord-light: #f4f6ed;
+  --board-coord-dark: #304b3b;
+  --board-focus-halo: #eef3ec88;
+  --board-drag-shadow: #10271f66;
+  /* The evaluation rail, and the pebble that names a side. */
+  --rail-track: #32433b;
+  --rail-track-edge: #20362b20;
+  --rail-fill: #fffdf3;
+  --pebble-dark: #3b413d;
+  --pebble-edge: #738076;
+  /* Cards, sheets, and the scrim behind them. */
+  --shadow-board: #17352617;
+  --shadow-card: #17352623;
+  --shadow-sheet: #102d2440;
+  --scrim: #162b2480;
+  /* What a graded move looks like, in the theme's own semantic colours. */
+  --grade-best: var(--color-success);
+  --grade-good: var(--color-success);
+  --grade-inaccuracy: var(--color-warning);
+  --grade-mistake: var(--color-error);
+  --grade-blunder: var(--color-error);
 }
 [data-theme='chess-dark'] {
   --muted: #b0c1b7;
   --line: #3c5045;
   --tint: #2b4236;
+  --board-last-move: #b9a44a3d;
+  --board-selected: #c2b04f5c;
+  --board-focus-halo: #eef3ec2e;
+  --board-drag-shadow: #00000073;
+  --rail-track: #101b17;
+  --rail-track-edge: #ffffff14;
+  --pebble-dark: #101b17;
+  --pebble-edge: #7c8f85;
+  --shadow-board: #00000038;
+  --shadow-card: #0000004d;
+  --shadow-sheet: #0000006b;
+  --scrim: #0a1310bd;
 }
 * {
   box-sizing: border-box;

@@ -9,6 +9,7 @@ import {
   type ChatKind,
 } from '../domain/chat';
 import { botForGame } from '../domain/bots';
+import { gradeOf } from '../domain/feedback';
 import { whiteScore } from '../domain/review';
 import { bestSan, fenAt, position } from '../domain/chess';
 import type { AppState } from '../state/app.svelte';
@@ -98,6 +99,7 @@ export class BotChatController {
 
   reset(): void {
     this.state.botChat = [];
+    this.state.verdict = null;
     this.said.clear();
     this.mistakes = 0;
     this.evals.clear();
@@ -220,6 +222,10 @@ export class BotChatController {
     };
     const ownLoss = loss !== null && mine ? loss : null;
     const theirLoss = loss !== null && !mine ? loss : null;
+    // The board shows the engine's verdict on the move it just judged, unless
+    // the engine prefers the move — which is the one case that earns no mark.
+    if (loss !== null && loss >= 50 && wanted !== pending.move.uci)
+      s.verdict = { ply: pending.ply, grade: gradeOf(loss) };
     if (ownLoss !== null && ownLoss >= 120) {
       this.say('bot-slips', facts, pending.ply);
       return;

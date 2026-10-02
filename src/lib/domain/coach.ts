@@ -42,6 +42,10 @@ export interface CoachMessage {
   id: string;
   role: 'you' | 'coach';
   text: string;
+  /** Set on the walkthrough a review produces, so it can be rebuilt in place. */
+  walk?: boolean;
+  /** The ply the remark is about, when it is about one. */
+  ply?: number | null;
 }
 
 export interface CoachAnswer {

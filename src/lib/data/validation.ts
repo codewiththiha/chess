@@ -72,8 +72,10 @@ export function decodePreferences(value: unknown): Preferences {
     arrowCount:
       p.arrowCount === undefined ? defaults.arrowCount : number(p.arrowCount),
     premove: p.premove === undefined ? defaults.premove : bool(p.premove),
-    // Preferences saved before the characters talked have no speech setting.
+    // Preferences saved before the characters talked have no speech setting,
+    // and older ones have no board feedback setting either.
     speech: p.speech === undefined ? defaults.speech : bool(p.speech),
+    feedback: p.feedback === undefined ? defaults.feedback : bool(p.feedback),
     evaluation: bool(p.evaluation),
     // Preferences saved before the bot library existed have no chosen bot.
     botId:

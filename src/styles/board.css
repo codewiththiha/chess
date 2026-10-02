@@ -1,19 +1,20 @@
-/* Give actual chess squares and licensed pieces distinct, legible treatments. */
+/* Give actual chess squares and licensed pieces distinct, legible treatments.
+   The colours themselves live in the theme, so a finish cannot drift from it. */
 .board-sage {
-  --square-light: #e5e4cf;
-  --square-dark: #788d80;
+  --square-light: var(--board-sage-light);
+  --square-dark: var(--board-sage-dark);
 }
 .board-walnut {
-  --square-light: #eedfc4;
-  --square-dark: #ad8463;
+  --square-light: var(--board-walnut-light);
+  --square-dark: var(--board-walnut-dark);
 }
 .board-ocean {
-  --square-light: #dde8e9;
-  --square-dark: #70939e;
+  --square-light: var(--board-ocean-light);
+  --square-dark: var(--board-ocean-dark);
 }
 .board-slate {
-  --square-light: #d9dee2;
-  --square-dark: #7c8794;
+  --square-light: var(--board-slate-light);
+  --square-dark: var(--board-slate-dark);
 }
 .board-surface {
   flex: 1;
@@ -21,7 +22,7 @@
   aspect-ratio: 1;
   position: relative;
   border-radius: 5px;
-  box-shadow: 0 3px 7px #17352617;
+  box-shadow: 0 3px 7px var(--shadow-board);
 }
 .cg-wrap {
   width: 100%;
@@ -43,27 +44,27 @@ cg-board {
   background-position: center;
 }
 cg-board square.last-move {
-  background-color: #e8cd4d57;
+  background-color: var(--board-last-move);
 }
 cg-board square.selected {
-  background-color: #dfc95792;
+  background-color: var(--board-selected);
 }
 cg-board square.move-dest {
-  background: radial-gradient(#173e3f44 19%, transparent 22%);
+  background: radial-gradient(var(--board-destination) 19%, transparent 22%);
 }
 cg-board square.oc.move-dest {
-  background: radial-gradient(transparent 78%, #173e3f44 80%);
+  background: radial-gradient(transparent 78%, var(--board-destination) 80%);
 }
 cg-board square.check {
   background: radial-gradient(
     ellipse at center,
-    #bc384ad9 0%,
-    #b7364966 45%,
+    var(--board-check) 0%,
+    var(--board-check-soft) 45%,
     transparent 76%
   );
 }
 cg-board piece.dragging {
-  filter: drop-shadow(0 7px 3px #10271f66);
+  filter: drop-shadow(0 7px 3px var(--board-drag-shadow));
 }
 .cg-wrap coords {
   font-family: 'DM Sans Variable', sans-serif;
@@ -79,10 +80,10 @@ cg-board piece.dragging {
 }
 .cg-wrap coords.ranks coord {
   transform: none;
-  color: #304b3b;
+  color: var(--board-coord-dark);
 }
 .cg-wrap coords.ranks coord:nth-child(even) {
-  color: #f4f6ed;
+  color: var(--board-coord-light);
 }
 .cg-wrap coords.files {
   left: 0;
@@ -93,10 +94,41 @@ cg-board piece.dragging {
 .cg-wrap coords.files coord {
   text-align: right;
   padding-right: 4px;
-  color: #f4f6ed;
+  color: var(--board-coord-light);
 }
 .cg-wrap coords.files coord:nth-child(even) {
-  color: #304b3b;
+  color: var(--board-coord-dark);
+}
+/* The verdict mark rides the top-right corner of the piece that moved, in the
+   theme's own success, warning, and error colours. */
+.move-badge {
+  position: absolute;
+  z-index: 13;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 999px;
+  transform: translate(-72%, -22%);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  pointer-events: none;
+}
+.move-badge[data-tone='success'] {
+  background: var(--color-success);
+  color: var(--color-success-content);
+}
+.move-badge[data-tone='warning'] {
+  background: var(--color-warning);
+  color: var(--color-warning-content);
+}
+.move-badge[data-tone='error'] {
+  background: var(--color-error);
+  color: var(--color-error-content);
+}
+.move-badge[data-grade='blunder'],
+.move-badge[data-grade='best'] {
+  width: 22px;
+  height: 22px;
 }
 .keyboard-grid {
   position: absolute;
@@ -119,22 +151,22 @@ cg-board piece.dragging {
   padding: 0;
 }
 .keyboard-grid button:focus-visible {
-  outline: 4px solid #173d2f;
+  outline: 4px solid var(--color-primary);
   outline-offset: -5px;
-  box-shadow: inset 0 0 0 7px #eef3ec88;
+  box-shadow: inset 0 0 0 7px var(--board-focus-halo);
 }
 .evaluation-rail {
   width: 9px;
   flex: 0 0 9px;
-  background: #32433b;
+  background: var(--rail-track);
   border-radius: 4px;
   overflow: hidden;
   display: flex;
   align-items: end;
-  box-shadow: inset 0 0 0 1px #20362b20;
+  box-shadow: inset 0 0 0 1px var(--rail-track-edge);
 }
 .evaluation-white {
-  background: #fffdf3;
+  background: var(--rail-fill);
   width: 100%;
   transition: height 240ms ease;
 }
@@ -191,11 +223,11 @@ cg-board piece.dragging {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #3b413d;
-  border: 1px solid #738076;
+  background: var(--pebble-dark);
+  border: 1px solid var(--pebble-edge);
 }
 .color-pebble.white {
-  background: #fffdf3;
+  background: var(--rail-fill);
 }
 .player-meta {
   font-size: 10px;
@@ -340,7 +372,7 @@ cg-board piece.dragging {
   border: 1px solid var(--line);
   background: var(--color-base-100);
   border-radius: 8px;
-  box-shadow: 0 8px 24px #17352624;
+  box-shadow: 0 8px 24px var(--shadow-card);
   z-index: 15;
 }
 .action-popover button {

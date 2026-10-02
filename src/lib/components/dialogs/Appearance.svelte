@@ -68,6 +68,12 @@
       detail: 'Let the character say its lines out loud.',
     },
     {
+      key: 'feedback',
+      title: 'Move feedback',
+      detail:
+        'Mark the piece that moved: green when the engine agrees, red when it does not.',
+    },
+    {
       key: 'evaluation',
       title: 'Evaluation rail',
       detail: 'A compact, signed position evaluation.',

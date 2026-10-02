@@ -7,6 +7,7 @@ import { isTimed, remaining } from '../domain/clocks';
 import type {
   Color,
   GameRecord,
+  Grade,
   Preferences,
   ReviewRecord,
   View,
@@ -56,6 +57,8 @@ export class AppState {
   draftBot = $state<BotProfile | null>(null);
   /** Review chat: the reader's questions and the answers drawn from the engine. */
   coach = $state<CoachMessage[]>([]);
+  /** The engine's verdict on the last judged move, for the board badge. */
+  verdict = $state<{ ply: number; grade: Grade } | null>(null);
   /** What the opponent character has said, newest last. */
   botChat = $state<BotLine[]>([]);
   review = $state<ReviewRecord | null>(null);

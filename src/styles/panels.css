@@ -103,22 +103,22 @@
   border-radius: 50%;
   display: inline-block;
   flex-shrink: 0;
-  background: #4e9770;
+  background: var(--grade-good);
 }
 .grade-dot.grade-best {
-  background: #4b7eab;
+  background: var(--grade-best);
 }
 .grade-dot.grade-good {
-  background: #4e9770;
+  background: var(--grade-good);
 }
 .grade-dot.grade-inaccuracy {
-  background: #bb972e;
+  background: var(--grade-inaccuracy);
 }
 .grade-dot.grade-mistake {
-  background: #c3813f;
+  background: var(--grade-mistake);
 }
 .grade-dot.grade-blunder {
-  background: #ba4d56;
+  background: var(--grade-blunder);
 }
 .analysis-summary {
   display: flex;
@@ -239,16 +239,16 @@
   background: var(--tint);
   padding: 13px 14px;
   border-radius: 6px;
-  border-left: 3px solid #4e9770;
+  border-left: 3px solid var(--grade-good);
 }
 .move-insight.grade-mistake {
-  border-color: #c3813f;
+  border-color: var(--grade-mistake);
 }
 .move-insight.grade-blunder {
-  border-color: #ba4d56;
+  border-color: var(--grade-blunder);
 }
 .move-insight.grade-inaccuracy {
-  border-color: #bb972e;
+  border-color: var(--grade-inaccuracy);
 }
 .insight-label {
   font-size: 12px;
@@ -449,26 +449,47 @@
 .coach-log {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  max-height: 190px;
+  gap: 8px;
+  max-height: 260px;
   overflow-y: auto;
   padding-right: 2px;
 }
 .coach-message {
   font-size: 12px;
-  line-height: 1.5;
-  padding: 7px 10px;
-  border-radius: 10px;
-  max-width: 92%;
+  line-height: 1.55;
+  padding: 8px 11px;
+  border-radius: 12px;
+  max-width: 94%;
+  margin: 0;
 }
 .coach-you {
   align-self: flex-end;
   background: var(--color-primary);
   color: var(--color-primary-content);
+  border-bottom-right-radius: 4px;
 }
 .coach-answer {
   align-self: flex-start;
-  background: var(--tint);
+  background: var(--color-base-100);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 4px;
+}
+/* The move each remark is about, one tap away from it on the board. */
+.coach-jump {
+  display: inline-block;
+  min-width: 0;
+  margin-right: 6px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--color-base-200);
+  color: var(--color-primary);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.4;
+}
+.coach-jump:hover {
+  border-color: var(--color-primary);
 }
 .coach-topics {
   display: flex;
@@ -504,34 +525,4 @@
   height: 36px;
   min-height: 36px;
   padding: 0 11px;
-}
-
-.opponent-words {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 9px 11px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--color-base-100);
-}
-.opponent-words h3 {
-  margin: 0;
-  font-size: 11px;
-  font-weight: 650;
-  color: var(--muted);
-}
-.opponent-line {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--color-base-content);
-}
-.opponent-line span {
-  display: inline-block;
-  min-width: 56px;
-  margin-right: 6px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--muted);
 }

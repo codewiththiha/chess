@@ -1,6 +1,6 @@
 /* Make dense customization legible, keyboard-safe, and comfortable on touch screens. */
 .modal::backdrop {
-  background: #162b2480;
+  background: var(--scrim);
   backdrop-filter: none;
 }
 .modal-box {
@@ -12,7 +12,7 @@
   border: 1px solid var(--line);
   border-radius: 13px;
   padding: 27px;
-  box-shadow: 0 20px 80px #102d2440;
+  box-shadow: 0 20px 80px var(--shadow-sheet);
 }
 .modal-box.wide {
   max-width: 660px;

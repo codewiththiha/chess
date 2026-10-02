@@ -49,6 +49,8 @@ export interface Preferences {
   premove: boolean;
   /** Let the opponent characters say their lines out loud. */
   speech: boolean;
+  /** Mark the piece that just moved with the engine's verdict on the move. */
+  feedback: boolean;
   evaluation: boolean;
   engine: EngineSettings;
   /** Bot picked on Home; the game itself stores the bot it was played against. */

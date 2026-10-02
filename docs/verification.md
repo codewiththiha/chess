@@ -24,6 +24,15 @@ skip**. The redesign also
 removed pause/resume in favour of a pre-game timeless choice, folded review into
 the game card, and replaced IndexedDB with the SQLite database.
 
+The coached review followed that as **181 unit tests in 18 files** and **89 passed
+plus one intentional skip of 90 browser executions** (45 scenarios on each of two
+projects), with `svelte-check` 0/0, `tsc` clean, oxlint 0/0, Prettier clean, and
+the production build successful. This step made the review a walkthrough spoken by
+the opponent character, replaced the "{opponent} said" remarks list with that
+conversation, marked the piece that just moved with the engine's grade, and moved
+every remaining colour into the two daisyUI themes and the token layer in
+`styles/theme.css`.
+
 That browser run found and fixed two real startup races rather than hiding them:
 a stored-preferences read could land after a settings save and overwrite it, and
 the stored game or view could replace a choice the reader made while the database
@@ -81,6 +90,21 @@ passes **144 tests in 15 files**, covering everything below plus:
   after the engine evaluates it, praise only for the move the engine wanted, a
   plan taken from the engine's own line, silence for a quiet ply, an answer to a
   hint, and no talking at all in a two-player, study, or imported game.
+- The conditions the coach quotes, read from real positions: a loose piece and the
+  cheapest thing attacking it, a piece only the enemy king can take (a queen that
+  walks onto f7 while the king stands on e8), absolute and relative pins, a fork
+  the side to move can actually play, a skewer with the valuable piece in front, a
+  discovered attack, passed/doubled/isolated pawns, king shelter, air, and heavy
+  pieces on the back rank, and material counted from the board alone.
+- The coach's sentences: the same function describing a fork and a loose knight
+  differently, no tactic named that the position does not hold, the loose piece
+  named with its real value, praise that does not offer a replacement, one wording
+  per character, a review opener that reads the real counts back, and a suggestion
+  that names the reason taken from the board it changes.
+- The board's verdict mark: the thresholds shared with the review, the tone and
+  the word per grade, and no mark at all without a real grade and a real square;
+  and the walkthrough picking the reader's worst mistakes and blunders plus the
+  moves the engine itself chose, in the order played and never for the opponent.
 - The review chat's intent mapping for the questions people actually type, its
   answers quoting the engine's move, line, score, and a graded loss, its refusals
   when an evaluation or a review is missing, the forced-mate and level cases, and
@@ -103,8 +127,15 @@ Home, a custom bot with a picture that survives a reload and starts a game, and 
 deleted bot leaving the finished game with its own name and Elo, and the review
 chat answering a suggested and a typed question from the live line while
 declining to grade a game that was never reviewed, and the characters themselves:
-a greeting on the board, a new line after a real move, the conversation readable
-in study, and no bubbles in a two-player game. The skipped case is the desktop-only "fits the viewport without page
+a greeting on the board, a new line after a real move, and no bubbles in a
+two-player game. The coached review added five scenarios: the walkthrough opening
+with the real move counts and then a bubble per moment, each one tap from the move
+it is about, the board following that jump, the mark drawn on the top-right corner
+of the square the piece landed on with a tone that matches its grade, the aid
+switch turning the mark off and staying off across a reload, and a question
+answered from the stored review in the same thread. The same run asserts the
+absence of the removed list: no "Opponent remarks" region, no `.opponent-line`,
+and no " said" inside the review panel. The skipped case is the desktop-only "fits the viewport without page
 scrolling" check, which cannot hold on a scrolling narrow layout. Coverage includes:
 
 - Real engine responses to tap/click, mouse drag, CDP touch drag, and keyboard moves.

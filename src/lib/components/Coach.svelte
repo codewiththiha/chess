@@ -1,4 +1,4 @@
-<!-- Answer questions about the position from the engine's own output. -->
+<!-- Let the coach talk the reader through the game, and answer questions about it. -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { CornerDownLeft } from '@lucide/svelte';
@@ -8,18 +8,20 @@
   let draft = $state('');
   let log: HTMLDivElement;
   const topics = $derived(session.coach.topics());
-  // What the opponent character said during the game, newest last.
-  const opponent = $derived(s.botChat.slice(-6));
   onMount(() => session.coach.open());
-  /** Number the ply the way notation does, so two plies never share a label. */
-  function label(ply: number): string {
-    if (!ply) return 'Start';
-    const move = s.record.moves[ply - 1];
-    return `${Math.ceil(ply / 2)}${move?.color === 'black' ? '…' : '.'}`;
-  }
+  // A finished review changes what the coach can talk about, so reopen then.
+  $effect(() => {
+    s.review?.points.length;
+    session.coach.open();
+  });
   function ask(text: string): void {
     session.coach.ask(text);
     draft = '';
+  }
+  /** Number the ply the way notation does, so two plies never share a label. */
+  function label(ply: number): string {
+    const move = s.record.moves[ply - 1];
+    return `${Math.ceil(ply / 2)}${move?.color === 'black' ? '…' : '.'}`;
   }
   // Keep the newest answer in view without moving focus away from the input.
   $effect(() => {
@@ -28,16 +30,6 @@
 </script>
 
 <div class="coach">
-  {#if opponent.length}
-    <div class="opponent-words" aria-label="Opponent remarks">
-      <h3>{opponent.at(-1)?.name} said</h3>
-      {#each opponent as line (line.id)}
-        <p class="opponent-line">
-          <span>{label(line.ply)}</span>{line.text}
-        </p>
-      {/each}
-    </div>
-  {/if}
   <div
     class="coach-log"
     bind:this={log}
@@ -51,7 +43,15 @@
         class:coach-you={message.role === 'you'}
         class:coach-answer={message.role !== 'you'}
       >
-        {message.text}
+        {#if message.ply}
+          <button
+            type="button"
+            class="coach-jump"
+            aria-label={`Go to move ${label(message.ply)}`}
+            onclick={() => session.game.jump(message.ply ?? 0)}
+            >{label(message.ply)}</button
+          >
+        {/if}{message.text}
       </p>
     {/each}
   </div>

@@ -47,10 +47,17 @@ WebAssembly. Licensed SVG pieces. Your browser, not a cloud account.
 - **Review real moves:** cancellable, resumable per-position engine searches,
   evaluation chart with keyboard navigation, and transparent centipawn-loss
   annotations. Search budgets accompany cached results.
-- **Ask about the game:** a review chat answers in plain words using the engine's
-  own evaluation, principal variation, and your stored grades. It names the move
-  it would play, the reply it expects, and the centipawns a slip cost — and says
-  plainly when it has no evaluation or no review to quote.
+- **Ask about the game:** the opponent character becomes the coach and walks the
+  review: it reads the counts back, then takes your worst moments and your best
+  ones in turn, each bubble one tap from the move it is about. It explains what a
+  move cost by what the board shows — the piece it left loose, the pin it walked
+  into, the fork the engine's move would have made — always from the engine's own
+  evaluation, principal variation, and your stored grades, and it says plainly
+  when it has no evaluation or no review to quote.
+- **See the verdict on the board:** the piece that just moved carries the
+  engine's grade in its top-right corner — green when the move is right, amber
+  for an inaccuracy, red for a mistake or a blunder. It reads the stored grade in
+  review and the live verdict in play, and it is a board aid you can switch off.
 - **Tune the actual engine:** all 11 discovered behavior switches and 38 numeric
   parameters, policy/strength/seed/hash/MultiPV, scheduling and search limits,
   live performance updates, and Automatic/Portable/SIMD128 selection.

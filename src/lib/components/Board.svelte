@@ -6,6 +6,9 @@
   import type { Config } from '@lichess-org/chessground/config';
   import type { DrawShape } from '@lichess-org/chessground/draw';
   import { chessgroundDests } from 'chessops/compat';
+  import { CircleAlert, Sparkles, Check } from '@lucide/svelte';
+  import { grades } from '../domain/review';
+  import { feedbackFor } from '../domain/feedback';
   import { bulletClock } from '../domain/clocks';
   import { makeSquare, parseSquare, parseUci } from 'chessops/util';
   import { isNormal } from 'chessops/types';
@@ -60,6 +63,35 @@
     if (!found.length && s.hint?.bestMove)
       found.push({ uci: s.hint.bestMove, brush: 'blue' });
     return found;
+  });
+  /**
+   * The verdict mark on the piece that just moved: the stored grade while
+   * reviewing, and the engine's own verdict during a bot game. Nothing is drawn
+   * without a real grade behind it.
+   */
+  const feedback = $derived.by(() => {
+    if (!s.preferences.feedback) return null;
+    const squareAt = (ply: number) =>
+      ply > 0 ? (s.record.moves[ply - 1]?.to ?? null) : null;
+    if (s.view === 'study' && s.studyTab === 'review') {
+      const grade =
+        grades(s.record, s.review?.points ?? []).find(
+          (entry) => entry.ply === s.cursor,
+        )?.grade ?? null;
+      return feedbackFor(grade, squareAt(s.cursor));
+    }
+    const verdict = s.verdict;
+    // The live mark belongs to the move on the board, never to an older one.
+    if (!verdict || verdict.ply !== s.record.moves.length) return null;
+    return feedbackFor(verdict.grade, squareAt(verdict.ply));
+  });
+  /** Where the mark sits, in the reader's own orientation. */
+  const feedbackCell = $derived.by(() => {
+    const mark = feedback;
+    if (!mark) return null;
+    const index = squares.indexOf(mark.square as SquareName);
+    if (index < 0) return null;
+    return { ...mark, column: index % 8, row: Math.floor(index / 8) };
   });
   /** Bullet runs on reflexes, so the board skips animation for those games. */
   const animated = $derived(
@@ -258,6 +290,25 @@
       </div>
     {/each}
   </div>
+  {#if feedbackCell}
+    <span
+      class="move-badge"
+      data-tone={feedbackCell.badge.tone}
+      data-grade={feedbackCell.badge.grade}
+      data-square={feedbackCell.square}
+      style={`left: ${(feedbackCell.column + 1) * 12.5}%; top: ${feedbackCell.row * 12.5}%;`}
+      title={feedbackCell.badge.label}
+      aria-hidden="true"
+    >
+      {#if feedbackCell.badge.grade === 'best'}
+        <Sparkles size={12} />
+      {:else if feedbackCell.badge.grade === 'good'}
+        <Check size={12} />
+      {:else}
+        <CircleAlert size={12} />
+      {/if}
+    </span>
+  {/if}
 </div>
 <p id="board-keyboard-help" class="sr-only">
   Use arrow keys to focus a square. Enter or Space selects a piece, then its

@@ -71,7 +71,7 @@ h1 {
   font-size: 13px;
   color: var(--color-primary-content);
   background: var(--color-primary);
-  box-shadow: 0 8px 30px #17352623;
+  box-shadow: 0 8px 30px var(--shadow-card);
 }
 .error-toast {
   background: var(--color-error);

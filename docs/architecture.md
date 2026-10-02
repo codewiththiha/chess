@@ -138,6 +138,15 @@ writes the initial placeholder over unread saved preferences.
 SQLite database `gwaymaegyi-chess.sqlite3` (OPFS shared-access-handle pool inside
 the SQLite worker, `/gwaymaegyi-chess` directory):
 
+The colour system has one home: the two daisyUI themes in `src/app.css` (which
+name every base, primary, success, warning, and error colour) and the token
+layer in `src/styles/theme.css`, where the board finishes, the square highlights,
+the coordinate ink, the evaluation rail, the card and sheet shadows, and the
+grade colours are declared per appearance. Grade colours are aliases for the
+theme's own success, warning, and error tokens, so a mark, a grade dot, and a
+dropdown agree by construction, and no sheet below those two files names a colour
+of its own.
+
 - `bots`: `id` PK, name, category, Elo, strength, style, description, picture
   data URI, behaviors/parameters, timestamps. Shipped bots are code, not rows, so
   only the reader's own bots are stored and a lost row can never remove them.
@@ -168,14 +177,35 @@ the SQLite worker, `/gwaymaegyi-chess` directory):
   well as in Appearance, so a reader can silence the character without opening a
   dialog; the bubble never repeats the name of the opponent already named in the
   row above it.
-- `coach.ts` (controller + `domain/coach.ts`): the review chat. It builds one
+- `coach.ts` (controller + `domain/coach.ts` + `domain/coachtalk.ts`): the review
+  chat, spoken by the bot the game was played against. `open()` writes the
+  walkthrough: a summary read off the stored counts, then up to five moments —
+  the reader's worst mistakes and blunders, plus up to two moves the engine
+  itself chose — each carrying the ply it is about, so the bubble is one tap from
+  the board. `ask()` answers a typed or suggested question. Both build one
   `CoachPosition` from the live report when the analysis describes the position
-  on screen and from the stored review point otherwise, classifies the question
-  by intent, and composes the reply from that evidence: the engine's move, its
-  principal variation in SAN, the score, the graded loss, and the reply inside
-  the line. It never runs a search of its own and never invents a fact — a
-  missing evaluation or a missing review produces an explicit refusal, and the
-  chat lives in Study so the arrows it refers to are on screen.
+  on screen and from the stored review point otherwise, and never mix the two.
+  `domain/coachtalk.ts` turns a moment into a sentence: the verdict in the
+  character's manner, the engine's score, then the evidence — the piece a move
+  left loose and what attacks it, a pin it walked into, the material swing — and
+  finally what the engine had instead, with the reason taken from the board it
+  changes (the fork the better move makes, the discoverer it uncovers, the piece
+  it keeps safe, the pin it breaks, the piece it develops, the castling it
+  plays). No sentence is written for a position: every noun, square, and tactic
+  comes from the board or the engine's own line, and a phrase that wants evidence
+  the position does not hold is left out rather than guessed at.
+- `domain/tactics.ts`: the conditions behind those sentences, all read off a FEN —
+  loose pieces (including one the enemy king can simply take), pins and skewers,
+  forks, discovered attacks, pawn structure per pawn, king shelter and air, and
+  material. Each is a pure function over the board, so a remark works for any
+  position instead of any game.
+- The board's verdict mark (`domain/feedback.ts`): the grade the piece that just
+  moved earned — blue for the engine's own choice, amber for an inaccuracy, red
+  for a mistake, orange-red for a blunder — drawn on the top-right corner of the
+  square it landed on. Review uses the stored grade; play uses the controller's
+  verdict for the last judged ply, so a mark never outlives the move it belongs
+  to and none is drawn without a real grade. It is a board-aid preference and can
+  be switched off.
 - `games`: `id` PK, `dedupe` (identity), title/kind, `opponent`, `bot_id`, `created_at`/
   `updated_at`, start FEN, chess960, sides, result/termination, moves, clock,
   engine Elo, headers, `reviewed`

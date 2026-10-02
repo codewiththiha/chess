@@ -1,8 +1,9 @@
 // Verify the opponent characters talk on the board: a greeting when the game
-// starts, a reaction to a real move, the conversation in study, and silence in
-// a two-player game. The bubble never repeats the name the row already shows.
+// starts, a reaction to a real move, silence in a two-player game, and no
+// attribution anywhere. A remark belongs to the character that said it, so the
+// review no longer lists quotes under a name.
 import { test, expect } from '@playwright/test';
-import { open, start, study, move, plies, exchange } from './helpers';
+import { open, start, study, go, move, plies, exchange } from './helpers';
 import type { Page } from '@playwright/test';
 
 function bubble(page: Page) {
@@ -51,7 +52,7 @@ test('the chosen character greets and reacts to a real mistake', async ({
   expect(await bubble(page).innerText()).not.toMatch(/\{[a-z]+\}/);
 });
 
-test('the conversation is kept and can be read in study', async ({ page }) => {
+test('study never credits a remark to a character', async ({ page }) => {
   await open(page);
   await pick(page, 'Nay Chi');
   await start(page, { preset: '3 min' });
@@ -61,14 +62,17 @@ test('the conversation is kept and can be read in study', async ({ page }) => {
   await move(page, 'd1', 'h5');
   await plies(page, 3);
   await exchange(page, 4);
-  // Whatever it said, study shows the remarks with the move they were about.
+  const said = (await bubble(page).innerText()).trim();
   await study(page, 'Analyze');
-  const said = page.getByLabel('Opponent remarks');
-  await expect(said).toBeVisible();
-  await expect(said.getByRole('heading')).toHaveText('Nay Chi said');
-  expect(await said.locator('.opponent-line').count()).toBeGreaterThan(0);
-  await expect(said).toContainText('Start');
-  expect(await said.innerText()).not.toMatch(/\{[a-z]+\}/);
+  // The remarks list that ran under a name heading is gone from every tab.
+  await expect(page.getByLabel('Opponent remarks')).toHaveCount(0);
+  await expect(page.locator('.opponent-line')).toHaveCount(0);
+  await expect(page.locator('.opponent-words')).toHaveCount(0);
+  await expect(page.locator('.study-card')).not.toContainText(' said');
+  // The line the character last said is still the one on the board, verbatim.
+  await go(page, 'Play');
+  await expect(bubble(page)).toHaveText(said);
+  expect(said).not.toMatch(/\{[a-z]+\}/);
 });
 
 test('a two-player game has nobody talking', async ({ page }) => {

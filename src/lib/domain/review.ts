@@ -1,4 +1,5 @@
 // Compare side-correct scores with explicitly heuristic centipawn-loss grading.
+import { gradeOf } from './feedback';
 import type { GameRecord, MoveGrade, ReviewPoint } from './types';
 export const ENGINE_REVISION = '4e2af5f068e49bf83fe5f1522636c985355b114a';
 export function whiteScore(
@@ -26,16 +27,7 @@ export function grades(game: GameRecord, points: ReviewPoint[]): MoveGrade[] {
       ply: i + 1,
       loss,
       bestSan: before.bestSan,
-      grade:
-        move.uci === before.bestMove
-          ? 'best'
-          : loss < 50
-            ? 'good'
-            : loss < 100
-              ? 'inaccuracy'
-              : loss < 200
-                ? 'mistake'
-                : 'blunder',
+      grade: move.uci === before.bestMove ? 'best' : gradeOf(loss),
     });
   });
   return result;
