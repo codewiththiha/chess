@@ -1,0 +1,251 @@
+# Publish a release: the desktop bundles every runner can build, installable
+# Android APKs for each architecture plus a universal build and a Play bundle,
+# and the web bundle. Triggered by a version tag, or by hand for one tag.
+name: Release
+run-name: Release ${{ github.event.inputs.tag || github.ref_name }}
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish (for example v0.1.0)
+        type: string
+        required: true
+      dry_run:
+        description: Build every artifact but publish nothing
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
+jobs:
+  plan:
+    name: Prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      dry_run: ${{ steps.version.outputs.dry_run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+          persist-credentials: false
+      - id: version
+        name: Match the tag to the version the app will ship
+        env:
+          RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+        run: |
+          python3 scripts/ci/release.py
+          echo "dry_run=$DRY_RUN" >> "$GITHUB_OUTPUT"
+      - name: Open the release every job uploads to
+        if: ${{ steps.version.outputs.dry_run != 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG is already open."
+          elif [[ "$PRERELEASE" == "true" ]]; then
+            gh release create "$TAG" --title "$TAG" --generate-notes --prerelease
+          else
+            gh release create "$TAG" --title "$TAG" --generate-notes
+          fi
+  desktop:
+    name: Desktop (${{ matrix.name }})
+    needs: plan
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-24.04
+            args: ''
+          - name: macos-arm64
+            os: macos-latest
+            apple: aarch64
+            args: '--target aarch64-apple-darwin'
+          - name: macos-x64
+            os: macos-15-intel
+            apple: x86_64
+            args: '--target x86_64-apple-darwin'
+          - name: windows-x64
+            os: windows-latest
+            args: ''
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.plan.outputs.tag }}
+          persist-credentials: false
+      - uses: ./.github/actions/node-environment
+      - name: Install the system libraries the Linux shell links against
+        if: matrix.os == 'ubuntu-24.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev \
+            librsvg2-dev libsoup-3.0-dev patchelf
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.apple && format('{0}-apple-darwin', matrix.apple) || '' }}
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # v2.8.1
+        with:
+          workspaces: './src-tauri -> target'
+          key: ${{ matrix.name }}
+      - name: Build the desktop bundles and publish them to the release
+        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tagName: ${{ needs.plan.outputs.dry_run == 'true' && '' || needs.plan.outputs.tag }}
+          releaseName: gwaymaegyi chess ${{ needs.plan.outputs.version }}
+          releaseDraft: false
+          prerelease: ${{ needs.plan.outputs.prerelease }}
+          uploadUpdaterJson: false
+          uploadUpdaterSignatures: false
+          uploadWorkflowArtifacts: ${{ needs.plan.outputs.dry_run == 'true' }}
+          args: ${{ matrix.args }}
+  android:
+    name: Android
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.plan.outputs.tag }}
+          persist-credentials: false
+      - uses: ./.github/actions/node-environment
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+        with:
+          toolchain: stable
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # v2.8.1
+        with:
+          workspaces: './src-tauri -> target'
+          key: android
+      - name: Cache the Gradle distribution and dependencies
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+      - name: Use the installed NDK and accept the SDK licences
+        run: |
+          ndk="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-}}"
+          if [[ -n "$ndk" ]]; then
+            echo "NDK_HOME=$ndk" >> "$GITHUB_ENV"
+          fi
+          sdkmanager="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
+          if [[ -x "$sdkmanager" ]]; then
+            if ! yes | "$sdkmanager" --licenses > /dev/null; then
+              echo 'The SDK licences were already accepted.'
+            fi
+          fi
+      - name: Generate the Android project and fit it to the app
+        run: |
+          npm run tauri -- android init --ci --skip-targets-install
+          python3 scripts/ci/android_frame.py
+      - name: Sign the release builds
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          keystore=src-tauri/gen/android/app/release.keystore
+          password="${STORE_PASSWORD:-gwaymaegyi-local}"
+          alias_name="${KEY_ALIAS:-gwaymaegyi}"
+          if [[ -n "$KEYSTORE_BASE64" ]]; then
+            printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          else
+            keytool -genkeypair -noprompt -keystore "$keystore" -storetype PKCS12 \
+              -alias "$alias_name" -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$password" -keypass "${KEY_PASSWORD:-$password}" \
+              -dname "CN=gwaymaegyi chess"
+          fi
+          {
+            echo "ANDROID_KEYSTORE_PATH=$PWD/$keystore"
+            echo "ANDROID_KEYSTORE_PASSWORD=$password"
+            echo "ANDROID_KEY_PASSWORD=${KEY_PASSWORD:-$password}"
+            echo "ANDROID_KEY_ALIAS=$alias_name"
+          } >> "$GITHUB_ENV"
+      - name: Build the universal APK and the Play bundle
+        run: npm run tauri -- android build --apk --aab
+      - name: Build one APK per architecture
+        run: npm run tauri -- android build --apk --split-per-abi
+      - name: Publish the Android builds
+        if: ${{ needs.plan.outputs.dry_run != 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.plan.outputs.tag }}
+        run: |
+          mapfile -t assets < <(find src-tauri/gen/android/app/build/outputs -type f \( -name '*.apk' -o -name '*.aab' \))
+          printf 'Uploading %d Android files\n' "${#assets[@]}"
+          gh release upload "$TAG" "${assets[@]}" --clobber
+      - name: Keep the Android builds
+        if: ${{ needs.plan.outputs.dry_run == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+            src-tauri/gen/android/app/build/outputs/bundle/**/*.aab
+          if-no-files-found: error
+          retention-days: 7
+  web:
+    name: Web bundle
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.plan.outputs.tag }}
+          persist-credentials: false
+      - uses: ./.github/actions/node-environment
+      - name: Package the production build
+        env:
+          VERSION: ${{ needs.plan.outputs.version }}
+        run: |
+          npm run build
+          tar -czf "gwaymaegyi-chess-$VERSION-web.tar.gz" -C dist .
+      - name: Publish the web bundle
+        if: ${{ needs.plan.outputs.dry_run != 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.plan.outputs.tag }}
+        run: gh release upload "$TAG" ./*.tar.gz --clobber
+      - name: Keep the web bundle
+        if: ${{ needs.plan.outputs.dry_run == 'true' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: web-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ./*.tar.gz
+          if-no-files-found: error
+          retention-days: 7

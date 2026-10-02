@@ -128,6 +128,13 @@ jobs:
         with:
           name: production-${{ github.run_id }}-${{ github.run_attempt }}
           path: dist/
+      - name: Cache the matching Chromium headless shell
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
       - name: Install matching Chromium headless shell and system libraries
         run: npx playwright install --with-deps --only-shell chromium
       - name: Run selected browser scenarios

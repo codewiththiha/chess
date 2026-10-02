@@ -4,6 +4,10 @@ run-name: CI ${{ github.event_name }} / ${{ github.ref_name }}
 on:
   push:
     branches: ['**']
+    # Documentation-only pushes cannot change the app, so they skip the suite.
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
   pull_request:
   workflow_dispatch:
     inputs:

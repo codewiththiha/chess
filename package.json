@@ -12,6 +12,7 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "tauri": "tauri",
+    "android:init": "tauri android init --ci --skip-targets-install && python3 scripts/ci/android_frame.py",
     "check": "svelte-check --tsconfig tsconfig.app.json --fail-on-warnings && node node_modules/typescript-native/bin/tsc -p tsconfig.node.json && node node_modules/typescript-native/bin/tsc -p tsconfig.tests.json",
     "lint": "oxlint --deny-warnings src tests scripts vite.config.ts vitest.config.ts playwright.config.ts svelte.config.js public/engine/bridge-worker.mjs && python3 scripts/check_repo.py",
     "format": "prettier --write .",

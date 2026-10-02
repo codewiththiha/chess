@@ -6,7 +6,8 @@ Actions: https://github.com/codewiththiha/chess/actions
 ## Defaults and workflow ownership
 
 `.github/workflows/ci.yml` runs **the full suite on every branch push and pull
-request**. Its Run workflow form supports deliberately smaller manual runs.
+request**, except pushes that only touch `docs/**` or Markdown, which cannot
+change the app. Its Run workflow form supports deliberately smaller manual runs.
 `.github/workflows/verify.yml` is a reusable workflow containing the actual jobs.
 The shared `.github/actions/node-environment/action.yml` selects `.node-version`
 and runs `npm ci` against the committed lockfile. These jobs compile no Rust;
@@ -23,7 +24,7 @@ nothing is an error, not a green check.
 | Job                        | What it does                                                                             |
 | -------------------------- | ---------------------------------------------------------------------------------------- |
 | Selection                  | Validates typed booleans, project/filter bounds, and build prerequisites                 |
-| Quality                    | Strict Svelte/TS, oxlint/provenance, Prettier, 14 CI-script regression tests, actionlint |
+| Quality                    | Strict Svelte/TS, oxlint/provenance, Prettier, 18 CI-script regression tests, actionlint |
 | Unit and WASM              | Vitest unit/integration suite, including the real Portable/SIMD128 binaries              |
 | Production build           | Vite build; uploads the production output used by browser jobs                           |
 | Browser (desktop/mobile)   | Independent jobs test the same downloaded production build with Chromium                 |
@@ -36,6 +37,13 @@ the committed `Cargo.lock`, and uploads the binary. It triggers on pushes that
 touch the frontend or `src-tauri/`, on pull requests, and by manual dispatch,
 which can additionally produce `deb`, `rpm`, and `appimage` bundles. Only that
 workflow is evidence for desktop compilation; the web gates say nothing about it.
+
+`.github/workflows/release.yml` publishes a release from a version tag: desktop
+bundles for Linux, macOS (arm64 and Intel), and Windows, Android APKs for every
+architecture plus a universal APK and an AAB, and a web tarball. It never runs on
+branch pushes, it is the only workflow that asks for `contents: write`, and
+[releases.md](releases.md) documents the tags, the Android signing secrets, and
+how to extend the matrix.
 
 The browser projects use one Playwright worker each, no retries, and independent
 runners; one project's failure does not cancel the other. A build failure prevents
@@ -225,9 +233,9 @@ still need to satisfy the project's commit rules.
   and Workflows write are needed), never put them in tracked URLs/configuration.
 
 Official Playwright CI guidance: [5](https://playwright.dev/docs/ci). Action release
-links are available at the corresponding `actions/*` GitHub repositories. Hosting,
-GitHub Pages deployment, release publication, and native Rust rebuilds are not
-side effects of these test workflows.
+links are available at the corresponding `actions/*` GitHub repositories. Hosting
+and GitHub Pages deployment are not side effects of these test workflows; release
+publication belongs to `release.yml`, described in [releases.md](releases.md).
 
 ## First-publication proof
 

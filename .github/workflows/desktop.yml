@@ -12,6 +12,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.ts'
+      - '.github/actions/**'
       - '.github/workflows/desktop.yml'
   pull_request:
   workflow_dispatch:
@@ -42,6 +43,10 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1 # v2.8.1
+        with:
+          workspaces: './src-tauri -> target'
       - name: Install the system libraries Tauri links against
         run: |
           sudo apt-get update
