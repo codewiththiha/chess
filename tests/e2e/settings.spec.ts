@@ -152,7 +152,9 @@ test('live performance changes and cancellation do not produce stale analysis mo
   await page
     .getByRole('button', { name: 'Save settings', exact: true })
     .click();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
+  // The dialog closes once the engine has actually taken the new limits, which
+  // can take longer than a default wait while a no-deadline search is stopping.
+  await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 30000 });
   await expect(
     page.locator('.study-card').getByRole('button', { name: 'Stop' }),
   ).toBeVisible();
@@ -165,7 +167,7 @@ test('live performance changes and cancellation do not produce stale analysis mo
   await page
     .getByRole('button', { name: 'Save settings', exact: true })
     .click();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 30000 });
   // Analysis runs continuously in study, so the card shows live status instead.
   await expect(page.locator('.analysis-summary')).toBeVisible();
   await move(page, 'e2', 'e4');
