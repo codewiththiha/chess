@@ -21,7 +21,8 @@ the stored game or view could replace a choice the reader made while the databas
 was still opening. Both are now guarded in `controllers/persistence.ts` and
 `controllers/session.ts`, and the regression is covered by the settings and
 review scenarios. The desktop shell is compiled only by the `Desktop` workflow;
-no Rust is compiled in this workspace.
+no Rust is compiled in this workspace. Both workflows then ran against the pushed
+revision and passed; see the hosted evidence below.
 
 ## Suite and executed coverage
 
@@ -183,3 +184,26 @@ Verified on 2026-10-02 (local date), source commit `0e455d8`:
 
 These are historical run links for the tested commit; inspect the latest branch
 run for subsequent documentation or code changes. Artifacts expire after 7 days.
+
+Verified on 2026-10-02 (local date), source commit `55c24f7` (the board-first
+redesign plus the desktop shell):
+
+- [CI push run 36962607639](https://github.com/codewiththiha/chess/actions/runs/36962607639):
+  success. Selection, Quality, Production build, Commit messages, Unit and WASM,
+  Browser (desktop), Browser (mobile), and the aggregate
+  `Verify / Full verification` all passed. The hosted unit job ran the suite in
+  **9 files**; Browser (desktop) reported **24 passed (59.4 s)** and Browser
+  (mobile) **23 passed plus 1 skipped (52.7 s)** — the same 48 executions as the
+  local pre-push run, where the desktop-only viewport check is the one skip.
+- [Desktop push run 36962607902](https://github.com/codewiththiha/chess/actions/runs/36962607902):
+  success. The single `Desktop shell` job installed the WebKitGTK/GTK
+  prerequisites, ran `npm run build`, passed `cargo fmt --all --check`, passed
+  `cargo clippy --all-targets --locked -- -D warnings`, and finished
+  `cargo build --release --locked` in **2 m 36 s** on rustc 1.99.0, producing
+  `target/release/gwaymaegyi-chess` (4,344,080 bytes) uploaded as the
+  `desktop-shell-36962607902-1` artifact. No bundle was requested in that
+  dispatch, so no installer is claimed.
+
+That desktop job is the first real compilation of `src-tauri/`; treat its log as
+the evidence for the shell, and re-run it after any Rust, frontend, or
+`Cargo.lock` change.
