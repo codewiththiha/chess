@@ -647,4 +647,3 @@ Verified on 2026-10-02 (local date), source commit `0ec73a9` (the app mark):
   of which also run in the Quality job.
 - Nothing was rendered or installed in this workspace: the icons were produced on
   the runner, and the local work was geometry, checks, and tests.
-
