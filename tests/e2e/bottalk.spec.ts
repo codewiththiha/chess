@@ -18,7 +18,7 @@ async function pick(page: Page, name: string): Promise<void> {
     .click();
 }
 
-test('the chosen character greets and talks as the game unfolds', async ({
+test('the chosen character greets and reacts to a real mistake', async ({
   page,
 }) => {
   await open(page);
@@ -34,14 +34,18 @@ test('the chosen character greets and talks as the game unfolds', async ({
   await expect(
     page.locator('.player-row').filter({ hasText: 'Kyaw Gyi' }),
   ).toHaveCount(1);
-  // Play on, and the character says something new about a real move.
+  // Let the engine answer the opening, then walk into a real mistake — the
+  // queen goes to f7 and the king takes it. Ordinary moves no longer earn a
+  // remark, so only a real event can change the bubble.
+  await page.waitForTimeout(2500);
   await move(page, 'e2', 'e4');
-  await plies(page, 2);
-  await move(page, 'g1', 'f3');
-  await plies(page, 3);
+  await page.waitForTimeout(4000);
+  await move(page, 'd1', 'h5');
+  await page.waitForTimeout(4000);
+  await move(page, 'h5', 'f7');
   await expect
     .poll(async () => (await bubble(page).innerText()).trim(), {
-      timeout: 20000,
+      timeout: 30000,
     })
     .not.toBe(greeting);
   expect(await bubble(page).innerText()).not.toMatch(/\{[a-z]+\}/);
