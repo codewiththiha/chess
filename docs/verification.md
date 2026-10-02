@@ -419,3 +419,28 @@ advice, jokes about big pieces, no filler, no names in bubbles):
   ply 6, a slip for `g4`, and advice for `a4` two mistakes later. The ordinary
   plies stayed silent, the queue of utterances out loud matched the bubbles word
   for word, and no bubble carried the speaker's name.
+
+The two pushes that carried the talk rewrite's tests were not green first time,
+and both failures were real:
+
+- [CI run 36989006041](https://github.com/codewiththiha/chess/actions/runs/36989006041)
+  failed on Browser (mobile): the scenario still waited for a new remark after two
+  ordinary opening moves, which the rewrite stopped producing on purpose. The
+  scenario now plays into a real blunder and waits for that, and the rule that an
+  ordinary ply stays quiet is left to the unit tests, which can drive the engine
+  directly (`d146d44`).
+- [CI run 36989843763](https://github.com/codewiththiha/chess/actions/runs/36989843763)
+  failed on Browser (desktop) in `settings.spec.ts`: saving new performance limits
+  closes the dialog only once the engine has taken them, and a no-deadline search
+  that is being stopped can outlast the default five-second wait. The assertion
+  now waits for the real event instead of a short default (`098f770`).
+
+Verified on 2026-10-02 (local date), source commit `098f770` (the green run after
+both fixes):
+
+- [CI push run 36990652463](https://github.com/codewiththiha/chess/actions/runs/36990652463):
+  success on every job. The hosted unit job printed **15 files / 151 tests
+  passed**; Browser (desktop) **40 passed (1.7 m)** and Browser (mobile) **39
+  passed plus 1 skipped (1.6 m)**, matching the local pre-push run (79 passed, 1
+  skipped, 3.6 m). Artifacts: `production-36990652463-1` (7,459,430 bytes),
+  `playwright-desktop-1` (273,557 bytes), `playwright-mobile-1` (275,341 bytes).
