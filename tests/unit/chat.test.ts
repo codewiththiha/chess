@@ -199,6 +199,28 @@ describe('saying the lines out loud', () => {
     ).toBe('my-MM');
   });
 
+  it('never mistakes a name for a gender word', () => {
+    // "Samantha" contains "man" and is still not a male voice.
+    const ordered: SpeechVoice[] = [
+      { name: 'Samantha', lang: 'en-US' },
+      { name: 'Daniel', lang: 'en-GB' },
+    ];
+    expect(pickSpeechVoice(ordered, voiceById('kyaw-gyi').speech)?.name).toBe(
+      'Daniel',
+    );
+    expect(pickSpeechVoice(ordered, voiceById('kyar-nyo').speech)?.name).toBe(
+      'Samantha',
+    );
+    // A voice that says what it is still counts, word by word.
+    const plain: SpeechVoice[] = [
+      { name: 'English (United States)', lang: 'en-US' },
+      { name: 'Microsoft Male Voice', lang: 'en-US' },
+    ];
+    expect(pickSpeechVoice(plain, voiceById('kyaw-gyi').speech)?.name).toBe(
+      'Microsoft Male Voice',
+    );
+  });
+
   it('says nothing when there is nothing to say', () => {
     expect(planUtterance('   ', 'kyar-nyo', platform)).toBeNull();
     // Without a platform voice it still speaks, in the default language.

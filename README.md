@@ -25,7 +25,8 @@ WebAssembly. Licensed SVG pieces. Your browser, not a cloud account.
   needles you, Kyaw Gyi counts every concession. Every line comes from the engine's
   own evaluation and its own line, so the trash talk is never invented. Turn on
   **Opponent speech** in Appearance and the character says the lines out loud in
-  its own manner — pitch, pace, and the system voice that fits it.
+  its own manner — pitch, pace, and the system voice that fits it. Speech is off
+  until you ask for it, and a platform with no voice of its own is simply quiet.
 - **Move naturally:** tap/click, mouse drag, touch drag, or the accessible
   keyboard board. Piece motion respects both your toggle and reduced-motion
   system preferences. Move sound is opt-in.
@@ -113,7 +114,7 @@ On Linux, Playwright may also require `npx playwright install-deps chromium`.
 The browser suite uses port 5173; use a dedicated preview for this project rather
 than an unrelated application on that port.
 
-The verification suite contains **144 unit/integration tests** and **74 browser
+The verification suite contains **145 unit/integration tests** and **80 browser
 executions** (37 scenarios on desktop and touch-enabled mobile; the desktop-only
 viewport check is skipped on mobile). The actual WASM binaries are exercised, not
 replaced with production mocks. Fault simulations are confined to tests. There are

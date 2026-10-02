@@ -43,16 +43,17 @@ export class SpeechController {
     if (typeof document !== 'undefined' && document.hidden) return;
     this.spoken = plan.text;
     synthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(plan.text);
-    utterance.lang = plan.lang;
-    utterance.rate = plan.rate;
-    utterance.pitch = plan.pitch;
-    const voice = this.pick(plan.voiceName);
-    if (voice) utterance.voice = voice;
     try {
+      const utterance = new SpeechSynthesisUtterance(plan.text);
+      utterance.lang = plan.lang;
+      utterance.rate = plan.rate;
+      utterance.pitch = plan.pitch;
+      const voice = this.pick(plan.voiceName);
+      if (voice) utterance.voice = voice;
       synthesis.speak(utterance);
     } catch {
-      // A platform that refuses to speak must never break the game.
+      // A platform that refuses a voice, an utterance, or the call itself must
+      // never be allowed to break the game.
       this.warned = true;
     }
   }

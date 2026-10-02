@@ -153,7 +153,10 @@ the SQLite worker, `/gwaymaegyi-chess` directory):
   engine: the utterance plan is a pure function (text, character, available
   voices) so it can be tested without a speaking platform, it prefers a voice
   that matches the character, it never repeats the last line, and a platform that
-  refuses to speak is ignored rather than allowed to break a game.
+  refuses to speak is ignored rather than allowed to break a game. A known voice
+  name is enough to match the character's gender, but a general word such as
+  "male" only counts on its own — otherwise "Samantha" would be picked to sound
+  like a man.
 - `coach.ts` (controller + `domain/coach.ts`): the review chat. It builds one
   `CoachPosition` from the live report when the analysis describes the position
   on screen and from the stored review point otherwise, classifies the question

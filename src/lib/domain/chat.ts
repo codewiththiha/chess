@@ -86,9 +86,7 @@ export interface Utterance {
   voiceName: string | null;
 }
 
-const FEMININE = [
-  'female',
-  'woman',
+const FEMININE_NAMES = [
   'amy',
   'zira',
   'samantha',
@@ -104,9 +102,8 @@ const FEMININE = [
   'salli',
   'nicky',
 ];
-const MASCULINE = [
-  'male',
-  'man',
+const FEMININE_WORDS = ['female', 'woman'];
+const MASCULINE_NAMES = [
   'david',
   'mark',
   'daniel',
@@ -121,6 +118,24 @@ const MASCULINE = [
   'matthew',
   'aaron',
 ];
+const MASCULINE_WORDS = ['male', 'man'];
+
+/**
+ * Does this platform voice sound like the gender a character speaks in? A known
+ * voice name is enough on its own; a general word only counts when it stands
+ * alone, because "Samantha" contains "man" and is nobody's male voice.
+ */
+function soundsLike(
+  voice: SpeechVoice,
+  names: readonly string[],
+  words: readonly string[],
+): boolean {
+  const name = voice.name.toLowerCase();
+  return (
+    names.some((one) => name.includes(one)) ||
+    name.split(/[^a-z]+/).some((part) => words.includes(part))
+  );
+}
 
 /** Find a platform voice for one character, never inventing one that is absent. */
 export function pickSpeechVoice(
@@ -131,9 +146,13 @@ export function pickSpeechVoice(
   const candidates = voices.filter((voice) =>
     voice.lang.toLowerCase().startsWith(lang),
   );
-  const words = profile.gender === 'feminine' ? FEMININE : MASCULINE;
+  const feminine = profile.gender === 'feminine';
   const named = candidates.find((voice) =>
-    words.some((word) => voice.name.toLowerCase().includes(word)),
+    soundsLike(
+      voice,
+      feminine ? FEMININE_NAMES : MASCULINE_NAMES,
+      feminine ? FEMININE_WORDS : MASCULINE_WORDS,
+    ),
   );
   return named ?? candidates[0] ?? null;
 }

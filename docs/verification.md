@@ -354,6 +354,27 @@ their lines):
   four repeats, so its cause was not the speech work; it is left unweakened
   rather than papered over with a longer timeout.
 
+At `8738c8b` plus the speech follow-up (before the commit that carries this
+paragraph), the local gates read **145 unit tests in 15 files** and **79 passed
+plus one skip of 80 browser executions**, `npm run check` 0 errors 0 warnings and
+`npm run lint` clean.
+
+- The browser suite now drives speech through a stubbed platform engine, because
+  the headless browser has no voices: `tests/e2e/speech.spec.ts` records what
+  would be said and asserts the words match the bubble, the pitch and pace match
+  the character (Kyar Nyo warm and pitched up, Kyaw Gyi slow and pitched down),
+  the platform voice matches the character's gender, staying silent until the
+  reader turns the switch on, and no line is repeated back to back.
+- That test found a real defect before the push: the character-to-voice match
+  looked for the word "man" inside voice names, and "Samantha" contains "man", so
+  the ruthless character was given a woman's voice on any platform that lists
+  Samantha before Daniel. General words now have to stand alone and known voice
+  names still match anywhere in the name; `tests/unit/chat.test.ts` pins both
+  halves.
+- The platform call itself is wrapped: a browser that refuses a voice, an
+  utterance, or the call at all leaves the game alone. The first version assigned
+  the voice outside the guard, which the stubbed engine exposed.
+
 A documentation-only push does not build the desktop shell: that workflow is
 filtered to `src-tauri/**`, `src/**`, `public/**`, `index.html`, and the package
 manifests. [CI run 36976450261](https://github.com/codewiththiha/chess/actions/runs/36976450261)
