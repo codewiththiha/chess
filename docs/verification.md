@@ -333,3 +333,23 @@ characters and their voices):
   waits for `finished`, judges each ply at most once, and says nothing rather than
   claiming a plan the engine never gave it. Regression tests cover all three, and
   the same transcript then read `I intend Nc6` — a move for its own side.
+
+Verified on 2026-10-02 (local date), source commit `8738c8b` (the opponents speak
+their lines):
+
+- [CI push run 36976059490](https://github.com/codewiththiha/chess/actions/runs/36976059490):
+  success on every job. The hosted unit job printed **15 files / 144 tests
+  passed** — the six new ones plan the utterance a character speaks; Browser
+  (desktop) **37 passed (1.9 m)** and Browser (mobile) **36 passed plus 1 skipped
+  (2.1 m)**, matching the local pre-push run (73 passed, 1 skipped, 3.5 m).
+  Artifacts: `production-36976059490-1` (7,450,489 bytes),
+  `playwright-desktop-1` (267,842 bytes), `playwright-mobile-1` (270,466 bytes).
+- [Desktop push run 36976059114](https://github.com/codewiththiha/chess/actions/runs/36976059114):
+  success (3.2 m), artifact `desktop-shell-36976059114-1` (1,763,465 bytes). The
+  Rust shell still compiles against the frontend that now speaks.
+- Local pre-push gates at `8738c8b`: `npm run check` 0 errors 0 warnings,
+  `npm run lint` clean, `format:check` clean, **144 unit tests in 15 files**,
+  **73 passed plus one skip of 74 browser executions**, `npm run build` green.
+- One regression test in the browser suite failed once and passed on its own
+  four repeats, so its cause was not the speech work; it is left unweakened
+  rather than papered over with a longer timeout.
