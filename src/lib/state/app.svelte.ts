@@ -50,6 +50,8 @@ export class AppState {
   reviewError = $state('');
   dialog = $state<Dialog>(null);
   promotion = $state<{ from: string; to: string } | null>(null);
+  /** Move queued while the opponent is thinking; played as soon as it is legal. */
+  premove = $state<{ from: string; to: string } | null>(null);
   confirmation = $state<{
     title: string;
     detail: string;
@@ -71,7 +73,8 @@ export class AppState {
           this.ready &&
           this.latest &&
           this.record.result === '*' &&
-          this.pos.turn === this.record.human),
+          (this.record.opponent === 'human' ||
+            this.pos.turn === this.record.human)),
   );
   lastMove = $derived(this.record.moves[this.cursor - 1] ?? null);
   getClock(color: Color): number {

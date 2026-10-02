@@ -2,6 +2,8 @@
 import type { Color, Role } from 'chessops/types';
 export type { Color, Role } from 'chessops/types';
 export type View = 'home' | 'play' | 'study';
+/** Who answers the other side: the bundled engine, or a second person. */
+export type Opponent = 'bot' | 'human';
 export type EngineMode = 'balanced' | 'aggressive' | 'human-like' | 'analysis';
 export type Backend = 'auto' | 'portable' | 'simd128';
 export type Result = '*' | '1-0' | '0-1' | '1/2-1/2';
@@ -19,8 +21,8 @@ export interface ComputeSettings {
 export interface EngineSettings {
   backend: Backend;
   mode: EngineMode;
-  strength: 'skill' | 'elo';
-  skillLevel: number;
+  /** 'elo' applies the nominal target; 'full' leaves the engine uncapped. */
+  strength: 'elo' | 'full';
   elo: number;
   hashMiB: number;
   multiPv: number;
@@ -41,6 +43,10 @@ export interface Preferences {
   lastMove: boolean;
   check: boolean;
   arrows: boolean;
+  /** How many suggestion arrows study mode may draw (1-4). */
+  arrowCount: number;
+  /** Let a move be queued while the opponent is thinking. */
+  premove: boolean;
   evaluation: boolean;
   engine: EngineSettings;
   lastGameId: string | null;
@@ -81,7 +87,10 @@ export interface GameRecord {
   termination: string;
   moves: MoveEntry[];
   clock: ClockState;
-  engineLevel: number;
+  /** Opponent the record was started against. */
+  opponent: Opponent;
+  /** Nominal Elo the engine played at when this record was created. */
+  engineElo: number;
   headers: Record<string, string>;
 }
 export interface NewGameOptions {
@@ -90,6 +99,7 @@ export interface NewGameOptions {
   increment: number;
   chess960: boolean;
   position: number;
+  opponent: Opponent;
 }
 export interface ReviewPoint {
   ply: number;

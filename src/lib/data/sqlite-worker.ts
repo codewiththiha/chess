@@ -103,6 +103,7 @@ function asGame(value: unknown): StoredGame {
     dedupe: asText(row.dedupe, 'game identity'),
     title: asText(row.title, 'game title'),
     kind: asText(row.kind, 'game kind'),
+    opponent: asText(row.opponent, 'opponent'),
     createdAt: asNumber(row.createdAt, 'creation time'),
     updatedAt: asNumber(row.updatedAt, 'update time'),
     startFen: asText(row.startFen, 'starting position'),
@@ -114,7 +115,7 @@ function asGame(value: unknown): StoredGame {
     termination: asText(row.termination, 'termination'),
     moves: asText(row.moves, 'move list'),
     clock: asText(row.clock, 'clock'),
-    engineLevel: asNumber(row.engineLevel, 'engine level'),
+    engineElo: asNumber(row.engineElo, 'engine Elo'),
     headers: asText(row.headers, 'headers'),
   };
 }

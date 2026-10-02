@@ -40,23 +40,34 @@ export class SearchController {
   }
   run(hint = false, override?: ComputeSettings): void {
     const s = this.state;
-    const analysis = s.view === 'study' || hint;
     if (!s.ready || s.pos.isEnd() || s.view === 'home') return;
-    if (!analysis) {
-      if (
-        s.view !== 'play' ||
-        !s.latest ||
-        s.record.result !== '*' ||
-        s.pos.turn === s.record.human
-      )
-        return;
-      this.game.startIfNeeded();
-    }
+    /**
+     * Study is a view, not a pause: when the engine owes a game move it makes one
+     * there too. Everything else - a hint, a human turn, an earlier position - is
+     * analysis of the position on screen.
+     */
+    const botTurn =
+      s.record.opponent === 'bot' &&
+      s.latest &&
+      s.record.result === '*' &&
+      s.pos.turn !== s.record.human;
+    const analysis = !botTurn;
+    if (botTurn) this.game.startIfNeeded();
     const generation = ++this.generation;
     s.thinking = true;
     const start = s.record.startFen;
     const history = s.record.moves.slice(0, s.cursor).map((m) => m.uci);
-    const settings = s.preferenceSnapshot().engine;
+    const engine = s.preferenceSnapshot().engine;
+    // Study arrows come from the engine's own lines, so ask for as many as shown.
+    const settings = analysis
+      ? {
+          ...engine,
+          multiPv: Math.max(
+            engine.multiPv,
+            Math.min(4, Math.max(1, s.preferences.arrowCount)),
+          ),
+        }
+      : engine;
     const compute = { ...(override ?? settings.compute) };
     if (!analysis) {
       if (s.record.clock.initialMs) {

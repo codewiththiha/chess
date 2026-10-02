@@ -14,6 +14,7 @@ export interface StoredGame {
   dedupe: string;
   title: string;
   kind: string;
+  opponent: string;
   createdAt: number;
   updatedAt: number;
   startFen: string;
@@ -25,7 +26,7 @@ export interface StoredGame {
   termination: string;
   moves: string;
   clock: string;
-  engineLevel: number;
+  engineElo: number;
   headers: string;
 }
 
@@ -118,8 +119,9 @@ const GAME_FIELDS = [
   'termination',
   'moves',
   'clock',
-  'engine_level',
+  'engine_elo',
   'headers',
+  'opponent',
 ];
 const GAME_COLUMNS = `${GAME_FIELDS.join(', ')}, reviewed`;
 const GAME_WRITE_COLUMNS = GAME_FIELDS.join(', ');
@@ -142,6 +144,24 @@ export class SqlStore {
 
   migrate(): void {
     for (const statement of SCHEMA) this.handle.exec(statement);
+    this.upgradeLegacyColumns();
+  }
+
+  /** Databases written before the Elo/opponent model are upgraded in place. */
+  private upgradeLegacyColumns(): void {
+    const columns = new Set(
+      this.handle
+        .selectObjects('PRAGMA table_info(games)')
+        .map((row) => String(row.name)),
+    );
+    if (columns.has('engine_level') && !columns.has('engine_elo'))
+      this.handle.exec(
+        'ALTER TABLE games RENAME COLUMN engine_level TO engine_elo',
+      );
+    if (!columns.has('opponent'))
+      this.handle.exec(
+        "ALTER TABLE games ADD COLUMN opponent TEXT NOT NULL DEFAULT 'bot'",
+      );
   }
 
   setting(key: string): string | null {
@@ -193,8 +213,9 @@ export class SqlStore {
       termination: text(row.termination, 'termination'),
       moves: text(row.moves, 'move list'),
       clock: text(row.clock, 'clock'),
-      engineLevel: integer(row.engine_level, 'engine level'),
+      engineElo: integer(row.engine_elo, 'engine Elo'),
       headers: text(row.headers, 'headers'),
+      opponent: text(row.opponent, 'opponent'),
     };
   }
 
@@ -262,7 +283,7 @@ export class SqlStore {
          start_fen = excluded.start_fen, chess960 = excluded.chess960, human = excluded.human,
          white = excluded.white, black = excluded.black, result = excluded.result,
          termination = excluded.termination, moves = excluded.moves, clock = excluded.clock,
-         engine_level = excluded.engine_level, headers = excluded.headers`,
+         engine_elo = excluded.engine_elo, headers = excluded.headers, opponent = excluded.opponent`,
       [
         id,
         row.dedupe,
@@ -279,8 +300,9 @@ export class SqlStore {
         row.termination,
         row.moves,
         row.clock,
-        row.engineLevel,
+        row.engineElo,
         row.headers,
+        row.opponent,
       ],
     );
   }

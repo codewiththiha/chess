@@ -50,6 +50,7 @@ function encode(record: GameRecord): StoredGame {
     dedupe: gameIdentity(record),
     title: record.title,
     kind: record.kind,
+    opponent: record.opponent,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
     startFen: record.startFen,
@@ -61,7 +62,7 @@ function encode(record: GameRecord): StoredGame {
     termination: record.termination,
     moves: JSON.stringify(record.moves),
     clock: JSON.stringify(record.clock),
-    engineLevel: record.engineLevel,
+    engineElo: record.engineElo,
     headers: JSON.stringify(record.headers),
   };
 }
@@ -84,7 +85,8 @@ function decodeGameRow(row: StoredGame): GameRecord {
       termination: row.termination,
       moves: parse(row.moves, 'move list'),
       clock: parse(row.clock, 'clock'),
-      engineLevel: row.engineLevel,
+      engineElo: row.engineElo,
+      opponent: row.opponent === 'human' ? 'human' : 'bot',
       headers: parse(row.headers, 'headers'),
     });
   } catch (error) {

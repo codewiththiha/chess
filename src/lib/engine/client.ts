@@ -4,6 +4,7 @@ import { report } from './protocol';
 import { Cancelled } from './types';
 import { object } from '../data/validation';
 import { integer } from '../domain/preferences';
+import { FULL_STRENGTH_LEVEL } from '../domain/strength';
 import type { Discovery, Report } from './types';
 import type { Backend, ComputeSettings, EngineSettings } from '../domain/types';
 export class EngineClient {
@@ -48,11 +49,9 @@ export class EngineClient {
     if (!d) throw new Error('Engine discovery is unavailable.');
     const options = {
       mode: analysis ? 'analysis' : settings.mode,
-      ...(analysis
-        ? { skillLevel: 21 }
-        : settings.strength === 'skill'
-          ? { skillLevel: settings.skillLevel }
-          : { elo: settings.elo }),
+      ...(analysis || settings.strength === 'full'
+        ? { skillLevel: FULL_STRENGTH_LEVEL }
+        : { elo: settings.elo }),
       hashMiB: settings.hashMiB,
       multiPv: settings.multiPv,
       chess960,

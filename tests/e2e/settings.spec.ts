@@ -45,7 +45,7 @@ test('portable backend and nominal Elo/seed still configure the real engine', as
   await page
     .getByLabel('Personality', { exact: true })
     .selectOption('human-like');
-  await page.getByRole('button', { name: 'Nominal Elo', exact: true }).click();
+  // Strength is Elo-only now: drag the target down and check the round trip.
   await page.getByLabel('Nominal Elo', { exact: true }).fill('500');
   await page
     .getByLabel('Random seed', { exact: true })
@@ -166,13 +166,17 @@ test('live performance changes and cancellation do not produce stale analysis mo
     .getByRole('button', { name: 'Save settings', exact: true })
     .click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(
-    page.locator('.study-card').getByRole('button', { name: 'Analyze' }),
-  ).toBeVisible();
+  // Analysis runs continuously in study, so the card shows live status instead.
+  await expect(page.locator('.analysis-summary')).toBeVisible();
   await move(page, 'e2', 'e4');
   await expect(
     page.locator('.move-cell').filter({ hasText: 'e4' }),
   ).toBeVisible();
+  // The engine answers in study too now, so wait for the reply before stepping
+  // back; a clean two-ply record is the proof that the limited settings produced
+  // one real answer and no stale line.
+  await plies(page, 2);
+  await expect(page.locator('.move-cell.missing')).toHaveCount(0);
   await page
     .getByRole('button', { name: 'First position', exact: true })
     .click();
@@ -180,5 +184,4 @@ test('live performance changes and cancellation do not produce stale analysis mo
     'aria-label',
     'e2, white pawn',
   );
-  await plies(page, 1);
 });

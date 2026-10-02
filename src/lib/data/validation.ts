@@ -1,5 +1,6 @@
 // Decode persisted data before it can replace a live legal game.
 import { defaultPreferences, validatePreferences } from '../domain/preferences';
+import { eloForLevel, FULL_STRENGTH_LEVEL } from '../domain/strength';
 import { studyGame } from '../domain/games';
 import { moveEntry, fenAt, position } from '../domain/chess';
 import type { GameRecord, Preferences, Result } from '../domain/types';
@@ -36,6 +37,13 @@ export function choice<T extends string>(
   if (found === undefined) throw new Error('Unknown option.');
   return found;
 }
+function legacyStrength(engine: Record<string, unknown>): 'elo' | 'full' {
+  return typeof engine.skillLevel === 'number' &&
+    engine.skillLevel >= FULL_STRENGTH_LEVEL
+    ? 'full'
+    : 'elo';
+}
+
 export function decodePreferences(value: unknown): Preferences {
   const p = object(value);
   const e = object(p.engine);
@@ -53,6 +61,10 @@ export function decodePreferences(value: unknown): Preferences {
     lastMove: bool(p.lastMove),
     check: bool(p.check),
     arrows: bool(p.arrows),
+    // Preferences saved before the Elo-only model stored a skill level instead.
+    arrowCount:
+      p.arrowCount === undefined ? defaults.arrowCount : number(p.arrowCount),
+    premove: p.premove === undefined ? defaults.premove : bool(p.premove),
     evaluation: bool(p.evaluation),
     lastGameId: p.lastGameId === null ? null : text(p.lastGameId, 128),
     engine: {
@@ -63,9 +75,16 @@ export function decodePreferences(value: unknown): Preferences {
         'human-like',
         'analysis',
       ]),
-      strength: choice(e.strength, ['skill', 'elo']),
-      skillLevel: number(e.skillLevel),
-      elo: number(e.elo),
+      strength:
+        e.strength === 'skill' || e.strength === 'elo' || e.strength === 'full'
+          ? e.strength === 'skill'
+            ? legacyStrength(e)
+            : e.strength
+          : defaults.engine.strength,
+      elo:
+        e.strength === 'skill'
+          ? eloForLevel(number(e.skillLevel))
+          : number(e.elo),
       hashMiB: number(e.hashMiB),
       multiPv: number(e.multiPv),
       seed: text(e.seed, 20),
@@ -117,7 +136,8 @@ export function decodeGame(value: unknown): GameRecord {
   g.updatedAt = timestamp(x.updatedAt);
   g.result = choice<Result>(x.result, ['*', '1-0', '0-1', '1/2-1/2']);
   g.termination = text(x.termination, 128);
-  g.engineLevel = number(x.engineLevel);
+  g.opponent = x.opponent === 'human' ? 'human' : 'bot';
+  g.engineElo = number(x.engineElo);
   g.headers = Object.fromEntries(
     Object.entries(object(x.headers)).map(([k, v]) => [
       text(k, 64),

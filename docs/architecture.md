@@ -113,8 +113,16 @@ engine/hash allocation and may add memory pressure; it is not extra search threa
 Clock state stores remaining values, running color, and a monotonic anchor.
 UI ticks update display at 100 ms, but remaining time derives from elapsed time.
 A move rechecks expiry before acceptance. Increments belong to the completed actor.
+A queued premove is validated when the engine hands the turn back: a legal queue is
+committed at once, an impossible one is dropped with a notice, and neither path can
+write an illegal move.
 Timeout is a draw when the opponent has insufficient mating material.
 
+A record stores who the opponent is: `bot` (the bundled engine) or `human`
+(two players, where both colours are the reader's and no search is ever started).
+Study is a view, not a pause: for a bot game the search makes the engine's game
+move in either view whenever the latest position is on screen, and only steps back
+to full-strength analysis when it is the reader's turn or the cursor is historical.
 Clocks start when a timed game is ready and keep running while the app is open,
 including while another view is on screen; there is no pause control and a
 timeless game (0 minutes) is chosen before the first move. The database receives
@@ -125,14 +133,18 @@ writes the initial placeholder over unread saved preferences.
 SQLite database `gwaymaegyi-chess.sqlite3` (OPFS shared-access-handle pool inside
 the SQLite worker, `/gwaymaegyi-chess` directory):
 
-- `games`: `id` PK, `dedupe` (identity), title/kind, `created_at`/`updated_at`,
-  start FEN, chess960, sides, result/termination, moves, clock, engine level,
-  headers, `reviewed`
+- `games`: `id` PK, `dedupe` (identity), title/kind, `opponent`, `created_at`/
+  `updated_at`, start FEN, chess960, sides, result/termination, moves, clock,
+  engine Elo, headers, `reviewed`
 - `reviews`: `game_id` PK referencing one game, fingerprint, engine revision,
   depth, node budget, time limit, completeness, points
 - `settings`: key/value rows (`preferences` holds a versioned value)
 
-Indexes cover the dedupe key and recency. Duplicate play merges into the oldest
+Indexes cover the dedupe key and recency. Databases written before the Elo and
+opponent columns existed are upgraded in place: `engine_level` is renamed to
+`engine_elo` and `opponent` is added defaulting to `bot`, so old records stay one
+record each and keep their review. Stored preferences that used a skill level are
+decoded through the engine's published level-to-Elo presets. Duplicate play merges into the oldest
 row, keeping a single review. Multi-game import is legally validated before
 insertion. Zero-ply records are omitted from the listing, not treated as games.
 

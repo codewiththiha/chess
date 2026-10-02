@@ -8,7 +8,13 @@ import {
   settleClock,
   startClock,
 } from '../domain/clocks';
-import { createGame, studyGame, terminalResult } from '../domain/games';
+import {
+  createGame,
+  DEFAULT_NEW_GAME,
+  studyGame,
+  terminalResult,
+} from '../domain/games';
+import { ELO_MAX } from '../domain/strength';
 import type { AppState } from '../state/app.svelte';
 import type {
   Color,
@@ -35,7 +41,13 @@ export class GameActions {
   create(options: NewGameOptions): void {
     this.onCancel();
     const s = this.state;
-    s.record = createGame(options, s.preferences.engine.skillLevel);
+    s.record = createGame(
+      options,
+      s.preferences.engine.strength === 'full'
+        ? ELO_MAX
+        : s.preferences.engine.elo,
+    );
+    s.premove = null;
     s.cursor = 0;
     s.view = 'play';
     s.orientation = s.record.human;
@@ -45,6 +57,7 @@ export class GameActions {
     s.report = null;
     s.dialog = null;
     this.stamp();
+    this.startIfNeeded();
     this.onChange();
   }
 
@@ -53,6 +66,7 @@ export class GameActions {
     this.onCancel();
     const s = this.state;
     s.record = game;
+    s.premove = null;
     s.cursor = view === 'study' ? 0 : game.moves.length;
     s.view = view;
     s.orientation = game.human;
@@ -87,8 +101,9 @@ export class GameActions {
   /** Timed games keep running, so a restored clock continues for the side to move. */
   resumeClock(): void {
     const s = this.state;
+    // Study is a view, not a pause: a live clock keeps running in either view.
     if (
-      s.view !== 'play' ||
+      s.view === 'home' ||
       !isTimed(s.record.clock) ||
       s.record.result !== '*'
     )
@@ -107,7 +122,7 @@ export class GameActions {
     const s = this.state;
     settleClock(s.record.clock, this.now());
     setTimeControl(s.record.clock, minutes, increment);
-    if (s.view === 'play' && s.record.result === '*') this.resumeClock();
+    if (isTimed(s.record.clock) && s.record.result === '*') this.resumeClock();
     this.stamp();
     this.onChange();
   }
@@ -116,7 +131,7 @@ export class GameActions {
     const s = this.state;
     settleClock(s.record.clock, this.now());
     addTime(s.record.clock, color, seconds);
-    if (s.view === 'play' && s.record.result === '*') this.resumeClock();
+    if (isTimed(s.record.clock) && s.record.result === '*') this.resumeClock();
     this.stamp();
     this.onChange();
   }
@@ -152,7 +167,7 @@ export class GameActions {
       throw new Error(
         'The 2,048-ply history limit is reached. Export this game before continuing.',
       );
-    if (s.view === 'play' && isTimed(s.record.clock)) {
+    if (s.view !== 'home' && isTimed(s.record.clock)) {
       s.now = this.now();
       this.expire();
       if (s.record.result !== '*')
@@ -160,7 +175,7 @@ export class GameActions {
     }
     const entry = moveEntry(s.fen, uci, s.record.chess960);
     this.onCancel();
-    if (s.view === 'play') {
+    if (s.view !== 'home' && isTimed(s.record.clock)) {
       settleClock(s.record.clock, this.now());
       incrementClock(s.record.clock, entry.color);
     }
@@ -183,24 +198,53 @@ export class GameActions {
       s.record.result = terminal.result;
       s.record.termination = terminal.reason;
       settleClock(s.record.clock, this.now());
-    } else if (s.view === 'play') {
+    } else if (s.view !== 'home') {
       startClock(s.record.clock, s.pos.turn, this.now());
     }
     this.stamp();
     this.onChange();
+    this.playPremove();
+  }
+
+  /** Queue a move while the engine is thinking; it is played when it becomes legal. */
+  setPremove(from: string, to: string): void {
+    this.state.premove = { from, to };
+  }
+
+  clearPremove(): void {
+    this.state.premove = null;
+  }
+
+  private playPremove(): void {
+    const s = this.state;
+    const pending = s.premove;
+    if (!pending) return;
+    if (s.record.opponent !== 'bot' || s.record.result !== '*') {
+      s.premove = null;
+      return;
+    }
+    // A premove is about the engine's thinking time, so untimed games queue too.
+    if (!s.latest || s.pos.turn !== s.record.human) return;
+    s.premove = null;
+    const uci = `${pending.from}${pending.to}`;
+    try {
+      this.commit(
+        promotionNeeded(s.fen, pending.from, pending.to) ? `${uci}q` : uci,
+      );
+    } catch (error) {
+      this.onNotice(
+        error instanceof Error
+          ? `Premove dropped: ${error.message}`
+          : 'Premove dropped.',
+      );
+    }
   }
 
   discard(id: string): void {
     const s = this.state;
     if (s.record.id !== id) return;
     this.onCancel();
-    s.record = createGame({
-      side: 'white',
-      minutes: 0,
-      increment: 0,
-      chess960: false,
-      position: 518,
-    });
+    s.record = createGame(DEFAULT_NEW_GAME);
     s.cursor = 0;
     s.orientation = s.record.human;
     s.review = null;
@@ -241,10 +285,11 @@ export class GameActions {
     const last = s.record.moves.at(-1);
     s.record.clock.whiteMs = last?.whiteMs ?? s.record.clock.initialMs;
     s.record.clock.blackMs = last?.blackMs ?? s.record.clock.initialMs;
+    s.premove = null;
     s.review = null;
     s.report = null;
     s.hint = null;
-    if (s.view === 'play') this.resumeClock();
+    if (s.view !== 'home') this.resumeClock();
     this.stamp();
     this.onChange();
   }

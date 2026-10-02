@@ -7,6 +7,7 @@ export interface StartOptions {
   minutes?: number;
   increment?: number;
   side?: 'White' | 'Black' | 'Any';
+  opponent?: 'Play a bot' | 'Two players';
   chess960?: boolean;
   position?: number;
 }
@@ -59,9 +60,14 @@ export async function start(
       .getByLabel('Custom increment seconds', { exact: true })
       .fill(String(options.increment ?? 0));
   }
+  if (options.opponent)
+    await page
+      .getByRole('group', { name: 'Opponent' })
+      .getByRole('button', { name: options.opponent, exact: true })
+      .click();
   if (options.side)
     await page
-      .locator('.side-choice')
+      .getByRole('group', { name: 'Your side' })
       .getByRole('button', { name: options.side, exact: true })
       .click();
   if (options.chess960) {

@@ -1,9 +1,10 @@
 <!-- Present actual identities, captures, material, and running chess clocks. -->
 <script lang="ts">
-  import { Bot, UserRound, Infinity as InfinityIcon } from '@lucide/svelte';
+  import { Infinity as InfinityIcon } from '@lucide/svelte';
   import { formatClock } from '../domain/clocks';
   import { material } from '../domain/chess';
   import { roleToChar } from 'chessops/util';
+  import { strengthLabel } from '../domain/strength';
   import type { Session } from '../controllers/session';
   import type { Color } from '../domain/types';
   let { session, color }: { session: Session; color: Color } = $props();
@@ -20,25 +21,18 @@
   const advantage = $derived(material(s.fen) * (color === 'white' ? 1 : -1));
   const time = $derived(s.getClock(color));
   const engineLabel = $derived(
-    s.preferences.engine.mode === 'analysis' ||
-      (s.preferences.engine.strength === 'skill' &&
-        s.preferences.engine.skillLevel === 21)
-      ? 'Full strength'
-      : s.preferences.engine.strength === 'skill'
-        ? `Level ${s.preferences.engine.skillLevel}`
-        : `Nominal ${s.preferences.engine.elo}`,
+    s.record.opponent === 'human'
+      ? 'Second player'
+      : s.preferences.engine.mode === 'analysis'
+        ? 'Full strength'
+        : strengthLabel(
+            s.preferences.engine.strength,
+            s.preferences.engine.elo,
+          ),
   );
 </script>
 
 <div class="player-row" class:player-active={running}>
-  <div
-    class="player-avatar"
-    class:engine-avatar={s.view === 'play' && opponent}
-  >
-    {#if s.view === 'play' && opponent}<Bot size={19} />{:else}<UserRound
-        size={18}
-      />{/if}
-  </div>
   <div class="player-details">
     <div class="player-name">
       <span class="player-name-text">{name}</span><span
@@ -63,7 +57,7 @@
         {#if advantage > 0}<span class="material-count">+{advantage}</span>{/if}
       {:else}
         <span
-          >{s.view === 'play' && opponent
+          >{opponent && s.record.opponent === 'bot'
             ? engineLabel
             : color === s.pos.turn && s.record.result === '*'
               ? 'To move'

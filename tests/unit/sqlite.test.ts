@@ -26,8 +26,9 @@ function game(overrides: Partial<StoredGame> = {}): StoredGame {
     termination: '',
     moves: '[]',
     clock: '{}',
-    engineLevel: 8,
+    engineElo: 1600,
     headers: '{}',
+    opponent: 'bot',
     ...overrides,
   };
 }

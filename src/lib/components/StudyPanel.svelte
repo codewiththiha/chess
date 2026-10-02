@@ -114,14 +114,11 @@
       </div>
     {/if}
     <div class="study-actions">
+      <!-- Analysis is continuous here, so the only useful control is stopping it. -->
       {#if s.thinking}<button
           class="btn btn-outline"
           onclick={() => session.search.cancel()}
           ><Square size={14} />Stop</button
-        >{:else}<button
-          class="btn btn-primary"
-          disabled={!s.ready || s.pos.isEnd()}
-          onclick={() => session.search.run()}><Play size={15} />Analyze</button
         >{/if}
       <button class="btn btn-ghost" onclick={() => session.openDialog('fen')}
         >Load FEN</button

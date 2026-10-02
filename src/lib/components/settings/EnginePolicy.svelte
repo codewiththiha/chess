@@ -54,56 +54,46 @@
 </div>
 <div class="settings-block">
   <h3>Strength</h3>
-  <div class="segmented-control">
-    <button
-      type="button"
-      class:chosen={engine.strength === 'skill'}
-      aria-pressed={engine.strength === 'skill'}
-      onclick={() => {
-        engine.strength = 'skill';
-      }}>Skill level</button
-    ><button
-      type="button"
-      class:chosen={engine.strength === 'elo'}
-      aria-pressed={engine.strength === 'elo'}
-      onclick={() => {
-        engine.strength = 'elo';
-      }}>Nominal Elo</button
+  <div class="range-heading">
+    <label for="engine-elo">Nominal Elo</label><strong
+      >{engine.strength === 'full' ? 'Full strength' : engine.elo}</strong
     >
   </div>
-  {#if engine.strength === 'skill'}<div class="range-heading">
-      <label for="engine-skill">Skill level</label><strong
-        >{engine.skillLevel === 21
-          ? 'Full strength'
-          : `Level ${engine.skillLevel}`}</strong
-      >
-    </div>
-    <input
-      id="engine-skill"
-      class="range range-primary"
-      type="range"
-      min="1"
-      max="21"
-      step="1"
-      bind:value={engine.skillLevel}
-    />
-    <div class="range-captions">
-      <span>Gentle · 1</span><span>Full · 21</span>
-    </div>{:else}<label for="engine-elo"
-      >Nominal Elo<input
-        id="engine-elo"
-        type="number"
-        class="input"
-        min={discovery?.capabilities.eloMin ?? 500}
-        max={discovery?.capabilities.eloMax ?? 3000}
-        step="1"
-        required
-        bind:value={engine.elo}
-      /></label
-    >{/if}
+  <input
+    id="engine-elo"
+    class="range range-primary"
+    type="range"
+    min={discovery?.capabilities.eloMin ?? 500}
+    max={discovery?.capabilities.eloMax ?? 3000}
+    step="25"
+    aria-label="Nominal Elo"
+    disabled={engine.strength === 'full'}
+    bind:value={engine.elo}
+  />
+  <div class="range-captions">
+    <span>{discovery?.capabilities.eloMin ?? 500} · gentler</span><span
+      >{discovery?.capabilities.eloMax ?? 3000} · strongest target</span
+    >
+  </div>
+  <label class="toggle-row" for="engine-full"
+    ><span
+      ><strong>Full strength</strong><small
+        >Ignore the target and let the engine play uncapped.</small
+      ></span
+    ><input
+      id="engine-full"
+      class="toggle toggle-primary"
+      type="checkbox"
+      aria-label="Full strength"
+      checked={engine.strength === 'full'}
+      onchange={(event) => {
+        engine.strength = event.currentTarget.checked ? 'full' : 'elo';
+      }}
+    /></label
+  >
   <p class="honesty-note">
-    <Info size={15} />Strength presets are approximate and uncalibrated—not
-    measured ratings. Compute limits are a separate control.
+    <Info size={15} />Elo targets are nominal and uncalibrated—not measured
+    ratings. Ask for a bot in the bot library to play at a named strength.
   </p>
 </div>
 <div class="settings-block">

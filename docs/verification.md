@@ -5,9 +5,9 @@ Recorded 2026-10-01 after the final `npm run verify:all` production run of revis
 distinguishes actual engine/browser execution from isolated test-only fault
 simulation.
 
-**2026-10-02 redesign status (uncommitted working tree).** The gates marked
-_published_ below describe `a27443b`, the last published revision. The redesign
-itself is verified as: unit suite **71 tests in 9 files**; `svelte-check` 0 errors
+**2026-10-02 redesign status.** The gates marked _published_ below describe
+`a27443b`, the last pre-redesign revision. The redesign itself is verified as:
+unit suite **83 tests in 11 files**; `svelte-check` 0 errors
 and 0 warnings; `tsc` for the node and test configs clean; oxlint 0/0 with 58
 vendored checksums; Prettier clean; `npm run check` and the production build
 successful; and the full production browser suite **47 passed plus one intentional
@@ -27,7 +27,7 @@ revision and passed; see the hosted evidence below.
 ## Suite and executed coverage
 
 The published unit suite passed **55 tests in 8 files**; the redesign suite
-passes **71 tests in 9 files**, covering everything below plus:
+passes **83 tests in 11 files**, covering everything below plus:
 
 - Orthodox legal moves/perft, both castling conventions, king-already-on-target
   Chess960 castling, en passant, promotion, and all 960 unique legal starts.
@@ -47,6 +47,10 @@ passes **71 tests in 9 files**, covering everything below plus:
 - Time-control groups and classification (1 minute and below is bullet, under ten
   minutes is blitz, ten and above is rapid), adjustable clocks, and the shared
   game-action guards for records, cursors, and clock expiry.
+- The bot/two-player mode split, a queued premove that plays when the engine
+  answers, a premove dropped as illegal with a notice, study not pausing a bot
+  game, the Elo-only strength model, and migration of stored skill preferences
+  through the engine's published level-to-Elo presets.
 - Worker startup sharing, immediate cancellation, safe reinitialization, Auto
   fallback, stale-message suppression, clone errors, crash/restart, and stale
   queued-policy cancellation. Worker fault injection is isolated test scaffolding;
@@ -56,9 +60,11 @@ passes **71 tests in 9 files**, covering everything below plus:
   lossless seed, legal bounded/distinct MultiPV roots, and deterministic score
   agreement on the tested position. No local Rust compilation is involved.
 
-The redesign browser suite ran **24 scenarios × 2 projects = 48 executions** in the
-final production run: **47 passed and one intentional skip in about 2 minutes
-20 seconds**. The skipped case is the desktop-only "fits the viewport without page
+The redesign browser suite runs **28 scenarios × 2 projects = 56 executions**:
+**55 passed and one intentional skip**. The added scenarios cover two-player mode
+(both colours moved by hand, no engine reply), a bot game that keeps playing while
+study is on screen, arrows that appear in study and never during play, and premoves
+that stay off until the setting is enabled. The skipped case is the desktop-only "fits the viewport without page
 scrolling" check, which cannot hold on a scrolling narrow layout. Coverage includes:
 
 - Real engine responses to tap/click, mouse drag, CDP touch drag, and keyboard moves.

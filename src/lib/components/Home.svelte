@@ -27,7 +27,7 @@
   import { download } from '../data/files';
   import MiniBoard from './MiniBoard.svelte';
   import type { Session } from '../controllers/session';
-  import type { Color, Result } from '../domain/types';
+  import type { Color, Opponent, Result } from '../domain/types';
   let { session }: { session: Session } = $props();
   const s = $derived(session.state);
   const icons: Record<string, typeof Timer> = {
@@ -45,6 +45,7 @@
   let minutes = $state(10);
   let increment = $state(0);
   let side = $state<Color | 'random'>('white');
+  let opponent = $state<Opponent>('bot');
   let chess960 = $state(false);
   let position = $state(518);
   let query = $state('');
@@ -80,13 +81,15 @@
   function start(): void {
     if (invalid) return;
     session.startGame({
-      side,
+      // A two-player board has no engine side, so the reader is White.
+      side: opponent === 'human' ? 'white' : side,
       minutes: control.minutes,
       increment: control.increment,
       chess960,
       position: chess960
         ? Math.min(959, Math.max(0, Number(position) || 0))
         : 518,
+      opponent,
     });
   }
   function pick(preset: TimeControl): void {
@@ -200,17 +203,34 @@
           aria-label="Custom increment seconds"
         /><span class="unit">+ s</span>
       </div>
-      <div class="side-choice" role="group" aria-label="Your side">
-        {#each [['white', 'White'], ['black', 'Black'], ['random', 'Any']] as option}
-          <button
-            class:active={side === option[0]}
-            aria-pressed={side === option[0]}
-            onclick={() => {
-              side = option[0] as Color | 'random';
-            }}>{option[1]}</button
-          >
-        {/each}
+      <div class="side-choice" role="group" aria-label="Opponent">
+        <button
+          class:active={opponent === 'bot'}
+          aria-pressed={opponent === 'bot'}
+          onclick={() => {
+            opponent = 'bot';
+          }}>Play a bot</button
+        ><button
+          class:active={opponent === 'human'}
+          aria-pressed={opponent === 'human'}
+          onclick={() => {
+            opponent = 'human';
+          }}>Two players</button
+        >
       </div>
+      {#if opponent === 'bot'}
+        <div class="side-choice" role="group" aria-label="Your side">
+          {#each [['white', 'White'], ['black', 'Black'], ['random', 'Any']] as option}
+            <button
+              class:active={side === option[0]}
+              aria-pressed={side === option[0]}
+              onclick={() => {
+                side = option[0] as Color | 'random';
+              }}>{option[1]}</button
+            >
+          {/each}
+        </div>
+      {/if}
       <label class="chess960-toggle"
         ><input type="checkbox" bind:checked={chess960} /> Chess960</label
       >

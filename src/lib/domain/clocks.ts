@@ -101,3 +101,8 @@ export function formatClock(ms: number): string {
     .toString()
     .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 }
+
+/** Bullet games run on reflexes, so the board skips piece animation for them. */
+export function bulletClock(clock: ClockState): boolean {
+  return clock.initialMs > 0 && clock.initialMs <= 60_000;
+}

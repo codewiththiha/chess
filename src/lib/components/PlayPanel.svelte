@@ -37,14 +37,16 @@
       };
     if (s.pos.isCheck())
       return { title: 'Check', detail: 'Your king is attacked' };
+    // A two-player board names the side instead of calling it "you".
+    const side = s.pos.turn === 'white' ? 'White' : 'Black';
+    const clock = describeTime(
+      s.record.clock.initialMs / 60000,
+      s.record.clock.incrementMs / 1000,
+    );
+    if (s.record.opponent === 'human')
+      return { title: `${side} to move`, detail: clock };
     return s.pos.turn === s.record.human
-      ? {
-          title: s.record.moves.length ? 'Your move' : 'Your move',
-          detail: describeTime(
-            s.record.clock.initialMs / 60000,
-            s.record.clock.incrementMs / 1000,
-          ),
-        }
+      ? { title: 'Your move', detail: clock }
       : { title: 'Engine to move', detail: 'Waiting for its reply' };
   });
   function openEditor(): void {

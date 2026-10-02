@@ -6,6 +6,7 @@
   import type { Config } from '@lichess-org/chessground/config';
   import type { DrawShape } from '@lichess-org/chessground/draw';
   import { chessgroundDests } from 'chessops/compat';
+  import { bulletClock } from '../domain/clocks';
   import { makeSquare, parseSquare, parseUci } from 'chessops/util';
   import { isNormal } from 'chessops/types';
   import type { SquareName } from 'chessops/types';
@@ -30,19 +31,48 @@
   const rows = $derived(
     Array.from({ length: 8 }, (_, r) => squares.slice(r * 8, r * 8 + 8)),
   );
-  // One arrow set: stored review evidence first, then the live suggestion.
+  /**
+   * Arrows belong to study. Playing a game shows no engine arrows unless the
+   * reader explicitly asked for a hint. Review always draws the one stored move;
+   * the analyze tab draws as many live suggestions as the arrow setting allows.
+   */
   const arrowMoves = $derived.by(() => {
     if (!s.preferences.arrows) return [] as { uci: string; brush: string }[];
     const found: { uci: string; brush: string }[] = [];
-    const reviewed = s.review?.points.find((p) => p.ply === s.cursor)?.bestMove;
-    if (reviewed) found.push({ uci: reviewed, brush: 'green' });
-    const live =
-      s.view === 'study'
-        ? s.report?.bestMove
-        : (s.hint?.bestMove ?? s.report?.bestMove);
-    if (live && live !== reviewed) found.push({ uci: live, brush: 'blue' });
+    if (s.view !== 'study') {
+      if (s.hint?.bestMove) found.push({ uci: s.hint.bestMove, brush: 'blue' });
+      return found;
+    }
+    if (s.studyTab === 'review') {
+      const reviewed = s.review?.points.find(
+        (point) => point.ply === s.cursor,
+      )?.bestMove;
+      if (reviewed) found.push({ uci: reviewed, brush: 'green' });
+      return found;
+    }
+    const limit = Math.max(1, Math.min(4, s.preferences.arrowCount));
+    for (const line of s.report?.variations ?? []) {
+      const uci = line.pv[0];
+      if (uci && !found.some((arrow) => arrow.uci === uci))
+        found.push({ uci, brush: 'blue' });
+      if (found.length >= limit) break;
+    }
+    if (!found.length && s.hint?.bestMove)
+      found.push({ uci: s.hint.bestMove, brush: 'blue' });
     return found;
   });
+  /** Bullet runs on reflexes, so the board skips animation for those games. */
+  const animated = $derived(
+    s.preferences.animations && !reduced && !bulletClock(s.record.clock),
+  );
+  const premoveReady = $derived(
+    s.preferences.premove &&
+      s.view === 'play' &&
+      s.record.opponent === 'bot' &&
+      s.record.result === '*' &&
+      s.latest &&
+      !s.canMove,
+  );
   const configuration = $derived.by((): Config => {
     const shapes: DrawShape[] = arrowMoves.flatMap(({ uci, brush }) => {
       const move = parseUci(uci);
@@ -70,10 +100,7 @@
       // Chessground only installs input listeners at construction; keep them bound.
       viewOnly: false,
       disableContextMenu: true,
-      animation: {
-        enabled: s.preferences.animations && !reduced,
-        duration: 180,
-      },
+      animation: { enabled: animated, duration: 180 },
       highlight: {
         lastMove: s.preferences.lastMove,
         check: s.preferences.check,
@@ -88,7 +115,15 @@
       },
       draggable: { enabled: s.canMove, showGhost: true },
       selectable: { enabled: s.canMove },
-      premovable: { enabled: false },
+      premovable: {
+        enabled: premoveReady,
+        showDests: s.preferences.legalMoves,
+        customDests: chessgroundDests(s.pos, { chess960: s.record.chess960 }),
+        events: {
+          set: (orig, dest) => session.game.setPremove(orig, dest),
+          unset: () => session.game.clearPremove(),
+        },
+      },
       drawable: { enabled: true, visible: true, autoShapes: shapes },
       blockTouchScroll: true,
     };
@@ -105,6 +140,8 @@
   $effect(() => {
     s.fen;
     selected = null;
+    // The queue is owned by the game controller; clear the drawn premove with it.
+    if (!s.premove) api?.cancelPremove();
   });
   $effect(() => {
     s.orientation;

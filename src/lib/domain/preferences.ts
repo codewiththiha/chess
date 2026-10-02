@@ -1,4 +1,5 @@
 // Supply honest defaults and validate lossless engine resource budgets.
+import { ELO_MAX, ELO_MIN } from './strength';
 import type { ComputeSettings, Preferences } from './types';
 export const U64_MAX = '18446744073709551615';
 export const COMPUTE_PRESETS: Record<
@@ -43,13 +44,14 @@ export function defaultPreferences(): Preferences {
     lastMove: true,
     check: true,
     arrows: true,
+    arrowCount: 3,
+    premove: false,
     evaluation: true,
     lastGameId: null,
     engine: {
       backend: 'auto',
       mode: 'balanced',
-      strength: 'skill',
-      skillLevel: 8,
+      strength: 'elo',
       elo: 1600,
       hashMiB: 8,
       multiPv: 3,
@@ -81,8 +83,10 @@ export function decimal(value: string, zero = false): string {
 export function validatePreferences(p: Preferences): void {
   const e = p.engine;
   const c = e.compute;
-  integer(e.skillLevel, 1, 21, 'Skill');
-  integer(e.elo, 500, 3000, 'Nominal Elo');
+  integer(e.elo, ELO_MIN, ELO_MAX, 'Nominal Elo');
+  if (e.strength !== 'elo' && e.strength !== 'full')
+    throw new Error('Unknown strength setting.');
+  integer(p.arrowCount, 1, 4, 'Arrow count');
   integer(e.hashMiB, 1, 64, 'Hash');
   integer(e.multiPv, 1, 32, 'MultiPV');
   decimal(e.seed, true);

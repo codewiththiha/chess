@@ -4,10 +4,6 @@
     min-height: 50px;
     padding-block: 5px;
   }
-  .player-avatar {
-    width: 32px;
-    height: 32px;
-  }
   .chess-clock {
     font-size: 25px;
     padding-block: 9px;
@@ -120,10 +116,6 @@
     padding-left: 8px;
     min-height: 52px;
     gap: 9px;
-  }
-  .player-avatar {
-    width: 30px;
-    height: 30px;
   }
   .chess-clock {
     font-size: 20px;

@@ -96,8 +96,8 @@ On Linux, Playwright may also require `npx playwright install-deps chromium`.
 The browser suite uses port 5173; use a dedicated preview for this project rather
 than an unrelated application on that port.
 
-The verification suite contains **71 unit/integration tests** and **48 browser
-executions** (24 scenarios on desktop and touch-enabled mobile; the desktop-only
+The verification suite contains **83 unit/integration tests** and **56 browser
+executions** (28 scenarios on desktop and touch-enabled mobile; the desktop-only
 viewport check is skipped on mobile). The actual WASM binaries are exercised, not
 replaced with production mocks. Fault simulations are confined to tests. There are
 also 14 CI-selection/result regression tests.
@@ -108,7 +108,7 @@ for manual skips, project/file filters, reusable workflows, and report artifacts
 
 | Family         | Browser controls                                                                          |
 | -------------- | ----------------------------------------------------------------------------------------- |
-| Playing policy | Balanced, Attacking, Human-like, Analysis; skill 1–21 or nominal Elo 500–3000             |
+| Playing policy | Balanced, Attacking, Human-like, Analysis; nominal Elo 500–3000 or full strength          |
 | Resources      | Hash 1–64 MiB; MultiPV 1–32; depth 1–64                                                   |
 | Exact integers | Seed 0–18,446,744,073,709,551,615; node budget 1–the same maximum, stored as decimal text |
 | Scheduling     | Work/slice 1–65,536; report interval 0–5,000 ms; optional deadline 1–86,400,000 ms        |
@@ -119,8 +119,9 @@ Native SMP Threads, Syzygy, and the native engine's larger resource ranges are
 **not available in this WASM build**. They are explained, not represented by
 pretend browser toggles. Review uses an independent worker, not search threads.
 
-Hints, analysis, and review use full-strength analysis. Playing presets apply to
-engine play. Nominal Elo is **uncalibrated**, not a measured rating.
+Hints, analysis, and review use full-strength analysis. Playing presets and the
+Elo target apply to engine play. Nominal Elo is **uncalibrated**, not a measured
+rating; the interface shows the Elo target instead of an abstract skill level.
 
 Review is not Chess.com accuracy, a brilliant-move detector, or a winning
 probability. Categories use before/after centipawn loss: first choice is Best;
@@ -131,6 +132,16 @@ checkmate is labeled as the winning side.
 
 ## Storage, clocks, and portability
 
+- Start a game against **a bot** (nominal Elo 500–3000, or uncapped) or in
+  **two players** mode, where both colours are yours and no engine ever searches
+  for an answer. Study is a view rather than a pause: in a bot game the engine
+  answers while study is on screen, and the arrows there are suggestions, never
+  during play unless you ask for a hint.
+- Study draws 1–4 suggestion arrows (the arrow setting); review always draws the
+  single stored best move for the position you are standing on.
+- Optional premoves let you queue a move while the engine is thinking; an
+  impossible queue is dropped with a notice instead of corrupting the game. Bullet
+  never animates pieces, so fast play stays responsive.
 - Moves and settings persist locally in SQLite (`@sqlite.org/sqlite-wasm`, OPFS
   shared-access-handle pool with an in-memory fallback for the session). Clocks
   use elapsed monotonic time, not a decrement-per-render counter.
