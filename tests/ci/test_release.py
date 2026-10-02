@@ -1,6 +1,7 @@
 # Prove a release tag has to name the version the app was built with.
 import json
 from pathlib import Path
+import re
 import sys
 import tempfile
 import unittest
@@ -40,9 +41,21 @@ class ReleaseTests(unittest.TestCase):
                 with self.assertRaises(SystemExit):
                     read_version(self.config)
 
-    def test_the_two_version_files_agree(self):
+    def test_every_version_file_agrees(self):
+        # The Tauri config is the one the release gate reads; package.json names
+        # the frontend release, and the crate's version must match or the
+        # desktop job's `cargo build --locked` refuses to run.
+        version = read_version(ROOT / "src-tauri/tauri.conf.json")
         package = json.loads((ROOT / "package.json").read_text())["version"]
-        self.assertEqual(package, read_version(ROOT / "src-tauri/tauri.conf.json"))
+        self.assertEqual(package, version)
+        cargo = (ROOT / "src-tauri/Cargo.toml").read_text()
+        crate = re.search(r'^version = "([^"]+)"', cargo, re.M)
+        self.assertIsNotNone(crate)
+        self.assertEqual(crate.group(1), version)
+        lock = (ROOT / "src-tauri/Cargo.lock").read_text()
+        locked = re.search(r'name = "gwaymaegyi-chess"\nversion = "([^"]+)"', lock)
+        self.assertIsNotNone(locked)
+        self.assertEqual(locked.group(1), version)
 
 
 if __name__ == "__main__":
