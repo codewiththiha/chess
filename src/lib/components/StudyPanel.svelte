@@ -74,6 +74,8 @@
       >
     {/each}
   </div>
+  <!-- The walkthrough is the part a reader comes back for, so it sits first. -->
+  <Coach {session} />
   {#if s.studyTab === 'analyze'}
     <div class="analysis-summary">
       <strong class="evaluation-number">{formatScore(cp, mate)}</strong>
@@ -249,5 +251,4 @@
         </p>{/if}
     {/if}
   {/if}
-  <Coach {session} />
 </section>

@@ -49,6 +49,8 @@ export interface PieceFact {
 export interface HangingFact extends PieceFact {
   /** Cheapest attacker's worth; a pawn attacking a queen is the loudest case. */
   attackerValue: number;
+  /** That cheapest attacker itself, so a sentence can name it. */
+  attackerRole: Role;
   defended: boolean;
 }
 
@@ -148,11 +150,13 @@ function cheapest(
   square: Square,
   by: Color,
   withKing = false,
-): number {
-  let best = Infinity;
+): { value: number; role: Role } | null {
+  let best: { value: number; role: Role } | null = null;
   for (const from of attackers(pos, square, by, withKing)) {
     const piece = pos.board.get(from);
-    if (piece) best = Math.min(best, valueOf(piece.role));
+    if (!piece) continue;
+    const value = valueOf(piece.role);
+    if (!best || value < best.value) best = { value, role: piece.role };
   }
   return best;
 }
@@ -171,7 +175,9 @@ export function hangingFor(fen: string, color: Color): HangingFact[] {
     if (piece.color !== color || piece.role === 'king') continue;
     const threat = attackers(pos, square, enemy, true);
     if (!threat.length) continue;
-    const attackerValue = cheapest(pos, square, enemy, true);
+    const cheapestAttacker = cheapest(pos, square, enemy, true);
+    if (!cheapestAttacker) continue;
+    const attackerValue = cheapestAttacker.value;
     const defended = attackers(pos, square, color).length > 0;
     const cheap = attackerValue < valueOf(piece.role);
     if (!defended || cheap)
@@ -180,6 +186,7 @@ export function hangingFor(fen: string, color: Color): HangingFact[] {
         role: piece.role,
         value: valueOf(piece.role),
         attackerValue,
+        attackerRole: cheapestAttacker.role,
         defended,
       });
   }

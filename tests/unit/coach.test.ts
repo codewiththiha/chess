@@ -59,13 +59,12 @@ describe('classifying a question', () => {
 });
 
 describe('answering from engine output', () => {
-  it('quotes the real move, line, and score for the best move', () => {
+  it('quotes the real move, line, and standing for the best move', () => {
     const reply = answer("What's the best move?", context());
     expect(reply.intent).toBe('best');
     expect(reply.text).toContain('Nf3');
     expect(reply.text).toContain('Nf3 Nc6 Bb5 Nf6');
-    expect(reply.text).toContain('White is better by about 0.20');
-    expect(reply.text).toContain('depth 12');
+    expect(reply.text).toContain('The game is still level');
   });
 
   it('describes a graded mistake with the loss and the better move', () => {
@@ -81,14 +80,13 @@ describe('answering from engine output', () => {
     );
     expect(reply.intent).toBe('why');
     expect(reply.text).toContain('1… e5');
-    expect(reply.text).toContain('blunder');
-    expect(reply.text).toContain('320 centipawns');
-    expect(reply.text).toContain('Nf3');
+    expect(reply.text).toContain('a blunder');
+    expect(reply.text).toContain('Nf3 was the move I had in mind');
   });
 
   it('says a good move needed no fix instead of inventing a criticism', () => {
     const reply = answer('was that good?', context({ grade: 'best' }));
-    expect(reply.text).toContain('first choice');
+    expect(reply.text).toContain('nothing to fix');
     expect(reply.text).not.toContain('centipawns worse');
   });
 
@@ -102,17 +100,16 @@ describe('answering from engine output', () => {
   it('reports the evaluation and counts captures from the record', () => {
     const reply = answer("who's better?", context({ whiteCp: -180 }));
     expect(reply.intent).toBe('eval');
-    expect(reply.text).toContain('Black is better by about 1.80');
+    expect(reply.text).toContain('Black is better here');
     expect(reply.text).toContain('No captures yet');
   });
 
-  it('reports a forced mate without a centipawn claim', () => {
+  it('reports a forced mate without a score claim', () => {
     const reply = answer(
       "who's better?",
       context({ whiteCp: 30000, whiteMate: 3 }),
     );
-    expect(reply.text).toContain('White can force mate');
-    expect(reply.text).toContain('M3');
+    expect(reply.text).toContain('White is the one mating from here');
     expect(reply.text).not.toContain('better by about');
   });
 
@@ -131,8 +128,27 @@ describe('answering from engine output', () => {
       'best move?',
       context({ bestSan: null, whiteCp: null, pv: [] }),
     );
-    expect(reply.text).toContain('No engine evaluation');
+    expect(reply.text).toContain('I have not worked out this position yet');
     expect(reply.text).not.toContain('better by');
+  });
+
+  it('never uses a word the reader would have to translate', () => {
+    const questions = [
+      "What's the best move?",
+      'why was that bad?',
+      "what's the plan",
+      'what is he threatening?',
+      "who's better?",
+      'where did i go wrong?',
+      'hello',
+    ];
+    for (const question of questions) {
+      const reply = answer(question, context({ grade: 'blunder', ply: 2 }));
+      expect(reply.text, question).not.toMatch(
+        /engine|centipawn|\bdepth\b|\bcp\b|points?\b|principal variation/i,
+      );
+      expect(reply.text, question).not.toMatch(/\bres\b|score \+/i);
+    }
   });
 
   it('tells the reader what it can answer when the question is unclear', () => {

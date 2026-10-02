@@ -442,25 +442,50 @@
   display: flex;
   flex-direction: column;
   gap: 9px;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
+  margin: 13px 0 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--line);
 }
 .coach-log {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 260px;
-  overflow-y: auto;
-  padding-right: 2px;
 }
 .coach-message {
+  position: relative;
   font-size: 12px;
   line-height: 1.55;
   padding: 8px 11px;
   border-radius: 12px;
   max-width: 94%;
   margin: 0;
+}
+/* A remark about a move is read as a list row: anywhere in it goes there. */
+.coach-moment {
+  cursor: pointer;
+}
+.coach-moment:hover {
+  border-color: var(--color-primary);
+}
+.coach-moment:hover .coach-chip {
+  border-color: var(--color-primary);
+  color: var(--color-base-content);
+}
+.coach-moment:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.coach-chip {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--color-base-200);
+  color: var(--color-primary);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.4;
 }
 .coach-you {
   align-self: flex-end;
@@ -474,22 +499,17 @@
   border: 1px solid var(--line);
   border-bottom-left-radius: 4px;
 }
-/* The move each remark is about, one tap away from it on the board. */
+/* The move each remark is about, one tap away from it on the board: a real
+   button stretched over the bubble, so the whole remark is the target while the
+   pill stays the visible label. */
 .coach-jump {
-  display: inline-block;
-  min-width: 0;
-  margin-right: 6px;
-  padding: 1px 6px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--color-base-200);
-  color: var(--color-primary);
-  font-family: var(--mono);
-  font-size: 11px;
-  line-height: 1.4;
-}
-.coach-jump:hover {
-  border-color: var(--color-primary);
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: inherit;
 }
 .coach-topics {
   display: flex;

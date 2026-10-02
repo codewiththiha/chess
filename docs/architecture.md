@@ -181,8 +181,11 @@ of its own.
   chat, spoken by the bot the game was played against. `open()` writes the
   walkthrough: a summary read off the stored counts, then up to five moments —
   the reader's worst mistakes and blunders, plus up to two moves the engine
-  itself chose — each carrying the ply it is about, so the bubble is one tap from
-  the board. `ask()` answers a typed or suggested question. Both build one
+  itself chose — each carrying the ply it is about, so tapping anywhere in the
+  bubble jumps the board to that move. The conversation is the first block in the
+  study card, above the controls, and it has no scrollbar of its own: the card
+  scrolls, so the walkthrough is never buried under the review panel. `ask()`
+  answers a typed or suggested question. Both build one
   `CoachPosition` from the live report when the analysis describes the position
   on screen and from the stored review point otherwise, and never mix the two.
   `domain/coachtalk.ts` turns a moment into a sentence: the verdict in the
@@ -193,9 +196,17 @@ of its own.
   it keeps safe, the pin it breaks, the piece it develops, the castling it
   plays). No sentence is written for a position: every noun, square, and tactic
   comes from the board or the engine's own line, and a phrase that wants evidence
-  the position does not hold is left out rather than guessed at.
+  the position does not hold is left out rather than guessed at. The measurements
+  are never spoken as measurements: `gradeWords` names the grade in plain words,
+  `scoreWords` turns the evaluation into a condition ("you are clearly worse
+  here", "the game is still level"), and a loose piece is named with what wins it
+  rather than with what it is worth — so a reader is never asked to weigh a
+  centipawn, read a depth, or know what an engine is. The same vocabulary is used
+  by the question answering in `domain/coach.ts`, and the unit and browser suites
+  both assert that no remark contains `engine`, `centipawn`, `depth`, or `points`.
 - `domain/tactics.ts`: the conditions behind those sentences, all read off a FEN —
-  loose pieces (including one the enemy king can simply take), pins and skewers,
+  loose pieces with the cheapest attacker named as well as priced, so a sentence
+  can say a pawn wins it or the king simply takes it; pins and skewers,
   forks, discovered attacks, pawn structure per pawn, king shelter and air, and
   material. Each is a pure function over the board, so a remark works for any
   position instead of any game.

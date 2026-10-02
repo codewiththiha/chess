@@ -42,12 +42,16 @@ test('the review is a conversation with the coach, not a list of quotes', async 
   const about = moments.filter({ hasText: 'Qxf7+' });
   await expect(about).toHaveCount(1);
   const text = (await about.innerText()).trim();
-  // It says what the move cost and what the engine had instead.
+  // It says what the move cost and what was better, in plain words.
   expect(text).toMatch(/blunder|mistake|concession|loose/);
   expect(text).toMatch(/was the move/);
   // It names the real consequence the board shows: the queen is en prise.
-  expect(text).toContain('nothing defending it');
+  expect(text).toContain('straight to the king');
   expect(text).not.toMatch(/[{}]/);
+  // Nothing here asks a reader to weigh a number or know what an engine is.
+  expect(text).not.toMatch(
+    /engine|centipawn|\bdepth\b|\bcp\b|points?\b|principal variation/i,
+  );
   // Nothing in the panel credits a quote to a character any more.
   await expect(page.getByLabel('Opponent remarks')).toHaveCount(0);
   await expect(page.locator('.opponent-line')).toHaveCount(0);
@@ -57,7 +61,13 @@ test('the review is a conversation with the coach, not a list of quotes', async 
 test('a remark is one tap from the move it talks about', async ({ page }) => {
   await reviewed(page);
   const chat = page.getByRole('log', { name: 'Review chat', exact: true });
-  await chat.getByRole('button', { name: 'Go to move 3.' }).click();
+  const about = chat.locator('.coach-moment').filter({ hasText: 'Qxf7+' });
+  await expect(about).toHaveCount(1);
+  // Anywhere in the bubble works, not just the pill: click the remark's own
+  // text, at its bottom-right, and the board should follow it.
+  const box = await about.boundingBox();
+  if (!box) throw new Error('The remark is not on screen.');
+  await page.mouse.click(box.x + box.width - 12, box.y + box.height - 8);
   // The board follows the remark to the move, and the notes count it.
   await expect(page.locator('.notation-caption')).toContainText('5 / 6');
   const badge = page.locator('.move-badge');
@@ -144,7 +154,10 @@ test('an ordinary question is still answered in the same thread', async ({
   await expect(chat.locator('.coach-answer')).toHaveCount(before + 1);
   // The answer is about the move on screen, and cites its stored grade.
   await expect(chat.locator('.coach-answer').last()).toContainText(
-    'centipawns lost',
+    'where it went wrong',
   );
   await expect(chat.locator('.coach-answer').last()).toContainText('Qxf7+');
+  await expect(chat.locator('.coach-answer').last()).not.toContainText(
+    'centipawn',
+  );
 });

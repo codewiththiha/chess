@@ -17,14 +17,15 @@ test('the chat answers about the position from the live engine line', async ({
     .click();
   const answers = chat.locator('.coach-answer');
   await expect(answers).toHaveCount(2);
-  // The answer has to name a real move and a real evaluation, or say it has none.
+  // The answer has to name a real move and a real standing, or say it has none.
   await expect(answers.last()).not.toHaveText(
     /^Ask about this position or the game\.$/,
   );
   const text = (await answers.last().innerText()).trim();
   expect(text).toMatch(
-    /is the engine’s choice|No engine evaluation for this position yet/,
+    /is the move I would play|I have not worked out this position yet/,
   );
+  expect(text).not.toMatch(/engine|centipawn|points|\bdepth\b/i);
 });
 
 test('a typed question is answered and the chat keeps the thread', async ({
@@ -41,7 +42,10 @@ test('a typed question is answered and the chat keeps the thread', async ({
   await expect(chat.locator('.coach-you')).toHaveText('who is better here?');
   await expect(chat.locator('.coach-answer')).toHaveCount(2);
   await expect(chat.locator('.coach-answer').last()).toContainText(
-    /better by about|sees the position as level|can force mate|No engine evaluation/,
+    /is (a little |slightly |clearly )?(better|winning)|level|mating from here|worked out this position/,
+  );
+  await expect(chat.locator('.coach-answer').last()).not.toContainText(
+    'centipawn',
   );
   // Asking again keeps the earlier exchange instead of replacing it.
   await page.getByLabel('Ask about this position').fill('what is the plan');
@@ -61,8 +65,11 @@ test('the chat refuses to grade a game that was never reviewed', async ({
   await page.getByLabel('Ask about this position').fill('where did i go wrong');
   await page.getByRole('button', { name: 'Send question' }).click();
   const chat = page.getByRole('log', { name: 'Review chat', exact: true });
-  // Grading needs stored evaluations, and the chat says so instead of guessing.
+  // Grading needs a stored review, and the chat says so instead of guessing.
   await expect(chat.locator('.coach-answer').last()).toContainText(
     /Run a review|no moves yet/,
+  );
+  await expect(chat.locator('.coach-answer').last()).not.toContainText(
+    'centipawn',
   );
 });

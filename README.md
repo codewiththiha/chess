@@ -48,12 +48,13 @@ WebAssembly. Licensed SVG pieces. Your browser, not a cloud account.
   evaluation chart with keyboard navigation, and transparent centipawn-loss
   annotations. Search budgets accompany cached results.
 - **Ask about the game:** the opponent character becomes the coach and walks the
-  review: it reads the counts back, then takes your worst moments and your best
-  ones in turn, each bubble one tap from the move it is about. It explains what a
-  move cost by what the board shows — the piece it left loose, the pin it walked
-  into, the fork the engine's move would have made — always from the engine's own
-  evaluation, principal variation, and your stored grades, and it says plainly
-  when it has no evaluation or no review to quote.
+  review: it reads the game back, then takes your worst moments and your best ones
+  in turn, at the top of the study card, each bubble one tap away from the move it
+  is about. It explains what went wrong by what the board shows — the piece it
+  left loose and what wins it, the pin it walked into, the fork the better move
+  would have made — in plain words, taking care to explain things for someone who
+  has never looked at a chess engine in their life — and it says plainly when it
+  has nothing to go on.
 - **See the verdict on the board:** the piece that just moved carries the
   engine's grade in its top-right corner — green when the move is right, amber
   for an inaccuracy, red for a mistake or a blunder. It reads the stored grade in

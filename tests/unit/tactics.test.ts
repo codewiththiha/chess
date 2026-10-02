@@ -23,6 +23,7 @@ describe('learning what a position actually holds', () => {
     expect(loose[0]!.square).toBe('e5');
     expect(loose[0]!.role).toBe('knight');
     expect(loose[0]!.attackerValue).toBe(1);
+    expect(loose[0]!.attackerRole).toBe('pawn');
     expect(loose[0]!.defended).toBe(false);
     // The same board from Black's side holds nothing loose.
     expect(hangingFor('4k3/8/3p4/4N3/8/8/8/4K3 w - - 0 1', 'black')).toEqual(
@@ -37,6 +38,7 @@ describe('learning what a position actually holds', () => {
     const found = hangingFor(after, 'white');
     expect(found[0]?.square).toBe('f7');
     expect(found[0]?.role).toBe('queen');
+    expect(found[0]?.attackerRole).toBe('king');
     expect(found[0]?.defended).toBe(false);
   });
 
@@ -51,6 +53,7 @@ describe('learning what a position actually holds', () => {
     const d5 = queen.find((one) => one.square === 'd5');
     expect(d5).toBeTruthy();
     expect(d5!.attackerValue).toBe(1);
+    expect(d5!.attackerRole).toBe('pawn');
     expect(d5!.defended).toBe(true);
   });
 

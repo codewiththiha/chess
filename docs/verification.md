@@ -101,6 +101,11 @@ passes **144 tests in 15 files**, covering everything below plus:
   named with its real value, praise that does not offer a replacement, one wording
   per character, a review opener that reads the real counts back, and a suggestion
   that names the reason taken from the board it changes.
+- The plain vocabulary: that no remark, no answer, and no review opener uses
+  `engine`, `centipawn`, `depth`, `cp`, `points`, or `principal variation`; that
+  how the game stands is said as a condition across the whole range from lost to
+  winning, in words alone, for both sides and for mate; and that a loose piece is
+  named with the cheapest attacker that wins it — a pawn, a knight, or the king.
 - The board's verdict mark: the thresholds shared with the review, the tone and
   the word per grade, and no mark at all without a real grade and a real square;
   and the walkthrough picking the reader's worst mistakes and blunders plus the
@@ -128,7 +133,12 @@ deleted bot leaving the finished game with its own name and Elo, and the review
 chat answering a suggested and a typed question from the live line while
 declining to grade a game that was never reviewed, and the characters themselves:
 a greeting on the board, a new line after a real move, and no bubbles in a
-two-player game. The coached review added five scenarios: the walkthrough opening
+two-player game. The conversation was then moved to the top of the study card and
+made tappable end to end, and its wording was stripped of engine vocabulary
+(**184 unit tests in 18 files**; **89 passed plus one skip of 90** browser
+executions). That pass fixed two assertions of its own: the standing question was
+matched too narrowly for a level position and a slightly-better one, and the
+bubble click had to target the moment rows rather than every answer. The coached review added five scenarios: the walkthrough opening
 with the real move counts and then a bubble per moment, each one tap from the move
 it is about, the board following that jump, the mark drawn on the top-right corner
 of the square the piece landed on with a tone that matches its grade, the aid

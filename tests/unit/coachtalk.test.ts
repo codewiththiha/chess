@@ -4,10 +4,16 @@ import { describe, expect, it } from 'vitest';
 import {
   betterLineFor,
   momentMessage,
+  scoreWords,
   summaryMessage,
   type CoachMoment,
   type CoachSummary,
 } from '../../src/lib/domain/coachtalk';
+
+/** One side's standing, in words, from a centipawn score. */
+function words(cp: number | null): string {
+  return scoreWords(cp, null, 'white', true);
+}
 
 /** A royal fork waiting on c7: the knight on b5 hits the rook and the king. */
 function royalFork(overrides: Partial<CoachMoment> = {}): CoachMoment {
@@ -116,6 +122,32 @@ describe('talking through one move', () => {
     expect(text).toContain('continues');
   });
 
+  it('never uses a word the reader would have to translate', () => {
+    for (const moment of [royalFork(), looseKnight()]) {
+      for (const voice of ['kyar-nyo', 'nay-chi', 'kyaw-gyi'] as const) {
+        const text = momentMessage(voice, moment);
+        expect(text).not.toMatch(
+          /engine|centipawn|\bdepth\b|\bcp\b|points?\b|\bres\b/i,
+        );
+      }
+    }
+  });
+
+  it('describes how the game stands in words, not in numbers', () => {
+    expect(words(-900)).toContain('lost');
+    expect(words(-350)).toContain('clearly worse');
+    expect(words(-120)).toContain('worse here');
+    expect(words(0)).toBe('The game is still level.');
+    expect(words(60)).toContain('slightly better');
+    expect(words(120)).toContain('better here');
+    expect(words(600)).toContain('winning');
+    expect(words(null)).toBe('');
+    expect(scoreWords(0, 3, 'white', true)).toContain('mating');
+    expect(scoreWords(0, 3, 'black', false)).toContain('getting mated');
+    for (const cp of [-900, -350, -120, -40, 0, 40, 60, 600])
+      expect(words(cp)).not.toMatch(/\d|engine|centipawn/i);
+  });
+
   it('writes a sentence, not a template', () => {
     for (const moment of [royalFork(), looseKnight()]) {
       const text = momentMessage('kyaw-gyi', moment);
@@ -142,7 +174,7 @@ describe('talking through one move', () => {
 });
 
 describe('the queen that walks into the king', () => {
-  it('names the piece the king can take, and what it was worth', () => {
+  it('names the piece the king can simply take', () => {
     const text = momentMessage('kyar-nyo', {
       ply: 5,
       san: 'Qxf7+',
@@ -161,8 +193,7 @@ describe('the queen that walks into the king', () => {
       evalMate: null,
     });
     expect(text).toContain('queen on f7');
-    expect(text).toContain('nothing defending it');
-    expect(text).toContain('worth 9');
+    expect(text).toContain('straight to the king');
     expect(text).toContain('Bc4 was the move');
   });
 });

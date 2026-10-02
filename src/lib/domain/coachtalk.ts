@@ -17,7 +17,7 @@ import { position } from './chess';
 import { makeFen } from 'chessops/fen';
 import { parseUci } from 'chessops/util';
 import { isNormal } from 'chessops/types';
-import { formatScore } from './review';
+import { gradeOf } from './feedback';
 import type { Color, Grade } from './types';
 import type { VoiceId } from './chat';
 
@@ -85,6 +85,52 @@ function whose(moment: CoachMoment): string {
     : `${moment.color === 'white' ? 'White' : 'Black'}’s`;
 }
 
+function cap(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** The plain word for a grade, so a reader never has to weigh a number. */
+export function gradeWords(grade: Grade): string {
+  return {
+    best: 'the move I wanted',
+    good: 'a good move',
+    inaccuracy: 'a small slip',
+    mistake: 'a mistake',
+    blunder: 'a blunder',
+  }[grade];
+}
+
+/**
+ * The evaluation as a condition rather than a score: how the game stands for
+ * one side, in words, from that side's point of view. Empty when there is
+ * nothing measured to describe.
+ */
+export function scoreWords(
+  cp: number | null,
+  mate: number | null,
+  color: Color,
+  mine = true,
+): string {
+  const who = mine ? 'You' : color === 'white' ? 'White' : 'Black';
+  const verb = mine ? 'are' : 'is';
+  if (mate !== null && mate !== 0) {
+    const forMe = mate * (color === 'white' ? 1 : -1) > 0;
+    return forMe
+      ? `${who} ${verb} the one mating from here.`
+      : `${who} ${verb} getting mated here.`;
+  }
+  if (cp === null) return '';
+  const edge = cp * (color === 'white' ? 1 : -1);
+  if (edge <= -800) return `${who} ${verb} lost here.`;
+  if (edge <= -300) return `${who} ${verb} clearly worse here.`;
+  if (edge <= -80) return `${who} ${verb} worse here.`;
+  if (edge <= -30) return `${who} ${verb} slightly worse here.`;
+  if (edge < 30) return 'The game is still level.';
+  if (edge < 80) return `${who} ${verb} slightly better here.`;
+  if (edge < 300) return `${who} ${verb} better here.`;
+  return `${who} ${verb} winning here.`;
+}
+
 /** Play one move, so a suggestion can be tested against the board it changes. */
 function playFor(fen: string, uci: string): string {
   const parsed = parseUci(uci);
@@ -101,11 +147,13 @@ function looseLine(moment: CoachMoment): string {
   )[0];
   if (!loose) return '';
   const subject = `${whose(moment)} ${roleName(loose.role)} on ${loose.square}`;
+  if (loose.attackerRole === 'king')
+    return `That hands ${subject} straight to the king.`;
   if (!loose.defended)
-    return `That leaves ${subject} with nothing defending it, and it is worth ${loose.value}.`;
+    return `That leaves ${subject} with nothing defending it, so it is free for the taking.`;
   if (loose.attackerValue === 1)
-    return `That leaves ${subject} where a pawn can take it and only a pawn comes back.`;
-  return `That leaves ${subject} attacked by something cheaper than it is.`;
+    return `That leaves ${subject} where a pawn can win it and only a pawn comes back.`;
+  return `That leaves ${subject} where a ${roleName(loose.attackerRole)} can win it.`;
 }
 
 /** A pin the side that just moved is now under. */
@@ -126,22 +174,30 @@ function positionalLine(voiceId: VoiceId, moment: CoachMoment): string {
   const material = materialFor(moment.after);
   const mine = moment.color === 'white' ? material.white : material.black;
   const theirs = moment.color === 'white' ? material.black : material.white;
+  // How far behind on pieces, said the way a player would say it.
+  const lead = moment.mine
+    ? 'You are'
+    : `${moment.color === 'white' ? 'White' : 'Black'} is`;
+  if (theirs - mine >= 5)
+    return `${lead} a long way behind on pieces now, and there is no attack to show for it.`;
+  if (theirs - mine >= 3)
+    return `${lead} a piece down now, and there is no attack to show for it.`;
   if (theirs - mine >= 2)
-    return `Material is ${theirs - mine} points down now, and there is no attack to show for it.`;
+    return `${lead} a little behind on pieces now, and there is no attack to show for it.`;
   // An uncastled king only matters while there is still an army to attack it.
   const heavy = mine + theirs >= 20;
   if (heavy && !king.castled && king.shelter <= 1 && moment.ply >= 12)
-    return 'The king is still in the middle with almost no cover, which is the real problem here.';
+    return `${cap(whose(moment))} king is still in the middle with almost no cover, which is the real problem here.`;
   if (heavy && king.heavyOnRank && king.shelter <= 1)
-    return 'The back rank is bare, and heavy pieces belong there.';
+    return `${cap(whose(moment))} back rank is bare, and heavy pieces belong there.`;
   if (heavy && king.luft === 0 && moment.ply >= 16)
-    return 'There is no air around the king, so every check becomes dangerous.';
-  // Nothing to point at on the board, so say plainly that the number moved.
+    return `${cap(whose(moment))} king has no air around it, so every check becomes dangerous.`;
+  // Nothing to point at on the board, so say plainly that the move was weaker.
   if (voiceId === 'kyaw-gyi')
-    return 'No tactic, no excuse. The engine simply prefers the move I named.';
+    return 'No tactic, no excuse — the move I named is simply stronger.';
   if (voiceId === 'nay-chi')
-    return 'No tactic explains it; the engine simply likes the other move more.';
-  return 'The board does not show the reason yet, but the engine prefers the move I named by a lot.';
+    return 'No tactic explains it; I simply like the other move more.';
+  return 'The board does not show the reason yet, but the other move is stronger.';
 }
 
 /** What the engine had instead, with the reason taken from the board. */
@@ -191,7 +247,7 @@ export function betterLineFor(moment: CoachMoment): string {
         );
       else if (moved?.role === 'pawn')
         reasons.push(
-          'it takes the square first instead of loosening the structure',
+          'it takes the square first instead of loosening your own pawns',
         );
     }
   }
@@ -203,7 +259,7 @@ export function betterLineFor(moment: CoachMoment): string {
     reasons.push('it gets the king off the open lines');
   const line = moment.betterLine.slice(1, 4);
   const continuation = line.length
-    ? ` The engine’s line after it runs ${line.join(' ')}.`
+    ? ` After that the play goes ${line.join(' ')}.`
     : '';
   const reason = reasons.length ? `: ${list(reasons)}` : '';
   return `${better} was the move${reason}.${continuation}`;
@@ -211,28 +267,27 @@ export function betterLineFor(moment: CoachMoment): string {
 
 /** How the played move is judged, in the coach's own manner. */
 function verdict(voiceId: VoiceId, moment: CoachMoment): string {
-  const pawns = Math.max(1, Math.round(moment.loss / 100));
   const open: Record<VoiceId, Record<Grade, string>> = {
     'kyar-nyo': {
       best: `${moment.san} — that is the move I was worried about.`,
       good: `${moment.san} is patient and good.`,
       inaccuracy: `${moment.san} is only a little loose, nothing to panic about.`,
       mistake: `${moment.san} is a small gift, and I will take it kindly.`,
-      blunder: `${moment.san} is a real mistake, around ${pawns} points.`,
+      blunder: `${moment.san} is a real mistake — the kind that decides games.`,
     },
     'nay-chi': {
       best: `${moment.san}. Of course you found that.`,
       good: `${moment.san} is fine. Boring, but fine.`,
       inaccuracy: `${moment.san} lets me breathe a little.`,
       mistake: `${moment.san} is a mistake, and I am counting it.`,
-      blunder: `${moment.san} is a blunder — about ${pawns} points gone.`,
+      blunder: `${moment.san} is a blunder, and the game is turning on it.`,
     },
     'kyaw-gyi': {
       best: `${moment.san}. Correct.`,
       good: `${moment.san} is acceptable.`,
       inaccuracy: `${moment.san} is a concession, small but countable.`,
       mistake: `${moment.san} is a mistake. Name it and move on.`,
-      blunder: `${moment.san} is a blunder worth about ${pawns} points.`,
+      blunder: `${moment.san} is a blunder. You will feel this one.`,
     },
   };
   return open[voiceId][moment.grade];
@@ -248,7 +303,7 @@ function praise(voiceId: VoiceId, moment: CoachMoment): string {
     : '';
   const line = moment.continuation.slice(0, 3);
   const continuation = line.length
-    ? ` The engine continues ${line.join(' ')}.`
+    ? ` The play continues ${line.join(' ')}.`
     : '';
   return clause([verdict(voiceId, moment), bonus, continuation]);
 }
@@ -259,17 +314,19 @@ export function momentMessage(voiceId: VoiceId, moment: CoachMoment): string {
     return praise(voiceId, moment);
   const next = moment.continuation.slice(0, 3);
   const coming = next.length ? `Expect ${next.join(' ')} from here.` : '';
-  const score =
-    moment.scoreAfter === null
-      ? ''
-      : `The engine puts the game at ${formatScore(moment.scoreAfter, moment.evalMate)}.`;
+  const standing = scoreWords(
+    moment.scoreAfter,
+    moment.evalMate,
+    moment.color,
+    moment.mine,
+  );
   // Name the tactic if there is one; only fall back to the position at large
   // when the board itself has nothing specific to point at.
   const loose = looseLine(moment);
   const pin = pinLine(moment);
   return clause([
     verdict(voiceId, moment),
-    score,
+    standing,
     loose,
     pin,
     loose || pin ? '' : positionalLine(voiceId, moment),
@@ -301,7 +358,7 @@ export function summaryMessage(
     'kyaw-gyi': `${summary.plies} moves. ${trouble || 'No blunders'}, and only ${summary.best} that earned respect.`,
   };
   const worst = summary.worstSan
-    ? `The one to feel worst about is ${summary.worstSan}: about ${Math.max(1, Math.round(summary.worstLoss / 100))} points gone.`
+    ? `The one to feel worst about is ${summary.worstSan} — ${gradeWords(gradeOf(summary.worstLoss))}.`
     : 'There was nothing to be ashamed of in this one.';
   const closer: Record<VoiceId, string> = {
     'kyar-nyo': 'Step through with me and I will point at each moment.',

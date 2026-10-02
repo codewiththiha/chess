@@ -1,6 +1,6 @@
 // Answer questions about a game from real engine output, never from guesswork.
 import { pvSan } from './chess';
-import { formatScore } from './review';
+import { gradeWords, scoreWords } from './coachtalk';
 import type { Color, Grade, Opponent, Result, Role } from './types';
 
 export type CoachIntent =
@@ -131,30 +131,31 @@ function moveName(context: CoachPosition, ply: number): string {
   return `${Math.ceil(ply / 2)}${move.color === 'white' ? '.' : '…'} ${move.san}`;
 }
 
+/**
+ * Who stands better, in words, from the measured evaluation alone — the same
+ * vocabulary the walkthrough uses, so the reader meets one set of words.
+ */
 function scoreLine(context: CoachPosition): string {
   const cp = context.whiteCp;
   const mate = context.whiteMate;
-  if (cp === null) return '';
-  const label = formatScore(cp, mate ?? null);
-  if (mate !== null && mate !== 0)
-    return `${mate > 0 ? 'White' : 'Black'} can force mate (${label}).`;
-  if (cp === 0) return 'The engine sees the position as level.';
-  return `${cp > 0 ? 'White' : 'Black'} is better by about ${(Math.abs(cp) / 100).toFixed(2)} (${label}).`;
+  if (mate === null && cp === null) return '';
+  const ahead = (mate ?? cp ?? 0) > 0 ? 'white' : 'black';
+  return scoreWords(cp, mate, ahead, false);
 }
 
 function unavailable(context: CoachPosition): string {
   return context.turn === context.human
-    ? 'No engine evaluation for this position yet. It arrives with the next analysis pass, and the arrow is the engine’s own line, not a guess.'
-    : 'No engine evaluation for this position yet; the analysis pass for the side to move is still running.';
+    ? 'I have not worked out this position yet — that arrives with the next analysis pass. The arrow is my own line, not a guess.'
+    : 'I have not worked out this position yet; the analysis of the side to move is still running.';
 }
 
 function best(context: CoachPosition): CoachAnswer {
   if (!context.bestSan) return { intent: 'best', text: unavailable(context) };
   const continuation = line(context.fen, context.pv, 6);
   const parts = [
-    `${context.bestSan} is the engine’s choice for ${who(context.turn, context)} here (depth ${context.depth}).`,
+    `${context.bestSan} is the move I would play for ${who(context.turn, context)} here.`,
   ];
-  if (continuation) parts.push(`It expects the continuation ${continuation}.`);
+  if (continuation) parts.push(`I expect the continuation ${continuation}.`);
   const score = scoreLine(context);
   if (score) parts.push(score);
   return { intent: 'best', text: parts.join(' ') };
@@ -170,14 +171,13 @@ function why(context: CoachPosition): CoachAnswer {
   if (context.grade === 'best')
     return {
       intent: 'why',
-      text: `${name} was the engine’s own first choice here, so there is nothing to fix. ${scoreLine(context)}`.trim(),
+      text: `${name} was exactly the move I wanted here, so there is nothing to fix. ${scoreLine(context)}`.trim(),
     };
-  const loss = context.loss ?? 0;
   const parts = [
-    `${name} is graded ${context.grade} — about ${loss} centipawns worse than the engine’s line.`,
+    `I did not want ${name} — it is ${gradeWords(context.grade)}.`,
   ];
   if (context.betterSan)
-    parts.push(`${context.betterSan} was the move it preferred.`);
+    parts.push(`${context.betterSan} was the move I had in mind.`);
   const score = scoreLine(context);
   if (score) parts.push(score);
   return { intent: 'why', text: parts.join(' ') };
@@ -187,7 +187,7 @@ function plan(context: CoachPosition): CoachAnswer {
   const continuation = line(context.fen, context.pv, 8);
   if (!continuation) return { intent: 'plan', text: unavailable(context) };
   const parts = [
-    `The engine’s line for this position runs ${continuation}.`,
+    `My plan from here goes ${continuation}.`,
     context.turn === context.human
       ? `Your side of it starts with ${context.bestSan ?? 'the move shown by the arrow'}.`
       : `${side(context.turn)} is to move, so the plan belongs to them until your turn comes back.`,
@@ -204,12 +204,12 @@ function threat(context: CoachPosition): CoachAnswer {
   if (!reply)
     return {
       intent: 'threat',
-      text: `${unavailable(context)} Threats appear once the engine prints a line, because the second move of that line is the opponent’s answer.`,
+      text: `${unavailable(context)} Threats appear once I can print a line, because the second move of that line is the opponent’s answer.`,
     };
   const mover = side(context.turn === 'white' ? 'black' : 'white');
   return {
     intent: 'threat',
-    text: `In the engine’s line, ${mover} answers with ${reply}. That reply is the thing the engine is defending against, not a claim about everything on the board.`,
+    text: `In my line, ${mover} answers with ${reply}. That reply is what I am guarding against, not a claim about everything on the board.`,
   };
 }
 
@@ -238,24 +238,25 @@ function worst(context: CoachPosition): CoachAnswer {
   if (context.grade === null)
     return {
       intent: 'worst',
-      text: 'Run a review of this game first: without stored evaluations the chat cannot tell a blunder from a good move, and it will not guess.',
+      text: 'Run a review of this game first: without it I cannot tell a blunder from a good move, and I will not guess.',
     };
+  const name = `${moveName(context, played)}${move?.color === human ? '' : ' (played by the opponent)'}`;
   if (context.grade === 'blunder' || context.grade === 'mistake')
     return {
       intent: 'worst',
-      text: `${moveName(context, played)}${move?.color === human ? '' : ' (played by the opponent)'} is the move on screen, and the recorded grade here is ${context.grade}: ${context.loss ?? 0} centipawns lost.`,
+      text: `${name} is where it went wrong — ${gradeWords(context.grade)}.`,
     };
   return {
     intent: 'worst',
-    text: `The move on screen, ${moveName(context, played)}, is graded ${context.grade}. Step to another move, or use the turning points list, and ask again.`,
+    text: `${name} is ${gradeWords(context.grade)}, so there is nothing to fix here. Step to another move, or use the turning points list, and ask again.`,
   };
 }
 
 /** The opening line of a chat, which says what the chat is and is not. */
 export function greeting(context: CoachPosition): string {
   return context.moves.length
-    ? 'Ask about this position or the game. Every answer comes from the engine’s own evaluation and your saved review.'
-    : 'Load a game or a position and ask about it. The chat explains what the engine found, and says so when it has found nothing yet.';
+    ? 'Ask about this position or the game. Everything I say comes from the analysis on screen and your saved review.'
+    : 'Load a game or a position and ask about it. I explain what the analysis found, and I say so when it has not run yet.';
 }
 
 function help(context: CoachPosition): CoachAnswer {
@@ -265,7 +266,7 @@ function help(context: CoachPosition): CoachAnswer {
       context,
     ).join(
       ' · ',
-    )}. Answers come from the engine’s own evaluation, principal variation, and your stored review, so nothing here is invented.`,
+    )}. I answer from the analysis on screen and your saved review, so nothing here is invented.`,
   };
 }
 

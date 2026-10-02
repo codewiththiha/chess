@@ -23,9 +23,12 @@
     const move = s.record.moves[ply - 1];
     return `${Math.ceil(ply / 2)}${move?.color === 'black' ? '…' : '.'}`;
   }
-  // Keep the newest answer in view without moving focus away from the input.
+  // A new answer is worth scrolling to; the walkthrough itself is left where it
+  // starts, because it is read from the top down like a list.
   $effect(() => {
-    if (s.coach.length && log) log.scrollTop = log.scrollHeight;
+    if (!s.coach.length || !log) return;
+    if (s.coach.at(-1)?.walk) return;
+    log.lastElementChild?.scrollIntoView({ block: 'nearest' });
   });
 </script>
 
@@ -38,20 +41,22 @@
     aria-live="polite"
   >
     {#each s.coach as message (message.id)}
+      {@const move = message.ply ? label(message.ply) : ''}
       <p
         class="coach-message"
         class:coach-you={message.role === 'you'}
         class:coach-answer={message.role !== 'you'}
+        class:coach-moment={Boolean(message.ply)}
       >
-        {#if message.ply}
-          <button
+        {#if message.ply}<span class="coach-chip" aria-hidden="true"
+            >{move}</span
+          >{/if}{message.text}{#if message.ply}<button
             type="button"
             class="coach-jump"
-            aria-label={`Go to move ${label(message.ply)}`}
+            aria-label={`Go to move ${move}`}
+            title={`Go to move ${move}`}
             onclick={() => session.game.jump(message.ply ?? 0)}
-            >{label(message.ply)}</button
-          >
-        {/if}{message.text}
+          ></button>{/if}
       </p>
     {/each}
   </div>
