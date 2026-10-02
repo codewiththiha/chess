@@ -260,3 +260,30 @@ redesign, pushed after the notes above were written):
   later revision `264b52f` changes tests only, so this remains the newest
   compilation of `src-tauri/`; re-dispatch the workflow after any Rust, frontend,
   or `Cargo.lock` change.
+
+Verified on 2026-10-02 (local date), source commits `f206dae` (the bot library)
+and `b33d207` (the review chat), both pushed after the notes above:
+
+- [CI push run 36969611876](https://github.com/codewiththiha/chess/actions/runs/36969611876)
+  for `f206dae`: success on every job. The hosted unit job reported **12 files /
+  98 tests passed**; Browser (desktop) **31 passed (1.2 m)** and Browser (mobile)
+  **30 passed plus 1 skipped (1.2 m)** — the same 62 executions as the local
+  pre-push run. Artifacts: `production-36969611876-1` (7,419,518 bytes),
+  `playwright-desktop-1` (257,055 bytes), `playwright-mobile-1` (258,048 bytes).
+- [Desktop push run 36969611677](https://github.com/codewiththiha/chess/actions/runs/36969611677)
+  for the same revision: success, `cargo build --release --locked` finished in
+  **2 m 45 s** on rustc 1.99.0 and uploaded `desktop-shell-36969611677-1`
+  (1,763,465 bytes) after the frontend that ships the bot library was built.
+- [CI push run 36970056358](https://github.com/codewiththiha/chess/actions/runs/36970056358)
+  for `b33d207`: success on every job. Hosted unit job **13 files / 112 tests
+  passed**; Browser (desktop) **34 passed (1.3 m)** and Browser (mobile) **33
+  passed plus 1 skipped (1.0 m)** — the same 68 executions as the local run.
+  Artifacts: `production-36970056358-1` (7,430,202 bytes),
+  `playwright-desktop-1` (262,015 bytes), `playwright-mobile-1` (262,478 bytes).
+- [Desktop push run 36970056147](https://github.com/codewiththiha/chess/actions/runs/36970056147)
+  for `b33d207`: success, release build in **2 m 47 s**, artifact
+  `desktop-shell-36970056147-1` (1,763,465 bytes). That run is the most recent
+  compilation of `src-tauri/` at the time of writing.
+
+Every count above is the value printed by the job that produced it; none is
+estimated from a local run.
