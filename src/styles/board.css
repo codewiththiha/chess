@@ -63,6 +63,20 @@ cg-board square.check {
     transparent 76%
   );
 }
+/* Arrows wear the theme's colours, not the library's stock blue and green,
+   which vanish against a dark board and fight the app's own palette. */
+.cg-shapes line {
+  stroke: var(--arrow-suggest);
+}
+.cg-shapes g[cgHash$='green'] line {
+  stroke: var(--arrow-review);
+}
+.cg-shapes marker#arrowhead-b path {
+  fill: var(--arrow-suggest);
+}
+.cg-shapes marker#arrowhead-g path {
+  fill: var(--arrow-review);
+}
 cg-board piece.dragging {
   filter: drop-shadow(0 7px 3px var(--board-drag-shadow));
 }
@@ -109,8 +123,10 @@ cg-board piece.dragging {
   width: 19px;
   height: 19px;
   border-radius: 999px;
-  transform: translate(-72%, -22%);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  transform: translate(-70%, -20%);
+  box-shadow:
+    0 0 0 2px var(--color-base-100),
+    0 1px 3px rgb(0 0 0 / 0.28);
   pointer-events: none;
 }
 .move-badge[data-tone='success'] {

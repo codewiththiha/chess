@@ -1,6 +1,7 @@
 <!-- Group real SAN moves by fullmove number and navigate without scrolling the page. -->
 <script lang="ts">
   import { grades } from '../domain/review';
+  import { gradeWords } from '../domain/coachtalk';
   import { position } from '../domain/chess';
   import type { Session } from '../controllers/session';
   let { session }: { session: Session } = $props();
@@ -60,15 +61,19 @@
                 class="move-cell"
                 class:current={s.cursor === move.ply}
                 data-ply={move.ply}
-                aria-label={`Move ${row.number}, ${color}, ${move.san}${annotation ? `, ${annotation.grade}, ${annotation.loss} centipawn loss` : ''}`}
+                aria-label={`Move ${row.number}, ${color}, ${move.san}${annotation ? `, ${gradeWords(annotation.grade)}` : ''}`}
                 aria-current={s.cursor === move.ply ? 'step' : undefined}
-                onclick={() => session.game.jump(move.ply)}
-                ><span>{move.san}</span>{#if annotation}<span
-                    class="grade-dot grade-{annotation.grade}"
-                    title={`${annotation.grade} · ${annotation.loss} cp loss`}
-                  ></span>{/if}</button
+                onclick={() => session.game.jump(move.ply)}>{move.san}</button
               >
-            {:else}<span class="move-cell missing">…</span>{/if}
+              <span class="move-dot"
+                >{#if annotation}<span
+                    class="grade-dot grade-{annotation.grade}"
+                    title={gradeWords(annotation.grade)}
+                  ></span>{/if}</span
+              >
+            {:else}<span class="move-cell missing">…</span><span
+                class="move-dot"
+              ></span>{/if}
           {/each}
         </div>
       {/each}

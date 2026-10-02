@@ -210,7 +210,7 @@
           aria-label="Custom increment seconds"
         /><span class="unit">+ s</span>
       </div>
-      <div class="side-choice" role="group" aria-label="Opponent">
+      <div class="segmented" role="group" aria-label="Opponent">
         <button
           class:active={opponent === 'bot'}
           aria-pressed={opponent === 'bot'}
@@ -226,7 +226,7 @@
         >
       </div>
       {#if opponent === 'bot'}
-        <div class="side-choice" role="group" aria-label="Your side">
+        <div class="segmented" role="group" aria-label="Your side">
           {#each [['white', 'White'], ['black', 'Black'], ['random', 'Any']] as option}
             <button
               class:active={side === option[0]}
@@ -251,14 +251,17 @@
                 aria-pressed={option.id === bot?.id}
                 title={`${option.blurb ? `${option.blurb} ` : ''}${voiceById(option.voice).about}`}
                 onclick={() => session.selectBot(option.id)}
-                >{#if option.avatar}<img
-                    class="bot-pfp"
-                    src={option.avatar}
-                    alt=""
-                  />{/if}<span class="bot-name">{option.name}</span><span
-                  class="bot-strength-label">{botSummary(option)}</span
-                ><span class="bot-voice-label"
-                  >{voiceById(option.voice).name}</span
+                ><span class="bot-identity"
+                  >{#if option.avatar}<img
+                      class="bot-pfp"
+                      src={option.avatar}
+                      alt=""
+                    />{/if}<span class="bot-name">{option.name}</span></span
+                ><span class="bot-meta"
+                  ><span class="bot-strength-label">{botSummary(option)}</span
+                  ><span class="bot-voice-label"
+                    >{voiceById(option.voice).name}</span
+                  ></span
                 ></button
               >{#if option.category === 'custom'}<button
                   type="button"

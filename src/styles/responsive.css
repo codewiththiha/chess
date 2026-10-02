@@ -10,14 +10,19 @@
   }
 }
 @media (max-width: 999px) {
+  html {
+    /* Anything scrolled into view stops clear of the fixed bottom rail. */
+    scroll-padding-bottom: 96px;
+  }
   body {
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
   .app-shell {
     grid-template-columns: 1fr;
     height: auto;
     min-height: 100dvh;
-    padding-bottom: 74px;
+    padding-bottom: 86px;
   }
   .rail {
     position: fixed;
@@ -35,7 +40,13 @@
   }
   .rail-group {
     flex-direction: row;
-    gap: 4px;
+    gap: 2px;
+  }
+  /* Eight destinations share a phone's width, so each one gives a little. */
+  .rail-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
   }
   .rail-bottom {
     margin-top: 0;
@@ -83,6 +94,23 @@
   }
   .home-start {
     gap: 12px;
+  }
+  /* Vertical space is the scarce one on a phone: the opponents swipe sideways
+     in a single row instead of stacking into three. */
+  .bot-picker {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding-bottom: 5px;
+    scrollbar-width: none;
+  }
+  .bot-picker::-webkit-scrollbar {
+    display: none;
+  }
+  .bot-card {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
   }
   .home-games {
     max-height: none;
