@@ -31,3 +31,7 @@ test-results/
 __pycache__/
 *.py[cod]
 ci-artifacts/
+
+# Rust/Tauri build output
+src-tauri/target/
+src-tauri/gen/schemas/

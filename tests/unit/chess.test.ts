@@ -10,7 +10,7 @@ import {
   promotionNeeded,
 } from '../../src/lib/domain/chess';
 import { chess960Fen } from '../../src/lib/domain/chess960';
-import { analysisGame, terminalResult } from '../../src/lib/domain/games';
+import { studyGame, terminalResult } from '../../src/lib/domain/games';
 import { importPgn, exportPgn, EXAMPLE_PGN } from '../../src/lib/domain/pgn';
 describe('legal chess', () => {
   it('rejects illegal moves and malformed/illegal FEN', () => {
@@ -69,7 +69,7 @@ describe('legal chess', () => {
     expect(chess960Fen(518).split('/').at(-1)).toContain('RNBQKBNR');
   });
   it('claims repetition and automatically draws only at five repetitions', () => {
-    const g = analysisGame();
+    const g = studyGame();
     for (let cycle = 0; cycle < 4; cycle++) {
       for (const uci of ['g1f3', 'g8f6', 'f3g1', 'f6g8'])
         g.moves.push(moveEntry(fenAt(g, g.moves.length), uci, false));
@@ -91,7 +91,7 @@ describe('legal chess', () => {
     );
   });
   it('retains custom starts and Chess960 PGN headers', () => {
-    const g = analysisGame(chess960Fen(42));
+    const g = studyGame(chess960Fen(42));
     g.chess960 = true;
     g.moves.push(moveEntry(g.startFen, 'e2e4', true));
     const restored = importPgn(exportPgn(g))[0];

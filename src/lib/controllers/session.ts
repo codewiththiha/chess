@@ -1,6 +1,6 @@
 // Connect application actions and lifecycle without embedding rules or worker internals.
 import { AppState } from '../state/app.svelte';
-import type { Dialog } from '../state/app.svelte';
+import type { Dialog, StudyTab } from '../state/app.svelte';
 import { GameActions } from './game';
 import { SearchController } from './search';
 import { ReviewController } from './review';
@@ -10,10 +10,13 @@ import { validatePreferences } from '../domain/preferences';
 import { supportsSimd } from '../engine/protocol';
 import { exportPgn, EXAMPLE_PGN } from '../domain/pgn';
 import { copyText, download } from '../data/files';
-import type { Preferences, View } from '../domain/types';
+import { categoryLabel, describeTime } from '../domain/time-controls';
+import type { Color, NewGameOptions, Preferences, View } from '../domain/types';
+
 function policyFingerprint(p: Preferences): string {
   return JSON.stringify({ ...p.engine, compute: undefined });
 }
+
 export class Session {
   readonly state = new AppState();
   readonly game = new GameActions(this.state);
@@ -27,30 +30,46 @@ export class Session {
   private disposed = false;
   private count = 0;
   private recordId = '';
+  private mounting: Promise<void> | null = null;
+  /** Set once the reader picks a view, so the restore cannot undo that choice. */
+  private viewChosen = false;
+  /** Set once the reader picks a game, so the restore cannot replace it. */
+  private gameChosen = false;
   constructor() {
     this.game.onCancel = () => this.search.cancel();
     this.game.onChange = () => this.changed();
     this.game.onNotice = (text) => this.notify(text, true);
     this.search.onError = (error) => this.notify(error.message, true);
+    this.storage.onMerged = () =>
+      this.notify('That game was already saved, so it was kept as one game.');
+    this.review.onStored = () => void this.storage.refresh();
   }
-  async mount(): Promise<void> {
+
+  mount(): Promise<void> {
+    this.mounting ??= this.startUp();
+    return this.mounting;
+  }
+
+  private async startUp(): Promise<void> {
     const saved = await this.storage.initialize();
     if (this.disposed) return;
-    if (saved)
-      this.game.load(
-        saved,
-        saved.kind === 'analysis'
-          ? 'analyze'
-          : saved.result === '*'
-            ? 'play'
-            : 'review',
-      );
+    if (saved && !this.gameChosen) {
+      const finished = saved.result !== '*';
+      // A view picked while the database opened outranks the stored default.
+      const view = this.viewChosen
+        ? this.state.view
+        : finished
+          ? 'home'
+          : 'play';
+      this.game.load(saved, view);
+      if (!finished) this.game.resumeClock();
+    }
     this.state.loaded = true;
     this.state.now = performance.now();
     await this.search.initialize();
     if (this.disposed) return;
     this.search.run();
-    if (this.state.view === 'review') await this.review.restore();
+    if (this.state.view === 'study') await this.review.restore();
     if (this.disposed) return;
     this.tick = setInterval(() => {
       this.state.now = performance.now();
@@ -60,6 +79,7 @@ export class Session {
       if (this.state.record.clock.running) void this.storage.save();
     }, 10000);
   }
+
   private changed(): void {
     const s = this.state;
     const marker = `${s.record.id}:${s.record.moves.map((m) => m.uci).join(',')}`;
@@ -80,6 +100,7 @@ export class Session {
     if (s.loaded) void this.storage.save();
     if (!s.dialog) this.search.run();
   }
+
   notify(text: string, error = false): void {
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.state.notice = { text, error };
@@ -90,26 +111,60 @@ export class Session {
       error ? 7000 : 3500,
     );
   }
+
   navigate(view: View): void {
-    if (view === this.state.view) return;
-    if (view !== 'review') this.review.cancel();
+    const s = this.state;
+    this.viewChosen = true;
+    if (view === s.view) return;
+    if (view !== 'study') this.review.cancel();
     this.game.enter(view);
-    if (view === 'review') void this.review.restore();
+    if (view === 'study') {
+      void this.review.restore();
+      this.state.studyTab = this.state.review ? 'review' : 'analyze';
+    }
   }
+
+  openStudy(tab: StudyTab): void {
+    this.state.studyTab = tab;
+    this.navigate('study');
+  }
+
+  startGame(options: NewGameOptions): void {
+    this.gameChosen = true;
+    this.game.create(options);
+    this.notify(
+      `${categoryLabel(options.minutes)} · ${describeTime(options.minutes, options.increment)}`,
+    );
+  }
+
+  setTimeControl(minutes: number, increment: number): void {
+    this.game.setTime(minutes, increment);
+    void this.storage.save();
+    this.notify(`Clock set to ${describeTime(minutes, increment)}.`);
+  }
+
+  addTime(color: Color, seconds: number): void {
+    this.game.addTime(color, seconds);
+    void this.storage.save();
+    this.notify(`${seconds > 0 ? 'Added' : 'Removed'} ${Math.abs(seconds)}s.`);
+  }
+
+  /** Dialogs snapshot restored state on mount, so never open one before then. */
   openDialog(dialog: Dialog): void {
-    this.state.dialog = dialog;
-    if (
-      dialog !== 'appearance' &&
-      dialog !== 'promotion' &&
-      !(dialog === 'settings' && this.state.view === 'analyze')
-    )
-      this.game.pause();
+    const show = () => {
+      this.state.dialog = dialog;
+    };
+    if (this.mounting && !this.state.loaded)
+      void this.mounting.then(show, show);
+    else show();
   }
+
   closeDialog(): void {
     this.state.dialog = null;
     this.state.promotion = null;
-    if (this.state.view === 'analyze') this.search.run();
+    if (this.state.view === 'study') this.search.run();
   }
+
   confirm(
     title: string,
     detail: string,
@@ -119,10 +174,13 @@ export class Session {
     this.state.confirmation = { title, detail, label, action };
     this.openDialog('confirm');
   }
+
   async applyPreferences(
     prefs: Preferences,
     notice = 'Settings saved.',
   ): Promise<void> {
+    // Startup restores stored preferences once; never let those two writes race.
+    if (this.mounting) await this.mounting;
     validatePreferences(prefs);
     if (prefs.engine.backend === 'simd128' && !supportsSimd())
       throw new Error(
@@ -143,13 +201,12 @@ export class Session {
       policyFingerprint(old) !== policyFingerprint(prefs) ||
       computeChanged
     ) {
-      this.game.pause();
       this.review.cancel();
       if (!backendChanged && this.state.ready)
         await this.search.engine.configure(
           prefs.engine,
           this.state.record.chess960,
-          this.state.view === 'analyze',
+          this.state.view === 'study',
         );
     }
     this.state.preferences = prefs;
@@ -168,65 +225,73 @@ export class Session {
     if (!this.state.thinking) this.search.run();
     this.notify(notice);
   }
-  async openSaved(id: string, view: View = 'review'): Promise<void> {
+
+  async openSaved(id: string, view: View = 'play'): Promise<void> {
+    this.gameChosen = true;
     try {
-      const g = await this.storage.db.game(id);
-      if (!g) throw new Error('Game is no longer saved.');
+      const record = await this.storage.db.game(id);
+      if (!record) throw new Error('Game is no longer saved.');
       this.review.cancel();
-      if (view === 'analyze') {
-        g.id = crypto.randomUUID();
-        g.kind = 'analysis';
-        g.result = '*';
-        g.termination = '';
-        g.title = `${g.title} · analysis`.slice(0, 120);
-        g.createdAt = Date.now();
-      }
-      this.game.load(g, view);
-      if (view === 'review') await this.review.restore();
+      this.game.load(record, view);
+      if (view === 'study') {
+        await this.review.restore();
+        this.state.studyTab = this.state.review ? 'review' : 'analyze';
+      } else this.game.resumeClock();
     } catch (error) {
       this.notify(error instanceof Error ? error.message : String(error), true);
     }
   }
+
   async removeSaved(id: string): Promise<void> {
-    // Forget active/backup snapshots first so later autosaves cannot resurrect the row.
+    // Forget the active record first so a later autosave cannot resurrect it.
     this.game.discard(id);
     await this.storage.remove(id);
   }
+
   async importGames(text: string): Promise<void> {
+    this.gameChosen = true;
     const records = await this.storage.import(text);
     const first = records[0];
     if (!first) return;
     this.state.dialog = null;
     this.review.cancel();
-    this.game.load(first, 'review');
+    this.game.load(first, 'study');
+    await this.review.restore();
+    this.state.studyTab = this.state.review ? 'review' : 'analyze';
     this.notify(
       `Imported ${records.length} ${records.length === 1 ? 'game' : 'games'}.`,
     );
   }
+
   example(): void {
     void this.importGames(EXAMPLE_PGN).catch((error) =>
       this.notify(String(error), true),
     );
   }
+
   exportCurrent(): void {
     download(
       exportPgn(this.state.snapshot()),
       `${this.state.record.title}.pgn`,
     );
-    this.notify('PGN exported.');
+    this.notify('PGN downloaded.');
   }
+
+  async exportAll(): Promise<void> {
+    download(await this.storage.exportAll(), 'gwaymaegyi-games.pgn');
+    this.notify('Games exported.');
+  }
+
   async copyFen(): Promise<void> {
-    try {
-      await copyText(this.state.fen);
-      this.notify('FEN copied.');
-    } catch (error) {
-      this.notify(String(error), true);
-    }
+    await copyText(this.state.fen);
+    this.notify('FEN copied.');
   }
+
   flip(): void {
-    this.state.orientation =
-      this.state.orientation === 'white' ? 'black' : 'white';
+    const s = this.state;
+    s.orientation = s.orientation === 'white' ? 'black' : 'white';
   }
+
   dispose(): void {
     this.disposed = true;
     if (this.tick) clearInterval(this.tick);

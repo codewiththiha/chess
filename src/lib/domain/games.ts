@@ -6,7 +6,7 @@ import { makeClock } from './clocks';
 import type { GameRecord, NewGameOptions, Result } from './types';
 export const DEFAULT_NEW_GAME: NewGameOptions = {
   side: 'white',
-  minutes: 10,
+  minutes: 0,
   increment: 0,
   chess960: false,
   position: 518,
@@ -43,13 +43,13 @@ export function createGame(options: NewGameOptions, level = 8): GameRecord {
       : {},
   };
 }
-export function analysisGame(fen = INITIAL_FEN): GameRecord {
+export function studyGame(fen = INITIAL_FEN): GameRecord {
   const canonical = position(fen).toSetup();
   const game = createGame({ ...DEFAULT_NEW_GAME, minutes: 0 });
   // Use canonical FEN, not text with incompatible whitespace or redundant EP.
   game.startFen = makeFen(canonical);
-  game.kind = 'analysis';
-  game.title = 'Analysis board';
+  game.kind = 'import';
+  game.title = 'Study board';
   game.white = 'White';
   game.black = 'Black';
   return game;
@@ -76,6 +76,12 @@ export function terminalResult(
     return { result: '1/2-1/2', reason: 'Automatic draw' };
   return null;
 }
+export function resultText(result: Result): string {
+  if (result === '*') return 'In progress';
+  if (result === '1/2-1/2') return 'Draw';
+  return result === '1-0' ? 'White wins' : 'Black wins';
+}
+
 export function resultLabel(game: GameRecord): string {
   if (game.result === '*') return 'In progress';
   if (game.result === '1/2-1/2') return 'Draw';

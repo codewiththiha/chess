@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { decodeReview } from '../../src/lib/data/review-validation';
 import { decodeGame } from '../../src/lib/data/validation';
 import { ENGINE_REVISION } from '../../src/lib/domain/review';
-import { analysisGame } from '../../src/lib/domain/games';
+import { studyGame } from '../../src/lib/domain/games';
 import { importPgn } from '../../src/lib/domain/pgn';
 import { moveEntry, INITIAL_FEN } from '../../src/lib/domain/chess';
 import type { GameRecord, ReviewRecord } from '../../src/lib/domain/types';
 function fixture(): { game: GameRecord; review: ReviewRecord } {
-  const game = analysisGame();
+  const game = studyGame();
   game.moves.push(moveEntry(INITIAL_FEN, 'e2e4', false));
   const budget = { depth: 5, nodes: '10000', timeMs: 300 };
   const review: ReviewRecord = {
@@ -97,7 +97,7 @@ describe('import and date boundaries', () => {
     );
   });
   it('rejects saved dates that cannot be formatted or exported', () => {
-    const game = analysisGame();
+    const game = studyGame();
     game.createdAt = 1e30;
     expect(() => decodeGame(game)).toThrow('date');
   });

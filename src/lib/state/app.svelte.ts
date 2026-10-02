@@ -2,7 +2,7 @@
 import { createGame, DEFAULT_NEW_GAME } from '../domain/games';
 import { defaultPreferences } from '../domain/preferences';
 import { fenAt, position, drawClaims } from '../domain/chess';
-import { remaining } from '../domain/clocks';
+import { isTimed, remaining } from '../domain/clocks';
 import type {
   Color,
   GameRecord,
@@ -12,8 +12,8 @@ import type {
 } from '../domain/types';
 import type { Discovery, Report } from '../engine/types';
 import type { GameSummary } from '../data/database';
+
 export type Dialog =
-  | 'new'
   | 'settings'
   | 'appearance'
   | 'import'
@@ -22,14 +22,17 @@ export type Dialog =
   | 'promotion'
   | 'confirm'
   | null;
+
+export type StudyTab = 'analyze' | 'review';
+
 export class AppState {
   preferences = $state<Preferences>(defaultPreferences());
   record = $state<GameRecord>(createGame(DEFAULT_NEW_GAME));
-  view = $state<View>('play');
+  view = $state<View>('home');
+  studyTab = $state<StudyTab>('analyze');
   cursor = $state(0);
   orientation = $state<Color>('white');
   now = $state(0);
-  paused = $state(false);
   thinking = $state(false);
   ready = $state(false);
   report = $state<Report | null>(null);
@@ -58,13 +61,14 @@ export class AppState {
   pos = $derived(position(this.fen));
   claims = $derived(drawClaims(this.record));
   latest = $derived(this.cursor === this.record.moves.length);
+  timed = $derived(isTimed(this.record.clock));
+  reviewed = $derived(this.review?.complete === true);
   canMove = $derived(
     this.promotion === null &&
-      (this.view === 'analyze'
+      (this.view === 'study'
         ? !this.pos.isEnd()
         : this.view === 'play' &&
           this.ready &&
-          !this.paused &&
           this.latest &&
           this.record.result === '*' &&
           this.pos.turn === this.record.human),

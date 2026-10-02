@@ -30,25 +30,32 @@
   const rows = $derived(
     Array.from({ length: 8 }, (_, r) => squares.slice(r * 8, r * 8 + 8)),
   );
-  const suggested = $derived(
-    s.view === 'review'
-      ? s.review?.points.find((p) => p.ply === s.cursor)?.bestMove
-      : s.view === 'analyze'
+  // One arrow set: stored review evidence first, then the live suggestion.
+  const arrowMoves = $derived.by(() => {
+    if (!s.preferences.arrows) return [] as { uci: string; brush: string }[];
+    const found: { uci: string; brush: string }[] = [];
+    const reviewed = s.review?.points.find((p) => p.ply === s.cursor)?.bestMove;
+    if (reviewed) found.push({ uci: reviewed, brush: 'green' });
+    const live =
+      s.view === 'study'
         ? s.report?.bestMove
-        : s.hint?.bestMove,
-  );
+        : (s.hint?.bestMove ?? s.report?.bestMove);
+    if (live && live !== reviewed) found.push({ uci: live, brush: 'blue' });
+    return found;
+  });
   const configuration = $derived.by((): Config => {
-    const move = suggested ? parseUci(suggested) : undefined;
-    const shapes: DrawShape[] =
-      s.preferences.arrows && move && isNormal(move)
+    const shapes: DrawShape[] = arrowMoves.flatMap(({ uci, brush }) => {
+      const move = parseUci(uci);
+      return move && isNormal(move)
         ? [
             {
               orig: makeSquare(move.from),
               dest: makeSquare(move.to),
-              brush: 'green',
+              brush,
             },
           ]
         : [];
+    });
     return {
       fen: s.fen,
       orientation: s.orientation,

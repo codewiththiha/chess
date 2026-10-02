@@ -11,6 +11,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
+    "tauri": "tauri",
     "check": "svelte-check --tsconfig tsconfig.app.json --fail-on-warnings && node node_modules/typescript-native/bin/tsc -p tsconfig.node.json && node node_modules/typescript-native/bin/tsc -p tsconfig.tests.json",
     "lint": "oxlint --deny-warnings src tests scripts vite.config.ts vitest.config.ts playwright.config.ts svelte.config.js public/engine/bridge-worker.mjs && python3 scripts/check_repo.py",
     "format": "prettier --write .",
@@ -24,32 +25,33 @@
     "lint:workflows": "python3 scripts/ci/workflows.py"
   },
   "dependencies": {
-    "svelte": "5.57.1",
-    "@lichess-org/chessground": "10.4.1",
-    "chessops": "0.15.1",
-    "dexie": "4.4.6",
     "@fontsource-variable/dm-sans": "5.3.0",
     "@fontsource-variable/newsreader": "5.3.0",
     "@fontsource/dm-mono": "5.3.0",
-    "@lucide/svelte": "1.49.0"
+    "@lichess-org/chessground": "10.4.1",
+    "@lucide/svelte": "1.49.0",
+    "@sqlite.org/sqlite-wasm": "^3.53.4-build1",
+    "@tauri-apps/api": "2.12.1",
+    "chessops": "0.15.1",
+    "svelte": "5.57.1"
   },
   "devDependencies": {
-    "vite": "8.3.2",
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
-    "svelte-check": "4.7.6",
+    "@tailwindcss/vite": "4.3.3",
+    "@tauri-apps/cli": "2.12.1",
     "@tsconfig/svelte": "5.0.8",
     "@types/node": "26.6.3",
-    "tailwindcss": "4.3.3",
-    "@tailwindcss/vite": "4.3.3",
     "daisyui": "5.7.47",
+    "oxlint": "1.86.0",
     "prettier": "3.9.9",
     "prettier-plugin-svelte": "4.1.1",
-    "oxlint": "1.86.0",
-    "vitest": "5.0.3",
-    "@playwright/test": "1.63.0",
-    "@axe-core/playwright": "4.13.0",
-    "fake-indexeddb": "6.2.5",
+    "svelte-check": "4.7.6",
+    "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
-    "typescript-native": "npm:typescript@7.0.2"
+    "typescript-native": "npm:typescript@7.0.2",
+    "vite": "8.3.2",
+    "vitest": "5.0.3"
   }
 }

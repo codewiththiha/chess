@@ -16,7 +16,7 @@ import {
   validatePreferences,
 } from '../../src/lib/domain/preferences';
 import { whiteScore, grades, formatScore } from '../../src/lib/domain/review';
-import { analysisGame } from '../../src/lib/domain/games';
+import { studyGame } from '../../src/lib/domain/games';
 import { moveEntry, INITIAL_FEN } from '../../src/lib/domain/chess';
 import type { ReviewPoint } from '../../src/lib/domain/types';
 const point = (ply: number, whiteCp: number): ReviewPoint => ({
@@ -95,7 +95,7 @@ describe('transparent review heuristics', () => {
     expect(whiteScore(null, null, 'white')).toBeNull();
   });
   it('grades each actor with the opposite sign, never a percentage', () => {
-    const g = analysisGame();
+    const g = studyGame();
     g.moves = [moveEntry(INITIAL_FEN, 'e2e4', false)];
     g.moves.push(moveEntry(g.moves[0]?.fen ?? INITIAL_FEN, 'e7e5', false));
     const result = grades(g, [point(0, 100), point(1, -160), point(2, 0)]);
@@ -103,7 +103,7 @@ describe('transparent review heuristics', () => {
     expect(result[1]).toMatchObject({ grade: 'mistake', loss: 160 });
   });
   it('leaves unevaluated moves ungraded', () => {
-    const g = analysisGame();
+    const g = studyGame();
     g.moves = [moveEntry(INITIAL_FEN, 'e2e4', false)];
     expect(grades(g, [])).toEqual([]);
   });

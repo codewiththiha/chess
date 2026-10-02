@@ -13,6 +13,7 @@ export const REVIEW_PRESETS = {
   thorough: { depth: 10, nodes: '100000', timeMs: 2000 },
 };
 export class ReviewController {
+  onStored: () => void = () => {};
   private engine: EngineClient | null = null;
   private generation = 0;
   constructor(
@@ -153,7 +154,9 @@ export class ReviewController {
   }
   private async save(): Promise<void> {
     const snapshot = this.state.reviewSnapshot();
-    if (snapshot) await this.db.reviews.put(snapshot);
+    if (!snapshot) return;
+    await this.db.saveReview(snapshot);
+    this.onStored();
   }
   cancel(): void {
     this.generation++;

@@ -1,31 +1,50 @@
-// Verify PGN recording, resumable engine review, immutable archive copies, and exports.
+// Verify PGN recording, resumable engine review, one-record branching, and exports.
 import { test, expect } from '@playwright/test';
-import { open, navigate, importGame, game, row, move } from './helpers';
+import {
+  open,
+  start,
+  study,
+  go,
+  importGame,
+  move,
+  exchange,
+  plies,
+  loadFen,
+  savedGames,
+} from './helpers';
 import { EXAMPLE_PGN } from '../../src/lib/domain/pgn';
-test('import, real review, refresh, PGN export, rename and delete remain local', async ({
+
+test('import, real review, refresh, export, rename and delete stay on one record', async ({
   page,
 }) => {
   await open(page);
   await importGame(page, EXAMPLE_PGN);
-  const original = await game(page);
-  expect(original.moves).toHaveLength(7);
+  await plies(page, 7);
+  expect(await savedGames(page)).toBe(1);
+  await study(page, 'Review');
   await page.getByLabel('Review search budget').selectOption('quick');
   await page
-    .locator('.review-section')
+    .locator('.study-card')
     .getByRole('button', { name: 'Review', exact: true })
     .click();
-  await expect(page.getByText('Review complete', { exact: true })).toBeVisible({
+  await expect(page.locator('.review-progress')).toContainText('Reviewed', {
+    timeout: 25000,
+  });
+  await expect(page.locator('.review-statistics')).toContainText('7');
+  // The stored review belongs to the same game and is restored, not recomputed.
+  await page.reload();
+  await expect(page.locator('.rail')).toBeVisible();
+  // A finished game restores onto the landing view; the notes live in the game shell.
+  await go(page, 'Play');
+  await plies(page, 7);
+  await study(page, 'Review');
+  await expect(page.locator('.review-progress')).toContainText('Reviewed', {
     timeout: 20000,
   });
-  expect(await row(page, 'reviews', original.id)).toBeTruthy();
-  await expect(page.locator('.review-statistics')).toContainText('7');
-  await page.reload();
-  await expect(page.locator('.move-cell:not(.missing)')).toHaveCount(7);
-  await navigate(page, 'Review');
-  await expect(
-    page.getByText('Review complete', { exact: true }),
-  ).toBeVisible();
   await expect(page.locator('.move-list .grade-dot')).toHaveCount(7);
+  await expect(
+    page.locator('.study-card').getByRole('button', { name: 'Review again' }),
+  ).toBeVisible();
   const chart = page.getByRole('slider', {
     name: 'Game position on evaluation chart',
   });
@@ -36,11 +55,13 @@ test('import, real review, refresh, PGN export, rename and delete remain local',
   await expect(chart).toHaveAttribute('aria-valuenow', '0');
   await page.keyboard.press('ArrowRight');
   await expect(chart).toHaveAttribute('aria-valuenow', '1');
+  await go(page, 'Home');
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'PGN', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Export White vs Black', exact: true })
+    .click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/\.pgn$/);
-  await navigate(page, 'Library');
   await page
     .getByRole('button', { name: 'Rename White vs Black', exact: true })
     .click();
@@ -51,7 +72,7 @@ test('import, real review, refresh, PGN export, rename and delete remain local',
     .getByRole('button', { name: 'Save game name', exact: true })
     .click();
   await expect(
-    page.getByRole('button', { name: 'Tactical notebook', exact: true }),
+    page.getByRole('button', { name: 'Open Tactical notebook', exact: true }),
   ).toBeVisible();
   await page
     .getByRole('button', { name: 'Delete Tactical notebook', exact: true })
@@ -61,68 +82,71 @@ test('import, real review, refresh, PGN export, rename and delete remain local',
     .getByRole('button', { name: 'Delete game', exact: true })
     .click();
   await expect(page.locator('.saved-game')).toHaveCount(0);
-  expect(await row(page, 'reviews', original.id)).toBeUndefined();
-  await navigate(page, 'Review');
-  await navigate(page, 'Library');
-  await expect(page.locator('.saved-game')).toHaveCount(0);
   await page.reload();
-  await expect(page.locator('.local-engine-badge')).toHaveText('Local engine');
-  await navigate(page, 'Library');
+  await expect(page.locator('.rail')).toBeVisible();
+  await go(page, 'Home');
   await expect(page.locator('.saved-game')).toHaveCount(0);
-  expect(await row(page, 'games', original.id)).toBeUndefined();
 });
+
 test('review can stop and resume using its saved position evaluations', async ({
   page,
 }) => {
   await open(page);
   await importGame(page, EXAMPLE_PGN);
+  await study(page, 'Review');
   await page.getByLabel('Review search budget').selectOption('thorough');
   await page
-    .locator('.review-section')
+    .locator('.study-card')
     .getByRole('button', { name: 'Review', exact: true })
     .click();
-  await expect(page.locator('.review-progress')).not.toContainText('0 /');
+  await expect(page.locator('.review-progress')).toContainText('Checking', {
+    timeout: 20000,
+  });
   await page
-    .locator('.review-section')
+    .locator('.study-card')
     .getByRole('button', { name: 'Stop', exact: true })
     .click();
-  await expect(page.getByText('Review paused', { exact: true })).toBeVisible();
+  await expect(page.locator('.review-progress')).toContainText(
+    'Partly reviewed',
+  );
   await page
-    .locator('.review-section')
+    .locator('.study-card')
     .getByRole('button', { name: 'Resume', exact: true })
     .click();
-  await expect(page.getByText('Review complete', { exact: true })).toBeVisible({
-    timeout: 25000,
+  await expect(page.locator('.review-progress')).toContainText('Reviewed', {
+    timeout: 30000,
   });
 });
-test('analysis branches create a copy rather than overwriting an archived game', async ({
+
+test('studying a saved game branches the same record instead of copying it', async ({
   page,
 }) => {
   await open(page);
   await importGame(page, EXAMPLE_PGN);
-  const saved = await game(page);
-  await navigate(page, 'Library');
-  await page
-    .getByRole('button', { name: 'Analyze White vs Black', exact: true })
-    .click();
-  await page
-    .getByRole('button', { name: 'First position', exact: true })
-    .click();
+  expect(await savedGames(page)).toBe(1);
+  await study(page, 'Analyze');
+  // An imported game opens on its first position, so d4 branches from the start.
+  await expect(page.locator('.notation-caption')).toContainText('0 / 7');
   await move(page, 'd2', 'd4');
-  await expect(page.locator('.move-row')).toHaveCount(1);
-  const copy = await game(page);
-  expect(copy.id).not.toBe(saved.id);
-  expect(copy.moves[0]?.uci).toBe('d2d4');
-  const original = await row(page, 'games', saved.id);
-  expect(original).toMatchObject({ id: saved.id });
-  await navigate(page, 'Library');
-  await expect(page.locator('.saved-game')).toHaveCount(2);
+  await plies(page, 1);
+  await expect(
+    page.locator('.move-cell').filter({ hasText: 'd4' }),
+  ).toBeVisible();
+  // The imported game is one record, so a branch never adds a second copy.
+  expect(await savedGames(page)).toBe(1);
+  await page.reload();
+  await plies(page, 1);
+  expect(await savedGames(page)).toBe(1);
 });
+
 test('bad PGN/FEN is rejected without erasing the active game', async ({
   page,
 }) => {
   await open(page);
-  await navigate(page, 'Analysis');
+  await start(page, { preset: '3 min' });
+  await move(page, 'e2', 'e4');
+  await exchange(page, 2);
+  await study(page, 'Analyze');
   await page.getByRole('button', { name: 'Load FEN', exact: true }).click();
   await page.getByLabel('FEN position').fill('not a chess position');
   await page
@@ -130,9 +154,26 @@ test('bad PGN/FEN is rejected without erasing the active game', async ({
     .click();
   await expect(page.getByRole('dialog')).toContainText('FEN has invalid');
   await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
-  await navigate(page, 'Library');
-  await page.getByRole('button', { name: 'Import PGN', exact: true }).click();
+  await go(page, 'Home');
+  await page.getByRole('button', { name: 'Import', exact: true }).click();
   await page.getByLabel('PGN notation').fill('1. e5 *');
   await page.getByRole('button', { name: 'Import game', exact: true }).click();
   await expect(page.getByRole('dialog')).toContainText('Illegal PGN move');
+  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  await go(page, 'Play');
+  await exchange(page, 2);
+  expect(await savedGames(page)).toBe(1);
+});
+
+test('a position can be loaded for study without inventing a game', async ({
+  page,
+}) => {
+  await open(page);
+  await loadFen(page, 'r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1');
+  await move(page, 'e1', 'g1');
+  await expect(page.locator('#square-f1')).toHaveAttribute(
+    'aria-label',
+    'f1, white rook',
+  );
+  await plies(page, 1);
 });

@@ -1,12 +1,32 @@
 # Verification evidence
 
-Recorded 2026-10-01 after the final `npm run verify:all` production run.
-All source/test/build gates completed successfully. This document distinguishes
-actual engine/browser execution from isolated test-only fault simulation.
+Recorded 2026-10-01 after the final `npm run verify:all` production run of revision
+`a27443b`. All source/test/build gates completed successfully. This document
+distinguishes actual engine/browser execution from isolated test-only fault
+simulation.
+
+**2026-10-02 redesign status (uncommitted working tree).** The gates marked
+_published_ below describe `a27443b`, the last published revision. The redesign
+itself is verified as: unit suite **71 tests in 9 files**; `svelte-check` 0 errors
+and 0 warnings; `tsc` for the node and test configs clean; oxlint 0/0 with 58
+vendored checksums; Prettier clean; `npm run check` and the production build
+successful; and the full production browser suite **47 passed plus one intentional
+skip in about 2 minutes 20 seconds** (see the counts below). The redesign also
+removed pause/resume in favour of a pre-game timeless choice, folded review into
+the game card, and replaced IndexedDB with the SQLite database.
+
+That browser run found and fixed two real startup races rather than hiding them:
+a stored-preferences read could land after a settings save and overwrite it, and
+the stored game or view could replace a choice the reader made while the database
+was still opening. Both are now guarded in `controllers/persistence.ts` and
+`controllers/session.ts`, and the regression is covered by the settings and
+review scenarios. The desktop shell is compiled only by the `Desktop` workflow;
+no Rust is compiled in this workspace.
 
 ## Suite and executed coverage
 
-The unit suite currently passes **55 tests in 8 files**. It covers:
+The published unit suite passed **55 tests in 8 files**; the redesign suite
+passes **71 tests in 9 files**, covering everything below plus:
 
 - Orthodox legal moves/perft, both castling conventions, king-already-on-target
   Chess960 castling, en passant, promotion, and all 960 unique legal starts.
@@ -16,11 +36,16 @@ The unit suite currently passes **55 tests in 8 files**. It covers:
   expiry, timeout insufficient mating material, increments, and complete u64 budgets.
 - Side-correct CPL grading, absence of fabricated accuracy, terminal-checkmate
   formatting, and no inferred per-line mate distance from a large numeric score.
-- Real Dexie transactions using fake-indexeddb, atomic game/review deletion,
-  legal replay instead of trusting saved SAN/FEN, malformed records/preferences,
-  corrupt-preference archive isolation, and truthful rejected-write behavior.
+- Real SQLite statements (in-memory SQLite in Node, the identical `SqlStore` code
+  the worker runs): round trips, newest-first summaries, idempotent updates,
+  duplicate merging that keeps one review, oldest-record survival, cascade delete,
+  settings round trips, malformed-row rejection, and derived identity — plus
+  save-path isolation, merge adoption, and truthful rejected-write behavior.
 - Review identity/history/budget validation, legal cached PVs, finite scores,
   duplicate positions, and false completion rejection.
+- Time-control groups and classification (1 minute and below is bullet, under ten
+  minutes is blitz, ten and above is rapid), adjustable clocks, and the shared
+  game-action guards for records, cursors, and clock expiry.
 - Worker startup sharing, immediate cancellation, safe reinitialization, Auto
   fallback, stale-message suppression, clone errors, crash/restart, and stale
   queued-policy cancellation. Worker fault injection is isolated test scaffolding;
@@ -30,14 +55,17 @@ The unit suite currently passes **55 tests in 8 files**. It covers:
   lossless seed, legal bounded/distinct MultiPV roots, and deterministic score
   agreement on the tested position. No local Rust compilation is involved.
 
-The browser suite passed **24 scenarios × 2 projects = 48 executions** in the
-final production run (about 1 minute 48 seconds). Coverage includes:
+The redesign browser suite ran **24 scenarios × 2 projects = 48 executions** in the
+final production run: **47 passed and one intentional skip in about 2 minutes
+20 seconds**. The skipped case is the desktop-only "fits the viewport without page
+scrolling" check, which cannot hold on a scrolling narrow layout. Coverage includes:
 
 - Real engine responses to tap/click, mouse drag, CDP touch drag, and keyboard moves.
 - Illegal-drop rejection; explicit/cancellable underpromotion; standard and
   Chess960 castling; Black side, custom clocks, and en passant.
-- Reload/restoration, pause/resume, elapsed timeout, history/takeback, resignation,
-  PGN import/download, rename, delete, analysis-copy isolation, and malformed input.
+- Reload/restoration, uninterrupted clocks, elapsed timeout, history/takeback,
+  resignation, PGN import/download, rename, delete, one-record study branching, and
+  malformed input that leaves the active game intact.
 - All 11/38 controls, persisted tuning, real Portable backend, nominal Elo/seed,
   invalid-range staging, piece/board/theme/aids, live limit edits, and cancellation.
 - Real engine review, persistent recovery, stop/resume, rejected corrupt cache,
@@ -56,9 +84,10 @@ final production run (about 1 minute 48 seconds). Coverage includes:
 | Svelte diagnostics + native TS source/config/tests | Passed; 0 Svelte errors/0 warnings                                          |
 | Oxlint + authored-code/provenance hygiene          | Passed; 0 warnings/errors; 58 vendored hashes verified                      |
 | Prettier                                           | Passed for all authored formatted files                                     |
-| Unit/integration suite                             | 55/55 passed in 8 files                                                     |
-| Production build                                   | Passed; JS 363.05 kB (119.08 kB gzip), CSS 138.41 kB (23.18 kB gzip)        |
-| Desktop + mobile production browser suite          | 48/48 passed; no retries required                                           |
+| Unit/integration suite                             | Published 55/55 in 8 files; redesign 71/71 in 9 files                       |
+| Production build                                   | Passed; Vite production bundle with worker and WASM assets                  |
+| Desktop + mobile production browser suite          | Redesign: 47 passed, 1 intentional mobile skip, no retries                  |
+| Desktop shell (Tauri)                              | Compiled and linted only by the hosted `Desktop` workflow                   |
 | Actual Conventional Commit                         | Passed; actual Conventional Commit and author/committer verified; no remote |
 
 A separate final screenshot flow completed real e4/engine e5 play and an imported
@@ -96,9 +125,12 @@ npm run check:commit
 
 ## Visual evidence and limits
 
-Final production screenshots are kept as `docs/desktop-play.png`,
-`docs/mobile-play.png`, `docs/desktop-review.png`, and `docs/mobile-review.png`.
-They depict actual WASM-driven games/review, not fabricated UI data.
+Final production screenshots are kept as `docs/desktop-home.png`,
+`docs/desktop-play.png`, `docs/mobile-play.png`, `docs/desktop-review.png`, and
+`docs/mobile-review.png`. The published set depicts the `a27443b` shell; the same
+files were re-captured on 2026-10-02 from the redesigned shell (Home, Play,
+Study/Review) with real engine replies and a real restored record — still actual
+WASM-driven play, never fabricated UI data.
 
 Desktop project: Chromium at 1440×1000. Mobile project: touch-enabled iPhone 13
 viewport/device emulation at 390×664 **using Chromium**, plus 320×740 checks. This is not a
@@ -119,11 +151,11 @@ selective-run instructions are documented in docs/ci.md. Vendored binaries/artwo
 
 The publishing update adds full push/PR verification and selectable manual
 workflows. Local `npm run verify` passed strict types, lint/provenance, formatting,
-55 existing unit/integration tests, 14 CI-selection/result regression tests, and a
+71 unit/integration tests, 14 CI-selection/result regression tests, and a
 production build. `npm run lint:workflows` passed checksum-pinned actionlint 1.7.12.
-The CI-style prebuilt production run passed all 48 desktop/mobile browser tests
-in about 2 minutes 8 seconds on an isolated port, with HTML and JUnit reports
-created. Full and targeted hosted runs are visible in the repository's
+The CI-style prebuilt production run passed 47 of 48 desktop/mobile browser
+executions (one intentional mobile skip) in about 2 minutes 20 seconds on an
+isolated port, with HTML and JUnit reports created. Full and targeted hosted runs are visible in the repository's
 [Actions history](https://github.com/codewiththiha/chess/actions). Do not infer a
 hosted run result from a locally passing gate; use the actual run conclusion.
 

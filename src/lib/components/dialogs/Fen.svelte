@@ -21,10 +21,7 @@
   }
 </script>
 
-<Dialog
-  title="Explore a position."
-  subtitle="Paste all six FEN fields. Legal rules are checked before loading."
-  onclose={() => session.closeDialog()}
+<Dialog title="Load a position" onclose={() => session.closeDialog()}
   ><form
     class="dialog-form"
     onsubmit={(e) => {

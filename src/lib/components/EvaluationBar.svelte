@@ -5,11 +5,9 @@
   let { session }: { session: Session } = $props();
   const s = $derived(session.state);
   const point = $derived(
-    s.view === 'review'
-      ? s.review?.points.find((p) => p.ply === s.cursor)
-      : undefined,
+    s.review?.points.find((p) => p.ply === s.cursor) ?? undefined,
   );
-  const report = $derived(s.view === 'play' && s.hint ? s.hint : s.report);
+  const report = $derived(s.hint ?? s.report);
   const value = $derived(
     point?.whiteCp ??
       (report ? whiteScore(report.scoreCp, report.mate, s.pos.turn) : null),

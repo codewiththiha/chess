@@ -1,116 +1,72 @@
-<!-- Explain local storage, review caveats, capabilities, shortcuts, and license provenance. -->
+<!-- State real storage, engine, and licensing facts without marketing copy. -->
 <script lang="ts">
   import { ExternalLink } from '@lucide/svelte';
   import Dialog from './Dialog.svelte';
+  import { readDesktopHost } from '../../data/desktop';
+  import type { DesktopHost } from '../../data/desktop';
   import type { Session } from '../../controllers/session';
   let { session }: { session: Session } = $props();
+  const s = $derived(session.state);
+  let host = $state<DesktopHost | null>(null);
+  $effect(() => {
+    let live = true;
+    void readDesktopHost().then((value) => {
+      if (live) host = value;
+    });
+    return () => {
+      live = false;
+    };
+  });
 </script>
 
-<Dialog
-  title="A little help."
-  subtitle="Your board. Your engine. Your device."
-  wide
-  onclose={() => session.closeDialog()}
->
+<Dialog title="Help" wide onclose={() => session.closeDialog()}>
   <div class="help-content">
     <section>
-      <h3>Moving pieces</h3>
+      <h3>Playing</h3>
       <p>
-        Tap a piece and its destination, or grab and drag. Promotion offers
-        queen, rook, bishop, or knight. Chess960 supports king-to-rook castling.
+        Drag or tap to move. Tab into the board to move by keyboard: arrows
+        change squares, Enter or Space selects, Escape clears.
       </p>
+      <p>Shortcuts: F flips, N opens Home, arrows step, Home and End jump.</p>
+    </section>
+    <section>
+      <h3>Clocks</h3>
       <p>
-        Tab into the board, use arrow keys to focus a square, and Enter or Space
-        to select a piece and destination. Escape clears the selection.
+        Clocks keep running while you look around, so nothing is paused. Pick No
+        clock for a timeless game.
       </p>
     </section>
     <section>
-      <h3>Games stay here</h3>
+      <h3>Storage</h3>
       <p>
-        Moves, settings, and review results live in IndexedDB in this browser.
-        Refreshing restores your game paused. Clocks run while the tab is open,
-        including in the background. Export PGN to keep a portable backup;
-        clearing browser data can erase this library.
+        {s.backend
+          ? `Games are stored locally in SQLite (${s.backend}).`
+          : 'Games are stored locally in SQLite.'}
+        Each game is one record with its review; clearing site data erases it. Export
+        PGN for a portable copy.
+      </p>
+      {#if host}
+        <p>Desktop shell v{host.version}: {host.storage}.</p>
+      {/if}
+    </section>
+    <section>
+      <h3>Engine</h3>
+      <p>
+        Moves and scores come from the bundled Rust engine running as
+        WebAssembly in this device — depth and node budgets are real limits, not
+        estimates.
       </p>
       <p>
-        No login, external analysis API, telemetry, or remote game upload is
-        required. The bundled engine, SVGs, and fonts load from this app’s own
-        origin.
+        Review grades mark the engine's first choice as best and use centipawn
+        loss for the rest. They are not calibrated accuracy ratings.
       </p>
     </section>
     <section>
-      <h3>What the engine means</h3>
+      <h3>Licenses</h3>
       <p>
-        gwaymaegyi runs real Rust-built WebAssembly in a worker. Automatic
-        runtime selection uses SIMD128 when available, otherwise portable WASM.
-        Strength/Elo presets are nominal and uncalibrated. Analysis and review
-        use full-strength analysis with the selected search/tuning limits.
-      </p>
-      <p>
-        Review compares signed before/after evaluations. It does not calculate
-        Chess.com accuracy, brilliant moves, or winning probabilities. Results
-        depend on depth, nodes, time, and tuning; a deeper review may change an
-        annotation.
-      </p>
-      <p>
-        All 11 search behaviors and 38 numeric parameters are adjustable.
-        Browser ceilings: Hash 64 MiB, MultiPV 32, depth 64. Native SMP Threads
-        and Syzygy are not available here. A review uses its own worker and
-        memory allocation, not extra search threads.
-      </p>
-    </section>
-    <section>
-      <h3>Shortcuts</h3>
-      <dl class="shortcut-list">
-        <dt>← / →</dt>
-        <dd>Previous / next position (outside the board)</dd>
-        <dt>Home / End</dt>
-        <dd>First / latest position</dd>
-        <dt>F</dt>
-        <dd>Flip the board (board/tools focused)</dd>
-        <dt>N</dt>
-        <dd>New game (board/tools focused)</dd>
-      </dl>
-    </section>
-    <section>
-      <h3>Credits & open source</h3>
-      <p>
-        Chessground: GPL-3.0-or-later. chessops: GPL-3.0-or-later. This frontend
-        is GPL-3.0-or-later. gwaymaegyi and its bundled models retain their MIT
-        notices.
-      </p>
-      <p>
-        Chessnut pieces: Alexis Luengas (Apache 2.0). Celtic: Maurizio Monge
-        (MIT). Classic: Colin M. L. Burnett (GPLv2+). DM Sans, Newsreader, and
-        DM Mono fonts: SIL Open Font License.
-      </p>
-      <div class="license-links">
-        <a
-          href="https://github.com/codewiththiha/chess"
-          target="_blank"
-          rel="noreferrer">Frontend source<ExternalLink size={12} /></a
-        ><a
-          href={`${import.meta.env.BASE_URL}licenses/GPL-3.0.txt`}
-          target="_blank"
-          rel="noreferrer">Frontend license<ExternalLink size={12} /></a
-        ><a
-          href={`${import.meta.env.BASE_URL}engine/portable/LICENSE`}
-          target="_blank"
-          rel="noreferrer">Engine license<ExternalLink size={12} /></a
-        ><a
-          href={`${import.meta.env.BASE_URL}pieces/manifest.json`}
-          target="_blank"
-          rel="noreferrer">Artwork provenance<ExternalLink size={12} /></a
-        ><a
-          href="https://github.com/codewiththiha/gwaymaegyi/tree/4e2af5f068e49bf83fe5f1522636c985355b114a"
-          target="_blank"
-          rel="noreferrer">Engine source<ExternalLink size={12} /></a
+        <a href="licenses/" target="_blank" rel="noopener"
+          >Third-party notices and license texts<ExternalLink size={14} /></a
         >
-      </div>
-      <p class="fine-print">
-        Engine revision 4e2af5f. Frontend source, build instructions, and CI
-        guides are available in the linked repository. Retain notices when
-        distributing.
       </p>
     </section>
   </div>

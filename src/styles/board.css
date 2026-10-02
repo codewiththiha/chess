@@ -264,11 +264,37 @@ cg-board piece.dragging {
 .history-controls {
   display: flex;
   align-items: center;
-  gap: 1px;
+  gap: 4px;
 }
 .board-tools .icon-button {
   width: 39px;
   min-width: 39px;
+}
+/* Board action and history buttons keep WCAG 2.2 target size and spacing. */
+.tool-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border-radius: 8px;
+  color: var(--muted);
+  transition:
+    background-color 120ms,
+    color 120ms;
+}
+.tool-button:hover {
+  background: var(--tint);
+  color: var(--color-base-content);
+}
+.tool-button:disabled {
+  color: var(--muted);
+  opacity: 0.45;
+}
+.game-actions-menu summary.tool-button {
+  cursor: pointer;
 }
 .board-caption {
   display: flex;

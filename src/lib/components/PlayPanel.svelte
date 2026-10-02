@@ -1,119 +1,136 @@
-<!-- Explain live game state and offer only actions backed by real session data. -->
+<!-- Summarize live game state and expose only actions backed by real session data. -->
 <script lang="ts">
   import {
-    Plus,
-    ShieldCheck,
-    Cpu,
     ScanSearch,
-    ChartNoAxesCombined,
     Lightbulb,
-    ArrowRight,
+    Plus,
+    ChevronDown,
+    Clock,
   } from '@lucide/svelte';
-  import { resultLabel } from '../domain/games';
+  import { resultText } from '../domain/games';
+  import { describeTime } from '../domain/time-controls';
   import { bestSan } from '../domain/chess';
   import type { Session } from '../controllers/session';
+  import type { Color } from '../domain/types';
   let { session }: { session: Session } = $props();
   const s = $derived(session.state);
+  let editing = $state(false);
+  let minutes = $state(10);
+  let increment = $state(0);
+  const status = $derived.by(() => {
+    if (s.record.result !== '*')
+      return {
+        title: s.record.termination || resultText(s.record.result),
+        detail: `${resultText(s.record.result)} · ${s.record.result}`,
+      };
+    if (s.thinking && s.pos.turn !== s.record.human)
+      return {
+        title: 'Engine thinking',
+        detail: s.report
+          ? `depth ${s.report.depth} · ${Number(s.report.nodes).toLocaleString()} nodes`
+          : 'starting the search',
+      };
+    if (!s.latest)
+      return {
+        title: `Move ${s.cursor} of ${s.record.moves.length}`,
+        detail: 'Step to the latest move to play on',
+      };
+    if (s.pos.isCheck())
+      return { title: 'Check', detail: 'Your king is attacked' };
+    return s.pos.turn === s.record.human
+      ? {
+          title: s.record.moves.length ? 'Your move' : 'Your move',
+          detail: describeTime(
+            s.record.clock.initialMs / 60000,
+            s.record.clock.incrementMs / 1000,
+          ),
+        }
+      : { title: 'Engine to move', detail: 'Waiting for its reply' };
+  });
+  function openEditor(): void {
+    minutes = Math.round(s.record.clock.initialMs / 60000);
+    increment = Math.round(s.record.clock.incrementMs / 1000);
+    editing = !editing;
+  }
+  function apply(): void {
+    try {
+      session.setTimeControl(Number(minutes) || 0, Number(increment) || 0);
+      editing = false;
+    } catch (error) {
+      session.notify(String(error), true);
+    }
+  }
+  function tune(color: Color, seconds: number): void {
+    session.addTime(color, seconds);
+  }
 </script>
 
-<section class="play-session-panel">
-  <div class="session-mode">
-    {@render SwordsMark()}<span>Play against the engine</span><span
-      class="session-time"
-      >{s.record.clock.initialMs
-        ? `${s.record.clock.initialMs / 60000} + ${s.record.clock.incrementMs / 1000}`
-        : 'Untimed'}</span
+<section class="play-card" aria-label="Game controls">
+  <div class="play-status">
+    <strong>{status.title}</strong>
+    <span>{status.detail}</span>
+  </div>
+  {#if s.hint?.bestMove}
+    <p class="hint-line">
+      <Lightbulb size={15} />Try
+      <strong>{bestSan(s.fen, s.hint.bestMove)}</strong>
+    </p>
+  {/if}
+  <div class="clock-row">
+    <button class="clock-summary" aria-expanded={editing} onclick={openEditor}
+      ><Clock size={15} />{s.timed
+        ? describeTime(
+            s.record.clock.initialMs / 60000,
+            s.record.clock.incrementMs / 1000,
+          )
+        : 'No clock'}<ChevronDown size={14} /></button
+    >
+    <button class="small-button" onclick={() => tune('white', 60)}
+      >+1m White</button
+    >
+    <button class="small-button" onclick={() => tune('black', 60)}
+      >+1m Black</button
     >
   </div>
-  <div class="game-state-box">
-    {#if s.record.result !== '*'}
-      <h2>{s.record.termination || 'Game complete'}</h2>
-      <p>{resultLabel(s.record)} · {s.record.result}</p>
-      <button class="text-action" onclick={() => session.navigate('review')}
-        >Review this game<ArrowRight size={16} /></button
+  {#if editing}
+    <div class="clock-editor">
+      <label
+        >Minutes<input
+          type="number"
+          min="0"
+          max="180"
+          aria-label="Clock minutes"
+          bind:value={minutes}
+        /></label
       >
-    {:else if !s.latest}
-      <h2>An earlier position.</h2>
-      <p>
-        You’re looking at move history. Return to the latest move to continue.
-      </p>
-      <button
-        class="text-action"
-        onclick={() => {
-          session.game.jump(s.record.moves.length);
-          session.game.resume();
-        }}>Return to game<ArrowRight size={16} /></button
+      <label
+        >Increment<input
+          type="number"
+          min="0"
+          max="120"
+          aria-label="Clock increment"
+          bind:value={increment}
+        /></label
       >
-    {:else if s.paused}
-      <h2>A moment to think.</h2>
-      <p>Your game and both clocks are paused.</p>
-      <button class="text-action" onclick={() => session.game.resume()}
-        >Resume game<ArrowRight size={16} /></button
+      <button class="btn btn-primary small-button" onclick={apply}>Apply</button
       >
-    {:else if s.thinking && s.pos.turn !== s.record.human}
-      <h2>Considering the position.</h2>
-      <p>gwaymaegyi is finding its next move.</p>
-      <div class="thinking-status">
-        <span class="status-dot"></span>{s.report
-          ? `Depth ${s.report.depth} · ${s.report.nodes} nodes`
-          : 'Starting the search'}
-      </div>
-    {:else}
-      <h2>
-        {s.pos.isCheck()
-          ? 'Your king is in check.'
-          : s.record.moves.length
-            ? 'Back to you.'
-            : 'White goes first.'}
-      </h2>
-      <p>
-        {s.pos.isCheck()
-          ? 'Move out of check, capture the checking piece, or block the attack.'
-          : s.record.moves.length
-            ? 'Take your time. The next move is yours.'
-            : 'A fresh board. Pick a piece and make your first move.'}
-      </p>
-    {/if}
-  </div>
-  {#if s.hint?.bestMove}<div class="hint-message">
-      <Lightbulb size={17} /><span
-        >Try <strong>{bestSan(s.fen, s.hint.bestMove)}</strong>. The arrow shows
-        the engine’s suggestion.</span
-      >
-    </div>{/if}
-  <button
-    class="btn btn-primary new-game-button"
-    onclick={() => session.openDialog('new')}><Plus size={18} />New game</button
-  >
-  <div class="quiet-actions">
-    <button onclick={() => session.navigate('analyze')}
-      ><ScanSearch size={16} />Explore position</button
-    ><button
-      disabled={!s.record.moves.length}
-      onclick={() => session.navigate('review')}
-      ><ChartNoAxesCombined size={16} />Review game</button
+      <span class="fine-print">Resets both clocks; 0 = untimed.</span>
+    </div>
+  {/if}
+  <div class="play-actions">
+    <button class="btn btn-outline" onclick={() => session.navigate('home')}
+      ><Plus size={16} />New game</button
     >
-  </div>
-  <div class="local-note">
-    <ShieldCheck size={16} /><span
-      >{s.storageError
-        ? 'Storage needs attention'
-        : s.saving
-          ? 'Saving your game…'
-          : s.saved
-            ? 'Saved on this device'
-            : 'Moves save automatically on this device'}</span
+    <button class="btn btn-ghost" onclick={() => session.openStudy('analyze')}
+      ><ScanSearch size={16} />Study</button
     >
-  </div>
-  <div class="engine-footnote">
-    <Cpu size={13} /><span
-      >{s.ready
-        ? `gwaymaegyi ${s.discovery?.capabilities.version} · ${s.backend === 'simd128' ? 'SIMD128' : 'Portable'} WASM`
-        : s.engineError
-          ? 'Engine unavailable'
-          : 'Loading local engine…'}</span
+    <button
+      class="btn btn-ghost"
+      disabled={!s.canMove || (s.thinking && !s.hint)}
+      onclick={() => {
+        if (s.hint) s.hint = null;
+        else session.search.run(true);
+      }}><Lightbulb size={16} />{s.hint ? 'Hide hint' : 'Hint'}</button
     >
   </div>
 </section>
-{#snippet SwordsMark()}<span class="mini-board-mark" aria-hidden="true"
-  ></span>{/snippet}

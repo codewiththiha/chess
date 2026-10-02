@@ -1,7 +1,7 @@
 // Define serializable game, preference, and review contracts shared by layers.
 import type { Color, Role } from 'chessops/types';
 export type { Color, Role } from 'chessops/types';
-export type View = 'play' | 'analyze' | 'review' | 'library';
+export type View = 'home' | 'play' | 'study';
 export type EngineMode = 'balanced' | 'aggressive' | 'human-like' | 'analysis';
 export type Backend = 'auto' | 'portable' | 'simd128';
 export type Result = '*' | '1-0' | '0-1' | '1/2-1/2';
@@ -68,7 +68,7 @@ export interface MoveEntry {
 export interface GameRecord {
   version: 1;
   id: string;
-  kind: 'play' | 'analysis';
+  kind: 'play' | 'import';
   title: string;
   createdAt: number;
   updatedAt: number;

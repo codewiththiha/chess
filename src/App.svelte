@@ -1,25 +1,17 @@
-<!-- Compose the board-first application; lifecycle and actions live in dedicated controllers. -->
+<!-- Compose the rail, board workspace, and panels; behavior lives in controllers. -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import {
-    ShieldCheck,
-    ArrowRight,
-    AlertCircle,
-    RefreshCw,
-    Upload,
-    CircleHelp,
-  } from '@lucide/svelte';
+  import { AlertCircle, RefreshCw } from '@lucide/svelte';
   import { Session } from './lib/controllers/session';
-  import Navigation from './lib/components/Navigation.svelte';
+  import Rail from './lib/components/Rail.svelte';
+  import Home from './lib/components/Home.svelte';
   import Board from './lib/components/Board.svelte';
   import PlayerRow from './lib/components/PlayerRow.svelte';
   import EvaluationBar from './lib/components/EvaluationBar.svelte';
   import BoardTools from './lib/components/BoardTools.svelte';
   import PlayPanel from './lib/components/PlayPanel.svelte';
-  import AnalysisPanel from './lib/components/AnalysisPanel.svelte';
-  import ReviewPanel from './lib/components/ReviewPanel.svelte';
+  import StudyPanel from './lib/components/StudyPanel.svelte';
   import MoveList from './lib/components/MoveList.svelte';
-  import Library from './lib/components/Library.svelte';
   import Dialogs from './lib/components/dialogs/Dialogs.svelte';
   const session = new Session();
   const s = session.state;
@@ -27,32 +19,6 @@
   const dark = $derived(
     s.preferences.appearance === 'dark' ||
       (s.preferences.appearance === 'system' && systemDark),
-  );
-  const heading = $derived(
-    s.view === 'library'
-      ? 'Your chess, kept here.'
-      : s.view === 'review'
-        ? 'A second look.'
-        : s.view === 'analyze'
-          ? 'Follow the position.'
-          : s.record.result !== '*'
-            ? 'The game is complete.'
-            : s.paused
-              ? 'Pick up where you left off.'
-              : s.pos.turn !== s.record.human
-                ? 'gwaymaegyi’s move.'
-                : 'Your move.',
-  );
-  const subtitle = $derived(
-    s.view === 'library'
-      ? 'A collection of games, not a cloud account.'
-      : s.view === 'review'
-        ? 'Find the turning points. Make the next game a little better.'
-        : s.view === 'analyze'
-          ? 'Move either side. Try an idea. Let the engine take a look.'
-          : s.record.chess960
-            ? 'Chess960. A familiar game, a different beginning.'
-            : 'Play at your pace. Your games stay on this device.',
   );
   $effect(() => {
     document.documentElement.dataset.theme = dark
@@ -70,7 +36,7 @@
       systemDark = media.matches;
     };
     media.addEventListener('change', change);
-    void session.mount().catch((e) => session.notify(String(e), true));
+    void session.mount().catch((error) => session.notify(String(error), true));
     return () => {
       media.removeEventListener('change', change);
       session.dispose();
@@ -98,7 +64,7 @@
       }
       if (event.key.toLowerCase() === 'n') {
         event.preventDefault();
-        session.openDialog('new');
+        session.navigate('home');
         return;
       }
     }
@@ -129,101 +95,63 @@
 />
 <a class="skip-link" href="#main">Skip to chess</a>
 <div class="app-shell">
-  <Navigation {session} />
-  <main id="main" class="main-content">
-    <div class="workspace-heading">
-      <div>
-        <h1>{heading}</h1>
-        <p>{subtitle}</p>
-      </div>
-      <div class="workspace-heading-action">
-        {#if s.view === 'review' || s.view === 'analyze'}<button
-            class="btn btn-outline"
-            onclick={() => session.openDialog('import')}
-            ><Upload size={16} />Import PGN</button
-          >{:else}<span class="local-engine-badge" class:ready={s.ready}
-            ><span class="status-dot"></span>{s.ready
-              ? 'Local engine'
-              : s.engineError
-                ? 'Engine offline'
-                : 'Loading engine'}</span
-          >{/if}
-      </div>
-    </div>
-    {#if s.engineError}<div class="app-banner error-banner" role="alert">
-        <AlertCircle size={18} />
-        <div>
-          <strong>Engine needs attention</strong>
-          <p>{s.engineError}</p>
-        </div>
+  <Rail {session} />
+  <main id="main">
+    {#if s.engineError}
+      <div class="app-banner error-banner" role="alert">
+        <AlertCircle size={17} />
+        <p>{s.engineError}</p>
         <button
           class="btn btn-outline small-button"
           onclick={() => void session.search.restart()}
-          ><RefreshCw size={15} />Restart engine</button
+          ><RefreshCw size={14} />Restart engine</button
         >
-      </div>{/if}
-    {#if s.storageError}<div class="app-banner storage-banner" role="alert">
-        <AlertCircle size={18} />
+      </div>
+    {/if}
+    {#if s.storageError}
+      <div class="app-banner storage-banner" role="alert">
+        <AlertCircle size={17} />
         <p>{s.storageError}</p>
         <button class="text-action" onclick={() => session.exportCurrent()}
           >Export game</button
         >
-      </div>{/if}
-    {#if s.view === 'library'}<Library {session} />{:else}
-      <div class="chess-workspace">
+      </div>
+    {/if}
+    {#if s.view === 'home'}
+      <Home {session} />
+    {:else}
+      <div class="workspace">
         <section class="board-column" aria-label="Board and players">
-          <div class="board-shell">
+          <!-- aria-busy: the board is only interactive once the engine is ready. -->
+          <div class="board-shell" aria-busy={!s.ready}>
             <PlayerRow
               {session}
               color={s.orientation === 'white' ? 'black' : 'white'}
             />
-            <div class="board-with-evaluation">
-              {#if s.preferences.evaluation}<EvaluationBar
-                  {session}
-                />{/if}<Board {session} />
+            <div class="board-frame">
+              <div class="board-with-evaluation">
+                {#if s.preferences.evaluation}<EvaluationBar
+                    {session}
+                  />{/if}<Board {session} />
+              </div>
             </div>
-            <PlayerRow {session} color={s.orientation} /><BoardTools
-              {session}
-            />
-            <div class="board-caption">
-              <span
-                >{s.pos.isCheck()
-                  ? 'Check'
-                  : s.view === 'review'
-                    ? `Position ${s.cursor} of ${s.record.moves.length}`
-                    : s.pos.turn === 'white'
-                      ? 'White to move'
-                      : 'Black to move'}</span
-              ><button onclick={() => session.openDialog('help')}
-                >Tap or drag · keyboard friendly<CircleHelp size={13} /></button
-              >
-            </div>
+            <PlayerRow {session} color={s.orientation} />
+            <BoardTools {session} />
           </div>
         </section>
         <aside
           class="side-panel"
           aria-label={s.view === 'play'
             ? 'Game controls and moves'
-            : s.view === 'analyze'
-              ? 'Engine analysis and moves'
-              : 'Game review and moves'}
+            : 'Study and moves'}
         >
-          {#if s.view === 'play'}<PlayPanel {session} /><MoveList
-              {session}
-            />{:else if s.view === 'analyze'}<AnalysisPanel
-              {session}
-            /><MoveList {session} />{:else}<ReviewPanel {session} /><MoveList
+          {#if s.view === 'play'}<PlayPanel {session} />{:else}<StudyPanel
               {session}
             />{/if}
+          <MoveList {session} />
         </aside>
       </div>
     {/if}
-    <footer class="app-footer">
-      <span><ShieldCheck size={14} />No account. No uploads. Just chess.</span
-      ><button onclick={() => session.openDialog('help')}
-        >About & credits<ArrowRight size={13} /></button
-      >
-    </footer>
   </main>
 </div>
 <Dialogs {session} />

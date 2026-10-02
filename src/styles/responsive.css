@@ -1,137 +1,111 @@
-/* Preserve full-size interaction targets and remove horizontal overflow on narrow screens. */
+/* Keep the desktop shell inside the viewport and let small screens scroll. */
 @media (min-width: 1000px) {
-  .app-header {
-    height: 76px;
-  }
-  .main-content {
-    padding-top: 26px;
-  }
-  .workspace-heading {
-    max-width: min(1014px, calc(100svh + 20px));
-    margin-inline: auto;
-    margin-bottom: 24px;
-  }
-  .workspace-heading h1 {
-    font-size: 40px;
-  }
-  .chess-workspace {
-    max-width: min(1014px, calc(100svh + 20px));
-    margin-inline: auto;
-  }
   .player-row {
-    min-height: 54px;
-    padding-block: 8px;
+    min-height: 50px;
+    padding-block: 5px;
   }
   .player-avatar {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
   }
   .chess-clock {
-    padding-block: 10px;
     font-size: 25px;
-  }
-  .board-caption {
-    padding-top: 4px;
-  }
-  .app-footer {
-    max-width: min(1014px, calc(100svh + 20px));
-    margin-inline: auto;
-  }
-}
-@media (max-width: 1150px) {
-  .app-header {
-    margin-inline: 28px;
-  }
-  .desktop-nav button {
-    padding-inline: 12px;
-  }
-  .brand-kind {
-    display: none;
-  }
-  .wordmark {
-    font-size: 24px;
+    padding-block: 9px;
   }
 }
 @media (max-width: 999px) {
-  .app-header {
-    margin-inline: 24px;
-    height: 76px;
+  body {
+    overflow: auto;
   }
-  .main-content {
-    padding: 27px 24px 25px;
-    max-width: 870px;
+  .app-shell {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100dvh;
+    padding-bottom: 74px;
   }
-  .chess-workspace {
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 26px;
-  }
-  .workspace-heading h1 {
-    font-size: 36px;
-  }
-  .workspace-heading p {
-    font-size: 12px;
-  }
-  .desktop-nav {
+  .rail {
+    position: fixed;
+    inset: auto 0 0 0;
+    flex-direction: row;
+    justify-content: space-around;
     gap: 0;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    border-right: 0;
+    border-top: 1px solid var(--line);
+    z-index: 40;
   }
-  .desktop-nav button {
-    padding-inline: 9px;
-    font-size: 12px;
-  }
-  .desktop-nav button svg {
+  .rail-mark {
     display: none;
   }
-  .help-button {
-    display: none;
-  }
-  .brand {
-    gap: 9px;
-  }
-  .wordmark {
-    font-size: 23px;
-  }
-  .chess-clock {
-    font-size: 23px;
-    min-width: 101px;
-    padding-inline: 11px;
-  }
-  .player-avatar {
-    width: 33px;
-    height: 33px;
-  }
-  .player-row {
-    min-height: 56px;
-    padding-block: 9px;
-  }
-  .board-tools {
-    flex-wrap: wrap;
-    justify-content: center;
-    row-gap: 0;
-  }
-  .board-caption button {
-    font-size: 9px;
-  }
-  .play-session-panel,
-  .analysis-section,
-  .review-section {
-    padding-inline: 19px;
-  }
-  .game-state-box h2 {
-    font-size: 24px;
-  }
-  .quiet-actions button {
-    font-size: 10px;
+  .rail-group {
+    flex-direction: row;
     gap: 4px;
   }
-  .quiet-actions button svg {
-    width: 14px;
+  .rail-bottom {
+    margin-top: 0;
   }
-  .analysis-actions {
-    gap: 4px;
+  .rail-button.active::before {
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: -6px;
+    width: auto;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
   }
-  .analysis-actions .btn {
-    font-size: 10px;
-    padding-inline: 9px;
+  .workspace {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 8px 12px 18px;
+  }
+  .board-shell {
+    width: 100%;
+  }
+  .board-with-evaluation {
+    gap: 6px;
+  }
+  .evaluation-rail {
+    width: 7px;
+    flex-basis: 7px;
+  }
+  .side-panel {
+    margin: 0;
+    max-height: none;
+  }
+  .side-panel > .play-card,
+  .side-panel > .study-card {
+    max-height: none;
+    overflow: visible;
+  }
+  .move-list {
+    max-height: 330px;
+  }
+  .home {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 10px 12px 18px;
+  }
+  .home-start {
+    gap: 12px;
+  }
+  .home-games {
+    max-height: none;
+  }
+  .time-group {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .start-button {
+    margin-left: 0;
+  }
+  .saved-games {
+    max-height: 420px;
+  }
+  .app-banner {
+    margin: 8px 12px 0;
+  }
+  .app-toast {
+    bottom: 84px;
   }
 }
 @media (max-width: 760px) {
@@ -142,431 +116,58 @@
   .parameter-search input {
     font-size: 16px;
   }
-  body {
-    padding-bottom: calc(74px + env(safe-area-inset-bottom));
-  }
-  .app-header {
-    margin-inline: 20px;
-    height: 70px;
-  }
-  .brand img {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-  }
-  .wordmark {
-    font-size: 24px;
-  }
-  .header-actions {
-    gap: 0;
-  }
-  .header-actions .icon-button {
-    width: 38px;
-    min-width: 38px;
-  }
-  .desktop-nav {
-    display: none;
-  }
-  .main-content {
-    padding: 23px 20px 20px;
-    max-width: 600px;
-  }
-  .workspace-heading {
-    margin-bottom: 18px;
-    align-items: start;
-    gap: 12px;
-  }
-  .workspace-heading h1 {
-    font-size: 34px;
-    line-height: 1.12;
-    margin-bottom: 7px;
-  }
-  .workspace-heading p {
-    font-size: 11px;
-    line-height: 1.65;
-    max-width: 330px;
-  }
-  .workspace-heading-action {
-    padding-top: 5px;
-  }
-  .workspace-heading-action .btn {
-    font-size: 10px;
-    padding-inline: 10px;
-    height: 37px;
-    min-height: 37px;
-  }
-  .workspace-heading-action .btn svg {
-    display: none;
-  }
-  .local-engine-badge {
-    border: 0;
-    padding: 0;
-    white-space: nowrap;
-    font-size: 9px;
-    gap: 5px;
-  }
-  .chess-workspace {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-  .board-shell {
-    max-width: none;
-  }
-  .board-with-evaluation {
-    gap: 6px;
-  }
-  .evaluation-rail {
-    width: 6px;
-    flex-basis: 6px;
-  }
   .player-row {
-    padding-left: 12px;
-    min-height: 55px;
+    padding-left: 8px;
+    min-height: 52px;
     gap: 9px;
-  }
-  .player-name {
-    font-size: 13px;
-  }
-  .player-meta {
-    font-size: 9px;
   }
   .player-avatar {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
   }
   .chess-clock {
-    font-size: 23px;
-    min-width: 100px;
-    padding-block: 9px;
+    font-size: 20px;
+    min-width: 84px;
+    padding: 7px 9px;
   }
   .board-tools {
-    margin-left: 0;
     justify-content: space-between;
-    gap: 0;
-  }
-  .board-utilities {
-    gap: 0;
-  }
-  .board-tools .icon-button {
-    width: 37px;
-    min-width: 37px;
-    height: 42px;
-    min-height: 42px;
-  }
-  .history-controls {
-    margin-inline: auto;
-  }
-  .board-caption {
-    padding-left: 12px;
-    padding-top: 5px;
-  }
-  .board-caption button {
-    font-size: 9px;
-  }
-  .side-panel {
-    margin: 0;
-    border-radius: 10px;
-  }
-  .play-session-panel,
-  .analysis-section,
-  .review-section {
-    padding: 22px;
-  }
-  .quiet-actions {
-    justify-content: center;
-    gap: 22px;
-  }
-  .quiet-actions button {
-    font-size: 11px;
-  }
-  .game-state-box {
-    min-height: 0;
-    padding-block: 22px;
-  }
-  .notation-empty {
-    padding-bottom: 28px;
+    flex-wrap: wrap;
+    row-gap: 0;
   }
   .move-cell {
-    min-height: 44px;
+    min-height: 42px;
   }
-  .move-list {
-    max-height: 310px;
-  }
-  .mobile-nav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 30;
-    border-top: 1px solid var(--line);
-    background: var(--color-base-100);
-    padding: 7px 14px calc(8px + env(safe-area-inset-bottom));
-    justify-content: space-around;
-  }
-  .mobile-nav button {
-    flex: 1;
-    max-width: 120px;
-    min-height: 49px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    font-size: 10px;
-    color: var(--muted);
-  }
-  .mobile-nav button.active {
-    color: var(--color-primary);
-    font-weight: 650;
-  }
-  .mobile-nav button.active svg {
-    stroke-width: 2.4;
-  }
-  .app-footer {
-    margin-top: 26px;
-    font-size: 9px;
-    align-items: center;
-  }
-  .app-footer > span {
-    max-width: 195px;
-    line-height: 1.6;
-  }
-  .app-toast {
-    bottom: calc(90px + env(safe-area-inset-bottom));
-    font-size: 12px;
-    text-align: center;
-  }
-  .app-banner {
-    padding: 12px;
-    gap: 9px;
-    align-items: start;
-    flex-wrap: wrap;
-  }
-  .app-banner .btn {
-    margin-left: 25px;
-  }
-  .library-toolbar {
-    flex-direction: column;
-    gap: 12px;
-    padding-top: 8px;
-  }
-  .library-search {
-    max-width: none;
-  }
-  .library-buttons .btn {
-    flex: 1;
-    font-size: 11px;
-  }
-  .library-filters {
-    gap: 17px;
-    font-size: 11px;
+  .move-row {
+    grid-template-columns: 28px 1fr 1fr;
   }
   .saved-game {
-    gap: 12px;
-    padding-block: 18px;
     flex-wrap: wrap;
   }
-  .mini-board {
-    width: 66px;
-    height: 66px;
-  }
-  .saved-game-info {
-    max-width: calc(100% - 78px);
-  }
-  .saved-game-title {
-    font-size: 14px;
-  }
-  .saved-game-info > p {
-    font-size: 11px;
-    margin-bottom: 6px;
-  }
-  .saved-game-meta {
-    gap: 8px;
-    font-size: 9px;
-  }
-  .saved-game-actions {
+  .saved-actions {
     width: 100%;
-    justify-content: end;
-    margin-top: -5px;
+    justify-content: flex-end;
   }
-  .saved-game-actions .icon-button {
-    width: 34px;
-    min-width: 34px;
-    height: 36px;
-    min-height: 36px;
+  .side-panel {
+    border-radius: 10px;
   }
-  .storage-note {
-    flex-wrap: wrap;
-  }
-  .storage-note .text-action {
-    margin-left: 30px;
-  }
-  .library-empty {
-    padding: 42px 10px 54px;
-  }
-  .library-empty h2 {
-    font-size: 29px;
-  }
-  .library-empty p {
-    font-size: 12px;
-  }
-  .modal-box {
-    padding: 21px;
-    max-height: calc(100svh - 28px);
-    width: calc(100% - 24px);
-  }
-  .dialog-heading {
-    margin-bottom: 21px;
-  }
-  .dialog-heading h2 {
-    font-size: 28px;
-  }
-  .dialog-heading p {
-    font-size: 11px;
-  }
-  .field-pair {
-    gap: 11px;
-  }
-  .settings-tabs {
-    gap: 18px;
-  }
-  .settings-tabs button {
-    font-size: 11px;
-    gap: 5px;
-  }
-  .settings-footer {
-    bottom: -21px;
-    gap: 5px;
-  }
-  .settings-footer > .fine-print {
-    font-size: 9px;
-    max-width: 90px;
-  }
-  .settings-footer .btn {
-    padding-inline: 11px;
-    font-size: 11px;
-  }
-  .compute-presets {
-    gap: 7px;
-  }
-  .compute-presets button {
-    padding: 12px 8px;
-  }
-  .compute-presets strong {
-    font-size: 11px;
-  }
-  .compute-presets span {
-    font-size: 9px;
-  }
-  .behavior-grid {
-    grid-template-columns: 1fr;
-  }
-  .behavior-row {
-    min-height: 44px;
-    font-size: 12px;
-  }
-  .parameter-grid {
-    gap: 15px 12px;
-  }
-  .parameter-grid code {
-    font-size: 10px;
-    overflow-wrap: anywhere;
-  }
-  .board-choices {
-    gap: 7px;
-  }
-  .board-choices button {
-    padding: 11px 5px;
-  }
-  .piece-choices > button {
-    gap: 10px;
-    padding: 11px;
-  }
-  .piece-atlas img {
-    width: 25px;
-    height: 32px;
-  }
-  .piece-set-name small {
-    font-size: 8px;
-  }
-  .variant-note {
-    flex-wrap: wrap;
-  }
-  .variant-note .text-action {
-    margin-left: 28px;
-  }
-  .file-picker {
-    padding: 15px 11px;
+  .start-row {
     gap: 9px;
-  }
-  .file-picker > svg {
-    width: 20px;
-  }
-  .file-picker > span {
-    font-size: 12px;
-  }
-  .file-picker input {
-    width: 78px;
-  }
-  .file-picker input::file-selector-button {
-    padding-inline: 8px;
-    font-size: 10px;
   }
 }
 @media (max-width: 380px) {
-  .app-header {
-    margin-inline: 15px;
+  .rail-button {
+    width: 42px;
+    height: 42px;
   }
-  .brand {
-    gap: 8px;
-  }
-  .wordmark {
-    font-size: 22px;
-  }
-  .main-content {
-    padding-inline: 15px;
-  }
-  .workspace-heading h1 {
-    font-size: 31px;
-  }
-  .local-engine-badge {
-    font-size: 8px;
-  }
-  .board-tools .icon-button {
-    width: 35px;
-    min-width: 35px;
+  .time-chip {
+    font-size: 12px;
+    padding: 6px 9px;
   }
   .player-meta {
-    font-size: 8px;
+    font-size: 9px;
   }
-  .chess-clock {
-    min-width: 93px;
-    font-size: 22px;
-  }
-  .board-caption button {
-    font-size: 8px;
-    gap: 4px;
-  }
-  .piece-atlas img {
-    width: 20px;
-  }
-  .piece-set-name {
-    font-size: 11px;
-  }
-  .piece-choices > button {
+  .saved-game {
     gap: 8px;
-  }
-  .board-choices button {
-    font-size: 10px;
-  }
-  .settings-tabs {
-    gap: 12px;
-  }
-  .settings-tabs button svg {
-    width: 14px;
-  }
-  .dialog-heading h2 {
-    font-size: 26px;
   }
 }

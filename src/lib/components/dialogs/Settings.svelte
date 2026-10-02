@@ -86,11 +86,14 @@
           engine={draft.engine}
           discovery={s.discovery}
           chess960={s.record.chess960}
-          onvariant={() => session.openDialog('new')}
+          onvariant={() => {
+            session.closeDialog();
+            session.navigate('home');
+          }}
         />{:else if tab === 'performance'}<ComputeControls
           compute={draft.engine.compute}
           discovery={s.discovery}
-          running={s.thinking && s.view === 'analyze'}
+          running={s.thinking && s.view === 'study'}
         />{:else}<TuningControls
           engine={draft.engine}
           discovery={s.discovery}

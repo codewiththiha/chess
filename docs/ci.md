@@ -9,8 +9,11 @@ Actions: https://github.com/codewiththiha/chess/actions
 request**. Its Run workflow form supports deliberately smaller manual runs.
 `.github/workflows/verify.yml` is a reusable workflow containing the actual jobs.
 The shared `.github/actions/node-environment/action.yml` selects `.node-version`
-and runs `npm ci` against the committed lockfile. No Rust compilation is involved;
+and runs `npm ci` against the committed lockfile. These jobs compile no Rust;
 unit/browser jobs execute the existing checksum-recorded WASM packages.
+`.github/workflows/desktop.yml` is a separate workflow for the Tauri shell, so a
+frontend run never waits on a Rust toolchain and a shell failure never hides the
+web gates.
 
 Automatic events ignore manual filter/skip settings and run every gate. There are
 no changed-file heuristics, hidden commit-message bypasses, or `continue-on-error`
@@ -26,6 +29,13 @@ nothing is an error, not a green check.
 | Browser (desktop/mobile)   | Independent jobs test the same downloaded production build with Chromium                 |
 | Commit messages            | Validates actual source commits rather than GitHub's synthetic PR merge message          |
 | Full/Selected verification | Fails on any selected gate's failure, cancellation, or unexpected skip                   |
+
+The `Desktop` workflow builds `npm run build`, checks `cargo fmt`, runs
+`cargo clippy` with warnings denied, compiles the shell with `--locked` against
+the committed `Cargo.lock`, and uploads the binary. It triggers on pushes that
+touch the frontend or `src-tauri/`, on pull requests, and by manual dispatch,
+which can additionally produce `deb`, `rpm`, and `appimage` bundles. Only that
+workflow is evidence for desktop compilation; the web gates say nothing about it.
 
 The browser projects use one Playwright worker each, no retries, and independent
 runners; one project's failure does not cancel the other. A build failure prevents

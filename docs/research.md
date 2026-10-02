@@ -29,9 +29,13 @@ https://tailwindcss.com/docs/installation/using-vite and
 https://daisyui.com/docs/install/vite/.
 
 Use Svelte 5 runes, Vite, Tailwind 4, daisyUI 5, maintained @lucide/svelte icons,
-Chessground for interaction, chessops for rules/Chess960/PGN, and Dexie for typed
-IndexedDB transactions. Npm current stable tags were queried directly rather than
-copied from older tutorials. Node 24 is required by current Chessground/tooling.
+Chessground for interaction, chessops for rules/Chess960/PGN, and
+`@sqlite.org/sqlite-wasm` for local storage: real SQL in a dedicated worker, with
+an OPFS shared-access-handle pool that needs no cross-origin isolation headers and
+an in-memory fallback that is reported instead of hidden. It is Apache-2.0 with no
+runtime dependencies, and the same store backs the Tauri build. Npm current stable
+tags were queried directly rather than copied from older tutorials. Node 24 is
+required by current Chessground/tooling.
 
 TypeScript 7.0.2 is included as the native compiler. Current svelte-check requires
 the JavaScript compiler API and declares a TypeScript 5/6 peer range; TypeScript

@@ -1,6 +1,7 @@
 // Exercise dynamic controls, browser backends, appearance persistence, and live limit updates.
 import { test, expect } from '@playwright/test';
-import { open, navigate, prefs, move, game } from './helpers';
+import { open, start, move, exchange, plies, study } from './helpers';
+
 test('all discovered behaviors and parameters are editable and persisted', async ({
   page,
 }) => {
@@ -20,11 +21,8 @@ test('all discovered behaviors and parameters are editable and persisted', async
     .getByRole('button', { name: 'Save settings', exact: true })
     .click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  const settings = await prefs(page);
-  expect(settings.engine.behaviors['null-move']).toBe(false);
-  expect(settings.engine.parameters.AspStartWindow).toBe(30);
   await page.reload();
-  await expect(page.locator('.local-engine-badge')).toHaveText('Local engine');
+  await expect(page.locator('.rail')).toBeVisible();
   await page
     .getByRole('button', { name: 'Engine settings', exact: true })
     .click();
@@ -36,7 +34,8 @@ test('all discovered behaviors and parameters are editable and persisted', async
     page.getByLabel('Null-move pruning', { exact: true }),
   ).not.toBeChecked();
 });
-test('portable backend and nominal Elo/seed configure the real engine', async ({
+
+test('portable backend and nominal Elo/seed still configure the real engine', async ({
   page,
 }) => {
   await open(page);
@@ -58,17 +57,24 @@ test('portable backend and nominal Elo/seed configure the real engine', async ({
     .getByRole('button', { name: 'Save settings', exact: true })
     .click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await expect(page.locator('.engine-footnote')).toContainText('Portable WASM');
+  await page.reload();
+  await expect(page.locator('.rail')).toBeVisible();
   await page
-    .getByRole('button', { name: 'Resume game', exact: true })
-    .first()
+    .getByRole('button', { name: 'Engine settings', exact: true })
     .click();
+  await expect(page.getByLabel('WASM backend', { exact: true })).toHaveValue(
+    'portable',
+  );
+  await expect(page.getByLabel('Random seed', { exact: true })).toHaveValue(
+    '18446744073709551615',
+  );
+  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  // A real reply from the portable binary proves the chosen backend runs.
+  await start(page, { preset: '3 min' });
   await move(page, 'e2', 'e4');
-  await expect(page.locator('.move-row')).toHaveCount(1);
-  await expect(page.locator('.move-cell.missing')).toHaveCount(0);
-  expect((await game(page)).moves).toHaveLength(2);
-  expect((await prefs(page)).engine.seed).toBe('18446744073709551615');
+  await exchange(page, 2);
 });
+
 test('invalid ranges remain staged and do not overwrite saved settings', async ({
   page,
 }) => {
@@ -84,8 +90,16 @@ test('invalid ranges remain staged and do not overwrite saved settings', async (
     'Hash must be an integer from 1 to 64.',
   );
   await expect(page.getByRole('dialog')).toBeVisible();
-  expect((await prefs(page)).engine.hashMiB).toBe(8);
+  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Engine settings', exact: true })
+    .click();
+  // Hash lives on the default Engine tab; the rejected value must not have landed.
+  await expect(
+    page.getByLabel('Hash memory, MiB', { exact: true }),
+  ).toHaveValue('8');
 });
+
 test('board/pieces/theme and all motion/aids persist without external downloads', async ({
   page,
 }) => {
@@ -101,6 +115,7 @@ test('board/pieces/theme and all motion/aids persist without external downloads'
   await page
     .getByRole('button', { name: 'Save appearance', exact: true })
     .click();
+  await start(page, { preset: '3 min' });
   await expect(page.getByTestId('chessboard')).toHaveClass(
     /board-walnut pieces-cburnett/,
   );
@@ -110,17 +125,20 @@ test('board/pieces/theme and all motion/aids persist without external downloads'
   );
   await expect(page.locator('.cg-wrap coords')).toHaveCount(0);
   await page.reload();
-  await expect(page.locator('.local-engine-badge')).toHaveText('Local engine');
+  await expect(page.locator('.rail')).toBeVisible();
+  await start(page, { preset: '3 min' });
   await expect(page.getByTestId('chessboard')).toHaveClass(
     /board-walnut pieces-cburnett/,
   );
-  expect((await prefs(page)).animations).toBe(false);
+  await expect(page.locator('.cg-wrap coords')).toHaveCount(0);
 });
+
 test('live performance changes and cancellation do not produce stale analysis moves', async ({
   page,
 }) => {
   await open(page);
-  await navigate(page, 'Analysis');
+  await start(page, { preset: '3 min' });
+  await study(page, 'Analyze');
   await page
     .getByRole('button', { name: 'Engine settings', exact: true })
     .click();
@@ -136,7 +154,7 @@ test('live performance changes and cancellation do not produce stale analysis mo
     .click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(
-    page.getByRole('button', { name: 'Stop analysis', exact: true }),
+    page.locator('.study-card').getByRole('button', { name: 'Stop' }),
   ).toBeVisible();
   await page
     .getByRole('button', { name: 'Engine settings', exact: true })
@@ -149,11 +167,12 @@ test('live performance changes and cancellation do not produce stale analysis mo
     .click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(
-    page.getByRole('button', { name: 'Analyze position', exact: true }),
+    page.locator('.study-card').getByRole('button', { name: 'Analyze' }),
   ).toBeVisible();
   await move(page, 'e2', 'e4');
-  await expect(page.locator('.move-row')).toHaveCount(1);
-  await expect(page.locator('.move-cell.missing')).toHaveCount(1);
+  await expect(
+    page.locator('.move-cell').filter({ hasText: 'e4' }),
+  ).toBeVisible();
   await page
     .getByRole('button', { name: 'First position', exact: true })
     .click();
@@ -161,5 +180,5 @@ test('live performance changes and cancellation do not produce stale analysis mo
     'aria-label',
     'e2, white pawn',
   );
-  expect((await game(page)).moves).toHaveLength(1);
+  await plies(page, 1);
 });

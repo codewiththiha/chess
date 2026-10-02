@@ -8,34 +8,35 @@ it does not establish a second source of chess rules.
 
 ```text
 UI components → Session → GameActions / SearchController / ReviewController
-                       → PersistenceController → ChessDatabase → IndexedDB
+                       → PersistenceController → ChessDatabase → SQLite (wasm worker)
 Rules, PGN, clocks, and grading ← pure domain functions
 EngineClient → WorkerTransport → bridge-worker → verified Rust-built WASM
 ```
 
-| Layer                                        | Responsibility                                                                         |
-| -------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `domain/chess.ts`, `chess960.ts`             | Legal chessops positions/moves, SAN/UCI, repetition, material, all 960 starts          |
-| `domain/games.ts`, `pgn.ts`                  | Game construction/outcomes and bounded legal mainline import/export                    |
-| `domain/clocks.ts`                           | Monotonic elapsed time, settling, increments, paused snapshots                         |
-| `domain/preferences.ts`, `review.ts`         | Exact resource validation, defaults, side-correct evaluation and heuristic grading     |
-| `data/validation.ts`, `review-validation.ts` | Decode unknown saved data before it can affect playable state or annotations           |
-| `data/database.ts`, `errors.ts`              | Dexie tables/transactions; distinguish corrupt data from storage I/O failure           |
-| `engine/protocol.ts`, `types.ts`             | Validate cross-worker discovery/report contracts                                       |
-| `engine/transport.ts`                        | Worker lifecycle, Auto fallback, request identity, cancellation, timeout/error cleanup |
-| `engine/client.ts`                           | Serialize policy changes and translate settings to actual browser SDK commands         |
-| `state/app.svelte.ts`                        | One reactive application state, derived positions, plain snapshot boundaries           |
-| `controllers/game.ts`                        | Legal actions, turn/history transitions, clock expiry, archived-play backup            |
-| `controllers/search.ts`                      | Generation-checked play/hint/analysis searches and clock-aware budgets                 |
-| `controllers/review.ts`                      | Independent review worker, per-position evaluation, cache/resume                       |
-| `controllers/persistence.ts`                 | Snapshot saves, restoration, import/archive operations, truthful storage errors        |
-| `controllers/session.ts`                     | Lifecycle/action orchestration; not engine internals or a second rules implementation  |
-| `components/`, `styles/`                     | Accessible input/rendering, staged dialogs, responsive tokens and layout               |
+| Layer                                            | Responsibility                                                                            |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `domain/chess.ts`, `chess960.ts`                 | Legal chessops positions/moves, SAN/UCI, repetition, material, all 960 starts             |
+| `domain/games.ts`, `pgn.ts`                      | Game construction/outcomes and bounded legal mainline import/export                       |
+| `domain/clocks.ts`                               | Monotonic elapsed time, continuous running clocks, settling, increments                   |
+| `domain/time-controls.ts`, `identity.ts`         | Presets/classification and the start-date + move-sequence game identity                   |
+| `domain/preferences.ts`, `review.ts`             | Exact resource validation, defaults, side-correct evaluation and heuristic grading        |
+| `data/validation.ts`, `review-validation.ts`     | Decode unknown saved data before it can affect playable state or annotations              |
+| `data/sql-handle.ts`, `sqlite-worker.ts`         | SQL schema, duplicate merging, one-review-per-game rows; OPFS worker with memory fallback |
+| `data/sql-client.ts`, `database.ts`, `errors.ts` | Request identity, validated decode/encode, corrupt data versus storage I/O failure        |
+| `engine/protocol.ts`, `types.ts`                 | Validate cross-worker discovery/report contracts                                          |
+| `engine/transport.ts`                            | Worker lifecycle, Auto fallback, request identity, cancellation, timeout/error cleanup    |
+| `engine/client.ts`                               | Serialize policy changes and translate settings to actual browser SDK commands            |
+| `state/app.svelte.ts`                            | One reactive application state, derived positions, plain snapshot boundaries              |
+| `controllers/game.ts`                            | Legal actions, turn/history transitions, clock expiry, one-record play/study switching    |
+| `controllers/search.ts`                          | Generation-checked play/hint/analysis searches and clock-aware budgets                    |
+| `controllers/review.ts`                          | Independent review worker, per-position evaluation, cache/resume                          |
+| `controllers/persistence.ts`                     | Snapshot saves, restoration, import/archive operations, truthful storage errors           |
+| `controllers/session.ts`                         | Lifecycle/action orchestration; not engine internals or a second rules implementation     |
+| `components/`, `styles/`                         | Accessible input/rendering, staged dialogs, responsive tokens and layout                  |
 
-Most authored components/modules stay below 250 lines. Game orchestration is a
-small exception because its archived-play backup must remain privately owned;
-separation is by responsibility, not arbitrary line splitting. Styles, vendored
-code, and license texts are not part of that component-size guideline.
+Most authored components/modules stay below 250 lines. Separation is by
+responsibility, not arbitrary line splitting. Styles, vendored code, and license
+texts are not part of that component-size guideline.
 
 ## Position and move invariants
 
@@ -50,11 +51,14 @@ legal SAN/FEN are reconstructed, and size/numeric/variant limits are checked.
 Archive summaries validate their display fields and preview position without
 replaying every game on every autosave; opening a record performs full replay.
 
-Play, study, and review share one legal record, not independent board models.
-Entering analysis preserves a paused play backup and creates a new record identity.
-Branches truncate only the analysis copy. Opening an archived game for analysis
-also copies it. Deletion forgets active/backup snapshots **before** deleting the
-IndexedDB row, preventing later navigation/autosaves from resurrecting it.
+Play, study, and review share **one** legal record, not independent board models.
+Switching to Study keeps the same record identity; a move made from an earlier
+cursor truncates that record's tail, exactly like a real branch. Opening a saved
+game loads that record instead of copying it, so a game is never stored twice.
+Identity is `startedAt` + start position + the exact UCI sequence, so a genuinely
+identical replay merges into the surviving row (its review moves with it).
+Deletion forgets the active record **before** deleting the row, preventing later
+navigation/autosaves from resurrecting it.
 
 ## Board input
 
@@ -111,26 +115,47 @@ UI ticks update display at 100 ms, but remaining time derives from elapsed time.
 A move rechecks expiry before acceptance. Increments belong to the completed actor.
 Timeout is a draw when the opponent has insufficient mating material.
 
-Clocks start for a ready new game, pause for history/mode changes, and restore
-paused. IndexedDB receives snapshots with no live anchor. Completed actions save
-immediately; active clocks also autosave every 10 seconds. Before-unload saving
-is best effort and only occurs after initialization for a running/pending game.
-It never writes the initial placeholder over unread saved preferences.
+Clocks start when a timed game is ready and keep running while the app is open,
+including while another view is on screen; there is no pause control and a
+timeless game (0 minutes) is chosen before the first move. The database receives
+snapshots with no live anchor. Completed actions save immediately; active clocks
+also autosave every 10 seconds. Before-unload saving is best effort and never
+writes the initial placeholder over unread saved preferences.
 
-Dexie database `gwaymaegyi-chess`, schema v1:
+SQLite database `gwaymaegyi-chess.sqlite3` (OPFS shared-access-handle pool inside
+the SQLite worker, `/gwaymaegyi-chess` directory):
 
-- `games`: `id, updatedAt, createdAt, kind, result`
-- `reviews`: `gameId, updatedAt`
-- `settings`: `key` (`preferences` contains a versioned value)
+- `games`: `id` PK, `dedupe` (identity), title/kind, `created_at`/`updated_at`,
+  start FEN, chess960, sides, result/termination, moves, clock, engine level,
+  headers, `reviewed`
+- `reviews`: `game_id` PK referencing one game, fingerprint, engine revision,
+  depth, node budget, time limit, completeness, points
+- `settings`: key/value rows (`preferences` holds a versioned value)
 
-Game/review deletion is one read-write transaction. Multi-game import is atomic
-and legally validated before insertion. Zero-ply records are omitted from the
-archive listing, not treated as completed games.
+Indexes cover the dedupe key and recency. Duplicate play merges into the oldest
+row, keeping a single review. Multi-game import is legally validated before
+insertion. Zero-ply records are omitted from the listing, not treated as games.
 
 Corrupt preferences fall back to defaults while the archive still loads. An
 invalid active record is not installed. Corrupt reviews are rejected with a
 fresh-review action. I/O failures get a storage banner; preferences that cannot
 be stored are described as session-only, never toasted as successfully saved.
+
+## Desktop shell
+
+`src-tauri/` hosts the identical production bundle in a Tauri window. The shell
+adds no storage, rules, or interface code: the embedded `dist/` runs the same
+SQLite WASM database, the same engine packages, and the same one-record rules.
+The only native surface is `desktop_info`, which answers with the shell name,
+version, and storage wording so the Help dialog can describe its host; the browser
+build never loads that module because the Tauri API is imported lazily behind a
+host check.
+
+Storage therefore stays origin-scoped (the webview's OPFS, or the reported
+session-only fallback) rather than becoming a second, native-only database that
+could drift from the browser semantics. Rust is compiled only by the `Desktop`
+workflow, which builds the real frontend first and then lints and compiles the
+shell with warnings denied; the ordinary web gates never require a Rust toolchain.
 
 ## Review evidence
 
@@ -168,14 +193,16 @@ uses the same production artifact for isolated desktop/mobile jobs;
 To update the engine: obtain verified upstream packages, update checksums and
 revision metadata together, rediscover/validate control bounds, preserve notices,
 and rerun both binaries plus browser recovery/cancellation tests. Do not edit
-vendor files to make frontend tests pass. No frontend build compiles Rust.
+vendor files to make frontend tests pass. The website build never compiles Rust;
+the desktop shell is compiled separately by its own workflow.
 
 Serve static production output with WASM MIME support and module workers. Relative
 base URLs are used for UI assets/worker boot; choose Vite's base at build time for
-a subdirectory deployment. No cross-origin isolation/SharedArrayBuffer requirement
-is introduced. A CSP must allow own-origin module workers, WASM compilation, and
+a subdirectory deployment. The shared-access-handle pool exists precisely so no
+cross-origin isolation/SharedArrayBuffer headers are required. A CSP must allow own-origin module workers, WASM compilation, and
 the board's inline style attributes; do not block the intended embedding context.
 
-IndexedDB belongs to the browser origin. Multi-tab conflict resolution, remote
+The SQLite database belongs to the browser origin (OPFS, or memory for the
+session when persistence is unavailable). Multi-tab conflict resolution, remote
 sync, offline PWA installation, and authentication are outside this release.
 Preserve GPL-compatible corresponding source and all retained notices when hosting.

@@ -1,6 +1,6 @@
 // Decode persisted data before it can replace a live legal game.
 import { defaultPreferences, validatePreferences } from '../domain/preferences';
-import { analysisGame } from '../domain/games';
+import { studyGame } from '../domain/games';
 import { moveEntry, fenAt, position } from '../domain/chess';
 import type { GameRecord, Preferences, Result } from '../domain/types';
 export function object(value: unknown): Record<string, unknown> {
@@ -103,11 +103,11 @@ export function decodePreferences(value: unknown): Preferences {
 export function decodeGame(value: unknown): GameRecord {
   const x = object(value);
   if (x.version !== 1) throw new Error('Unsupported game version.');
-  const g = analysisGame(text(x.startFen, 256));
+  const g = studyGame(text(x.startFen, 256));
   const clock = object(x.clock);
   g.id = text(x.id, 128);
   if (!g.id) throw new Error('Missing game identity.');
-  g.kind = choice(x.kind, ['play', 'analysis']);
+  g.kind = choice(x.kind, ['play', 'import']);
   g.title = text(x.title, 120);
   g.white = text(x.white, 120);
   g.black = text(x.black, 120);

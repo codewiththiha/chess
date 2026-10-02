@@ -20,11 +20,14 @@ Read README.md, docs/architecture.md, docs/plan.md, and the design skill at
 - Treat imported PGN/FEN and saved records as untrusted. Validate legal moves,
   sizes, numbers, and schema before committing replacement state.
 - Use relative asset/worker URLs; no third-party runtime CDN dependencies.
-  Keep IndexedDB local-first and expose failures rather than pretending to save.
+  Keep storage local-first (SQLite WASM) and expose failures rather than pretending to save.
 - Worker job identities must suppress stale replies. Changing position or policy
   cancels incompatible work. Ordinary reporting must not restart a search.
 - Preserve engine, artwork, font, and library licenses and provenance. Source
   distribution must remain compatible with GPL-3.0-or-later.
+- Keep the desktop shell (`src-tauri/`) a thin host: no duplicated SQL, rules, or
+  interface code, no native-only behavior that the web build cannot explain, and
+  never claim a desktop release without an actual workflow run.
 
 ## Interface
 
@@ -41,7 +44,8 @@ Read README.md, docs/architecture.md, docs/plan.md, and the design skill at
 
 ## Verification
 
-Run `npm run verify:all` for functional or workflow changes. See docs/ci.md for
+Run `npm run verify:all` for functional or workflow changes. Desktop changes also
+need the hosted `Desktop` workflow; Rust is not compiled in this workspace. See docs/ci.md for
 selective diagnostic runs; a partial run must not be reported as full verification. Review desktop
 and mobile screenshots, console errors, keyboard paths, promotion, engine
 cancellation, storage restoration, and production asset loading. Record evidence

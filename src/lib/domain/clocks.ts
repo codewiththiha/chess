@@ -1,13 +1,16 @@
 // Account for elapsed monotonic time rather than trusting interval frequency.
 import type { ClockState, Color } from './types';
+
+const LIMITS = { minutes: 180, increment: 120 };
+
 export function makeClock(minutes: number, increment: number): ClockState {
   if (
     !Number.isFinite(minutes) ||
     minutes < 0 ||
-    minutes > 180 ||
+    minutes > LIMITS.minutes ||
     !Number.isInteger(increment) ||
     increment < 0 ||
-    increment > 120
+    increment > LIMITS.increment
   )
     throw new Error('Choose 0–180 minutes and 0–120 seconds of increment.');
   const ms = Math.round(minutes * 60000);
@@ -20,6 +23,11 @@ export function makeClock(minutes: number, increment: number): ClockState {
     anchor: null,
   };
 }
+
+export function isTimed(clock: ClockState): boolean {
+  return clock.initialMs > 0;
+}
+
 export function remaining(
   clock: ClockState,
   color: Color,
@@ -34,12 +42,14 @@ export function remaining(
         : 0),
   );
 }
+
 export function settleClock(clock: ClockState, now: number): void {
   clock.whiteMs = remaining(clock, 'white', now);
   clock.blackMs = remaining(clock, 'black', now);
   clock.running = null;
   clock.anchor = null;
 }
+
 export function startClock(clock: ClockState, color: Color, now: number): void {
   settleClock(clock, now);
   if (clock.initialMs > 0) {
@@ -47,16 +57,44 @@ export function startClock(clock: ClockState, color: Color, now: number): void {
     clock.anchor = now;
   }
 }
+
 export function incrementClock(clock: ClockState, color: Color): void {
   if (!clock.initialMs) return;
   if (color === 'white') clock.whiteMs += clock.incrementMs;
   else clock.blackMs += clock.incrementMs;
 }
+
+export function setTimeControl(
+  clock: ClockState,
+  minutes: number,
+  increment: number,
+): void {
+  const fresh = makeClock(minutes, increment);
+  clock.initialMs = fresh.initialMs;
+  clock.incrementMs = fresh.incrementMs;
+  clock.whiteMs = fresh.whiteMs;
+  clock.blackMs = fresh.blackMs;
+  clock.running = null;
+  clock.anchor = null;
+}
+
+export function addTime(
+  clock: ClockState,
+  color: Color,
+  seconds: number,
+): void {
+  if (!Number.isFinite(seconds) || seconds <= 0) return;
+  const ms = Math.round(seconds * 1000);
+  if (color === 'white') clock.whiteMs = Math.max(0, clock.whiteMs) + ms;
+  else clock.blackMs = Math.max(0, clock.blackMs) + ms;
+}
+
 export function clockSnapshot(clock: ClockState, now: number): ClockState {
   const c = { ...clock };
   settleClock(c, now);
   return c;
 }
+
 export function formatClock(ms: number): string {
   const seconds = Math.ceil(Math.max(0, ms) / 1000);
   return `${Math.floor(seconds / 60)

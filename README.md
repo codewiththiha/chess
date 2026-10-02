@@ -1,7 +1,10 @@
 # gwaymaegyi chess
 
-A board-first chess studio for playing, exploring, and keeping your games.
-Real Rust-built WebAssembly. Licensed SVG pieces. Your browser, not a cloud account.
+A board-first chess app: a collapsed icon rail, a Home screen for choosing a time
+control, and one side card that carries play, analysis, and review. Real Rust-built
+WebAssembly. Licensed SVG pieces. Your browser, not a cloud account.
+
+![Home with time controls](docs/desktop-home.png)
 
 ![Desktop play](docs/desktop-play.png)
 
@@ -14,11 +17,12 @@ Real Rust-built WebAssembly. Licensed SVG pieces. Your browser, not a cloud acco
   keyboard board. Piece motion respects both your toggle and reduced-motion
   system preferences. Move sound is opt-in.
 - **Study a position:** legal moves for both sides, FEN loading/copying,
-  full-strength analysis, MultiPV continuations, hints, arrows, and signed
-  evaluation. Every engine result comes from the bundled WASM worker.
-- **Keep your games:** automatic IndexedDB recording, paused restoration after
-  refresh, searchable local archive, rename/delete, and PGN import/export.
-  Analysis copies do not overwrite the original archived game.
+  full-strength analysis, MultiPV continuations, hints, one combined arrow set,
+  and signed evaluation. Every engine result comes from the bundled WASM worker.
+- **Keep your games:** one local SQLite record per game, restored after refresh,
+  listed on Home with rename/delete and PGN import/export. A reviewed game keeps
+  its review evidence and arrows on that same record, so nothing is re-run or
+  duplicated.
 - **Review real moves:** cancellable, resumable per-position engine searches,
   evaluation chart with keyboard navigation, and transparent centipawn-loss
   annotations. Search budgets accompany cached results.
@@ -57,10 +61,26 @@ npm run preview -- --port 5173
 ```
 
 Open the address printed by Vite. Keep the same origin/port to see the same
-IndexedDB library. Do not open `index.html` directly with `file://`.
+SQLite library. Do not open `index.html` directly with `file://`.
 
 No Rust compiler, engine compilation, API keys, or external engine service is
-needed. Verified portable and SIMD128 packages are included in `public/engine`.
+needed for the website. Verified portable and SIMD128 packages are included in
+`public/engine`.
+
+## Desktop app
+
+The same revision also builds as a Tauri desktop application:
+
+```sh
+npm run tauri -- dev      # native window around the dev server
+npm run tauri -- build    # production frontend plus bundles for this OS
+```
+
+Only packaging needs Rust (1.77.2 or newer) and the platform Tauri
+prerequisites. The shell adds a native window and one host-identity command; the
+interface, rules, engine, and SQLite database are the same code the website runs.
+The `Desktop` workflow compiles and lints the shell in CI. See
+[the desktop notes](docs/desktop.md).
 
 ## Verification
 
@@ -76,10 +96,11 @@ On Linux, Playwright may also require `npx playwright install-deps chromium`.
 The browser suite uses port 5173; use a dedicated preview for this project rather
 than an unrelated application on that port.
 
-The verification suite contains **55 unit/integration tests** and **48 browser
-executions** (24 scenarios on desktop and emulated mobile). The actual WASM
-binaries are exercised, not replaced with production mocks. Fault simulations
-are confined to tests. There are also 14 CI-selection/result regression tests.
+The verification suite contains **71 unit/integration tests** and **48 browser
+executions** (24 scenarios on desktop and touch-enabled mobile; the desktop-only
+viewport check is skipped on mobile). The actual WASM binaries are exercised, not
+replaced with production mocks. Fault simulations are confined to tests. There are
+also 14 CI-selection/result regression tests.
 See [verification evidence](docs/verification.md) and the [CI guide](docs/ci.md)
 for manual skips, project/file filters, reusable workflows, and report artifacts.
 
@@ -110,13 +131,17 @@ checkmate is labeled as the winning side.
 
 ## Storage, clocks, and portability
 
-- Moves and settings persist locally in IndexedDB. A new timed game starts its
-  clock when the engine is ready; restored games stay paused until resumed.
-  Clocks use elapsed monotonic time, not a decrement-per-render counter.
-- Changing modes/history pauses play. An analysis branch is a separate record;
-  opening a saved game for analysis creates a copy.
+- Moves and settings persist locally in SQLite (`@sqlite.org/sqlite-wasm`, OPFS
+  shared-access-handle pool with an in-memory fallback for the session). Clocks
+  use elapsed monotonic time, not a decrement-per-render counter.
+- Timed clocks keep running while you look around: navigating, opening a panel, or
+  studying the same record never pauses play. Choose **No clock** on Home for a
+  timeless game; that choice is made before the first move.
+- One record per game. Studying, importing, or reviewing never forks a copy: a
+  repeated game is matched by start date, start position, and its exact move
+  sequence, and the stored review moves onto the surviving record.
 - Export PGN before clearing browser data or moving to another browser/origin.
-  Private-mode storage, quotas, or browser cleanup can make IndexedDB unavailable;
+  Private-mode or blocked storage falls back to session-only data and is reported;
   failures are surfaced rather than reported as a successful save.
 - PGN import supports legal **standard/Chess960 mainlines**, not comments or
   variations. Limits: 2 MB input, 100 games/import, 2,048 plies/game; displayed
@@ -125,13 +150,14 @@ checkmate is labeled as the winning side.
   are not implemented. Fivefold/75-move draws are automatic.
 - Use one active play tab per game. Cross-tab conflict resolution/cloud sync is
   outside this release. Closing a tab is not a guarantee that its final pending
-  IndexedDB write will complete.
+  database write will complete.
 
 ## Project map
 
 - [Architecture and invariants](docs/architecture.md)
 - [Build plan and acceptance criteria](docs/plan.md)
 - [Research and decisions](docs/research.md)
+- [Desktop shell and its CI verification](docs/desktop.md)
 - [Verification and known coverage limits](docs/verification.md)
 - [CI workflows, selective runs, and future test guide](docs/ci.md)
 - [Contributor instructions](agents.md)
@@ -139,7 +165,7 @@ checkmate is labeled as the winning side.
 - [Artwork, engine, and dependency notices](THIRD_PARTY_NOTICES.md)
 
 Scaffolded from Vite's Svelte + TypeScript template, using Svelte 5, Tailwind 4,
-daisyUI 5, Chessground, chessops, Dexie, Lucide, and self-hosted fonts. Current
+daisyUI 5, Chessground, chessops, SQLite WASM, Lucide, and self-hosted fonts. Current
 compatible dependency versions are pinned in `package.json` and the npm lockfile.
 TypeScript 7 supplies the native checks; TypeScript 6 is the documented compiler-API
 bridge required by current Svelte tooling, not an accidental downgrade.

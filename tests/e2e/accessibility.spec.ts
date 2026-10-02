@@ -1,7 +1,8 @@
 // Audit real rendered states, reduced motion, device widths, and same-origin asset loading.
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { open, navigate } from './helpers';
+import { open, start, go, study, move, exchange } from './helpers';
+
 test('all runtime assets are local and the initial screen has no serious accessibility violations', async ({
   page,
 }) => {
@@ -21,6 +22,38 @@ test('all runtime assets are local and the initial screen has no serious accessi
   ).toEqual([]);
   expect(errors).toEqual([]);
 });
+
+test('the desktop shell fits the viewport without page scrolling', async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== 'desktop',
+    'Narrow screens scroll by design.',
+  );
+  await open(page);
+  const scrolls = () =>
+    page.evaluate(
+      () => document.documentElement.scrollHeight > window.innerHeight + 1,
+    );
+  expect(await scrolls()).toBe(false);
+  await page
+    .getByRole('button', { name: 'Board appearance', exact: true })
+    .click();
+  // Dialogs mount after the stored preferences land, so wait for the modal
+  // before driving it with the keyboard.
+  await expect(page.getByRole('dialog')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await start(page, { preset: '3 min' });
+  await move(page, 'e2', 'e4');
+  await exchange(page, 2);
+  expect(await scrolls()).toBe(false);
+  await study(page, 'Review');
+  expect(await scrolls()).toBe(false);
+  await go(page, 'Home');
+  expect(await scrolls()).toBe(false);
+});
+
 test('settings and appearance dialogs preserve keyboard focus and accessible labels', async ({
   page,
 }) => {
@@ -45,6 +78,7 @@ test('settings and appearance dialogs preserve keyboard focus and accessible lab
     .analyze();
   expect(results.violations).toEqual([]);
 });
+
 test('320px layouts and reduced-motion preferences retain all functional controls', async ({
   page,
 }) => {
@@ -61,15 +95,22 @@ test('320px layouts and reduced-motion preferences retain all functional control
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBe(320);
   await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
-  await navigate(page, 'Library');
+  await expect(
+    page.getByRole('button', { name: 'Start', exact: true }),
+  ).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+    .toBe(320);
+  await start(page, { preset: '3 min' });
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBe(320);
   await expect(
-    page.getByRole('button', { name: 'Start a game', exact: true }),
+    page.getByRole('button', { name: 'Take back move', exact: true }),
   ).toBeVisible();
 });
-test('dark play, analysis, review and archive remain accessible', async ({
+
+test('dark Home, play, study and review remain accessible', async ({
   page,
 }) => {
   await open(page);
@@ -84,8 +125,18 @@ test('dark play, analysis, review and archive remain accessible', async ({
     'data-theme',
     'chess-dark',
   );
-  for (const screen of ['Play', 'Analysis', 'Review', 'Library']) {
-    await navigate(page, screen);
+  for (const view of ['Home', 'Play'] as const) {
+    await go(page, view);
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+    expect(results.violations).toEqual([]);
+  }
+  await start(page, { preset: '3 min' });
+  await move(page, 'e2', 'e4');
+  await exchange(page, 2);
+  for (const tab of ['Analyze', 'Review'] as const) {
+    await study(page, tab);
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
       .analyze();

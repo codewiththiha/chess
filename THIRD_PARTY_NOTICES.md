@@ -53,20 +53,30 @@ Versions are pinned in `package.json`/`package-lock.json`; complete direct-runti
 license texts are copied to `public/licenses` so the static distribution retains
 them without relying on a package-manager installation.
 
-| Component                     | License          | Retained text             |
-| ----------------------------- | ---------------- | ------------------------- |
-| Svelte                        | MIT              | `Svelte-MIT.txt`          |
-| @lichess-org/chessground      | GPL-3.0-or-later | `Chessground-GPL-3.0.txt` |
-| chessops                      | GPL-3.0-or-later | `chessops-GPL-3.0.txt`    |
-| @badrap/result                | MIT              | `Badrap-result-MIT.txt`   |
-| Dexie                         | Apache-2.0       | `Dexie-Apache-2.0.txt`    |
-| Lucide icons / @lucide/svelte | ISC              | `Lucide-ISC.txt`          |
-| Tailwind CSS                  | MIT              | `Tailwind-MIT.txt`        |
-| daisyUI                       | MIT              | `daisyUI-MIT.txt`         |
+| Component                        | License           | Retained text                      |
+| -------------------------------- | ----------------- | ---------------------------------- |
+| Svelte                           | MIT               | `Svelte-MIT.txt`                   |
+| @lichess-org/chessground         | GPL-3.0-or-later  | `Chessground-GPL-3.0.txt`          |
+| chessops                         | GPL-3.0-or-later  | `chessops-GPL-3.0.txt`             |
+| @badrap/result                   | MIT               | `Badrap-result-MIT.txt`            |
+| @sqlite.org/sqlite-wasm          | Apache-2.0        | `Apache-2.0.txt`                   |
+| Lucide icons / @lucide/svelte    | ISC               | `Lucide-ISC.txt`                   |
+| Tailwind CSS                     | MIT               | `Tailwind-MIT.txt`                 |
+| daisyUI                          | MIT               | `daisyUI-MIT.txt`                  |
+| @tauri-apps/api, @tauri-apps/cli | MIT OR Apache-2.0 | `Tauri-MIT.txt` / `Apache-2.0.txt` |
 
 Build/test tools remain declared with integrity metadata in the npm lockfile.
 Their original package notices remain applicable. Exact transitive dependency
 inventory is the committed lockfile, not a hand-maintained version guess.
+
+## Desktop shell
+
+`src-tauri/` links the Tauri Rust crates (`tauri`, `tauri-build`, and their
+transitive dependencies), which are offered under MIT OR Apache-2.0. Their texts
+are retained as `Tauri-MIT.txt` and `Apache-2.0.txt`. The exact crate inventory is
+the committed `src-tauri/Cargo.lock`, not a hand-maintained version list. The
+desktop build embeds the same frontend bundle, engine packages, fonts, and
+artwork listed above, so those notices continue to apply to it.
 
 ## Self-hosted fonts
 

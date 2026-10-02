@@ -2,10 +2,7 @@
 <script lang="ts">
   import {
     FlipVertical2,
-    Lightbulb,
     Undo2,
-    Pause,
-    Play,
     Copy,
     Flag,
     Handshake,
@@ -22,51 +19,30 @@
 <div class="board-tools">
   <div class="board-utilities">
     <button
-      class="btn btn-ghost icon-button"
+      class="tool-button"
       aria-label="Flip board"
       title="Flip board · F"
-      onclick={() => session.flip()}><FlipVertical2 size={19} /></button
+      onclick={() => session.flip()}><FlipVertical2 size={18} /></button
     >
     <button
-      class="btn btn-ghost icon-button"
+      class="tool-button"
       aria-label="Copy FEN"
       title="Copy FEN"
-      onclick={() => void session.copyFen()}><Copy size={18} /></button
+      onclick={() => void session.copyFen()}><Copy size={17} /></button
     >
-    {#if s.view !== 'review'}
-      <button
-        class="btn btn-ghost icon-button"
-        aria-label="Take back move"
-        title="Take back move"
-        disabled={!s.record.moves.length}
-        onclick={() => session.game.takeback()}><Undo2 size={19} /></button
-      >
-    {/if}
+    <button
+      class="tool-button"
+      aria-label="Take back move"
+      title="Take back move"
+      disabled={!s.record.moves.length}
+      onclick={() => session.game.takeback()}><Undo2 size={18} /></button
+    >
     {#if s.view === 'play'}
-      <button
-        class="btn btn-ghost icon-button"
-        aria-label={s.hint ? 'Clear hint' : 'Get engine hint'}
-        title={s.hint ? 'Clear hint' : 'Get engine hint'}
-        disabled={!s.canMove || (s.thinking && !s.hint)}
-        onclick={() => {
-          if (s.hint) s.hint = null;
-          else session.search.run(true);
-        }}><Lightbulb size={19} /></button
-      >
-      <button
-        class="btn btn-ghost icon-button"
-        aria-label={s.paused ? 'Resume game' : 'Pause game'}
-        title={s.paused ? 'Resume game' : 'Pause game'}
-        disabled={s.record.result !== '*'}
-        onclick={() =>
-          s.paused ? session.game.resume() : session.game.pause()}
-        >{#if s.paused}<Play size={18} />{:else}<Pause size={18} />{/if}</button
-      >
       <details class="game-actions-menu">
         <summary
-          class="btn btn-ghost icon-button"
+          class="tool-button"
           aria-label="Game actions"
-          title="Game actions"><Flag size={18} /></summary
+          title="Game actions"><Flag size={17} /></summary
         >
         <div class="action-popover">
           <button
@@ -74,14 +50,14 @@
             onclick={() =>
               session.confirm(
                 'Resign this game?',
-                'Your game will be saved with the result.',
+                'Your game is saved with the result.',
                 'Resign',
                 () =>
                   session.game.finish(
                     s.record.human === 'white' ? '0-1' : '1-0',
                     'Resignation',
                   ),
-              )}><Flag size={16} />Resign game</button
+              )}><Flag size={15} />Resign game</button
           >
           <button
             disabled={!s.claims.length ||
@@ -89,9 +65,9 @@
               s.pos.turn !== s.record.human ||
               !s.latest}
             onclick={() => session.game.finish('1/2-1/2', s.claims.join(' · '))}
-            ><Handshake size={16} />Claim draw {s.claims.length
+            ><Handshake size={15} />Claim draw {s.claims.length
               ? ''
-              : '(not available)'}</button
+              : '(none)'}</button
           >
         </div>
       </details>
@@ -99,35 +75,35 @@
   </div>
   <div class="history-controls" aria-label="Position navigation">
     <button
-      class="btn btn-ghost icon-button"
+      class="tool-button"
       aria-label="First position"
       title="First position · Home"
       disabled={s.cursor === 0}
-      onclick={() => session.game.jump(0)}><ChevronsLeft size={20} /></button
+      onclick={() => session.game.jump(0)}><ChevronsLeft size={19} /></button
     >
     <button
-      class="btn btn-ghost icon-button"
+      class="tool-button"
       aria-label="Previous move"
       title="Previous move · Left arrow"
       disabled={s.cursor === 0}
       onclick={() => session.game.jump(s.cursor - 1)}
-      ><ChevronLeft size={20} /></button
+      ><ChevronLeft size={19} /></button
     >
     <button
-      class="btn btn-ghost icon-button"
+      class="tool-button"
       aria-label="Next move"
       title="Next move · Right arrow"
       disabled={s.latest}
       onclick={() => session.game.jump(s.cursor + 1)}
-      ><ChevronRight size={20} /></button
+      ><ChevronRight size={19} /></button
     >
     <button
-      class="btn btn-ghost icon-button"
+      class="tool-button"
       aria-label="Latest position"
       title="Latest position · End"
       disabled={s.latest}
       onclick={() => session.game.jump(s.record.moves.length)}
-      ><ChevronsRight size={20} /></button
+      ><ChevronsRight size={19} /></button
     >
   </div>
 </div>

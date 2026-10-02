@@ -7,7 +7,7 @@ import {
   setStartingPosition,
 } from 'chessops/pgn';
 import type { Game, PgnNodeData } from 'chessops/pgn';
-import { analysisGame } from './games';
+import { studyGame } from './games';
 import { position, sanToEntry, fenAt, INITIAL_FEN } from './chess';
 import type { GameRecord, Result } from './types';
 const RESULTS: Result[] = ['*', '1-0', '0-1', '1/2-1/2'];
@@ -31,7 +31,7 @@ export function importPgn(text: string): GameRecord[] {
     throw new Error('Import 1–100 games at a time.');
   return parsed.map((g) => {
     const fen = g.headers.get('FEN') ?? INITIAL_FEN;
-    const record = analysisGame(fen);
+    const record = studyGame(fen);
     const variant = (g.headers.get('Variant') ?? '')
       .toLowerCase()
       .replace(/[\s_-]/g, '');

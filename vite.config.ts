@@ -1,4 +1,4 @@
-// Configure the Svelte/Tailwind build and portable preview origins.
+// Configure the Svelte/Tailwind build, SQLite worker assets, and preview origins.
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 import { realpathSync } from 'node:fs';
@@ -7,6 +7,9 @@ import { defineConfig, searchForWorkspaceRoot } from 'vite';
 
 export default defineConfig({
   plugins: [tailwindcss(), svelte()],
+  // The SQLite module instantiates its own worker and loads wasm at runtime.
+  optimizeDeps: { exclude: ['@sqlite.org/sqlite-wasm'] },
+  worker: { format: 'es' },
   server: {
     host: '0.0.0.0',
     allowedHosts: ['.e2b.app', '.localhost'],

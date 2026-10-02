@@ -15,7 +15,6 @@ export class SearchController {
     this.engine.onFailure = (error) => {
       this.state.ready = false;
       this.state.engineError = error.message;
-      this.game.pause();
       this.onError(error);
     };
   }
@@ -41,18 +40,17 @@ export class SearchController {
   }
   run(hint = false, override?: ComputeSettings): void {
     const s = this.state;
-    const analysis = s.view === 'analyze' || hint;
-    if (
-      !s.ready ||
-      s.pos.isEnd() ||
-      s.view === 'library' ||
-      s.view === 'review'
-    )
-      return;
-    if (!analysis && (s.paused || !s.latest || s.record.result !== '*')) return;
+    const analysis = s.view === 'study' || hint;
+    if (!s.ready || s.pos.isEnd() || s.view === 'home') return;
     if (!analysis) {
-      this.game.start();
-      if (s.pos.turn === s.record.human) return;
+      if (
+        s.view !== 'play' ||
+        !s.latest ||
+        s.record.result !== '*' ||
+        s.pos.turn === s.record.human
+      )
+        return;
+      this.game.startIfNeeded();
     }
     const generation = ++this.generation;
     s.thinking = true;
@@ -91,12 +89,7 @@ export class SearchController {
         if (generation !== this.generation) return;
         update(result);
         s.thinking = false;
-        if (
-          !analysis &&
-          result.bestMove &&
-          !s.paused &&
-          s.record.result === '*'
-        )
+        if (!analysis && result.bestMove && s.record.result === '*')
           this.game.commit(result.bestMove);
         else if (!analysis && !result.bestMove && s.claims.length)
           this.game.finish('1/2-1/2', s.claims.join(' · '));
@@ -106,7 +99,6 @@ export class SearchController {
         s.thinking = false;
         const e = error instanceof Error ? error : new Error(String(error));
         s.engineError = e.message;
-        this.game.pause();
         this.onError(e);
       }
     })();

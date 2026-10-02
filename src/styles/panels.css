@@ -1,34 +1,5 @@
-/* Distinguish notation, engine output, and review evidence without repeated cards. */
-.section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.section-heading h2 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 650;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.play-session-panel {
-  padding: 23px 24px 20px;
-}
-.session-mode {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--muted);
-}
-.session-time {
-  margin-left: auto;
-  font-family: var(--mono);
-  font-size: 10px;
-  white-space: nowrap;
-}
+/* Style the play and study cards, the shared moves list, and the evaluation chart. */
+
 .mini-board-mark,
 .empty-board-symbol {
   display: block;
@@ -44,87 +15,6 @@
 .mini-board-mark {
   width: 15px;
   height: 15px;
-}
-.game-state-box {
-  padding: 25px 0 22px;
-  min-height: 138px;
-}
-.game-state-box h2 {
-  font-family: var(--display);
-  font-size: 27px;
-  font-weight: 430;
-  line-height: 1.2;
-  letter-spacing: -0.2px;
-  margin: 0 0 9px;
-}
-.game-state-box p {
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--muted);
-  margin: 0;
-}
-.thinking-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--color-primary);
-  padding-top: 12px;
-}
-.new-game-button {
-  width: 100%;
-}
-.quiet-actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 7px;
-  padding: 9px 0 15px;
-}
-.quiet-actions button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  min-height: 38px;
-  color: var(--muted);
-}
-.quiet-actions button:hover {
-  color: var(--color-primary);
-}
-.quiet-actions button:disabled {
-  opacity: 0.45;
-}
-.local-note {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 10px;
-  color: var(--muted);
-  border-top: 1px solid var(--line);
-  padding-top: 16px;
-}
-.engine-footnote {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  font-size: 9px;
-  color: var(--muted);
-  padding-top: 6px;
-}
-.hint-message {
-  display: flex;
-  gap: 8px;
-  font-size: 12px;
-  line-height: 1.6;
-  padding: 11px;
-  background: var(--tint);
-  border-radius: 6px;
-  margin-bottom: 14px;
-}
-.hint-message svg {
-  flex-shrink: 0;
 }
 .notation-section {
   border-top: 1px solid var(--line);
@@ -230,9 +120,6 @@
 .grade-dot.grade-blunder {
   background: #ba4d56;
 }
-.analysis-section {
-  padding: 17px 24px 22px;
-}
 .analysis-summary {
   display: flex;
   align-items: center;
@@ -257,16 +144,6 @@
   gap: 7px;
   font-size: 11px;
   color: var(--color-primary);
-}
-.engine-statline {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 9px;
-  font-family: var(--mono);
-  color: var(--muted);
-  padding-bottom: 11px;
-  border-bottom: 1px solid var(--line);
 }
 .variation-list {
   padding-top: 7px;
@@ -298,92 +175,12 @@
   line-height: 1.75;
   flex: 1;
 }
-.analysis-empty {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.75;
-  padding: 14px 0;
-}
-.analysis-actions {
-  display: flex;
-  gap: 8px;
-  padding: 17px 0 10px;
-}
-.analysis-actions .btn {
-  font-size: 11px;
-  padding-inline: 12px;
-}
-.analysis-section .fine-print {
-  font-size: 10px;
-}
-.review-section {
-  padding: 21px 24px 23px;
-}
 .subtle-tag {
   font-size: 9px;
   color: var(--muted);
   background: var(--color-base-200);
   padding: 4px 6px;
   border-radius: 4px;
-}
-.review-empty,
-.review-start {
-  padding: 28px 0 7px;
-}
-.review-empty h3,
-.review-start h3 {
-  font-family: var(--display);
-  font-weight: 420;
-  font-size: 25px;
-  line-height: 1.25;
-  margin-bottom: 12px;
-}
-.review-empty p,
-.review-start p {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.75;
-  margin-bottom: 17px;
-}
-.review-empty .btn {
-  width: 100%;
-}
-.review-empty .text-action {
-  margin-top: 9px;
-}
-.review-start > svg {
-  margin-bottom: 17px;
-  color: var(--color-primary);
-}
-.review-controls {
-  display: flex;
-  gap: 8px;
-  padding-top: 23px;
-}
-.review-controls .select {
-  font-size: 11px;
-  min-width: 0;
-  flex: 1;
-  padding-left: 10px;
-}
-.review-controls .btn {
-  padding-inline: 12px;
-  font-size: 11px;
-}
-.review-budget {
-  margin-top: 9px;
-  font-size: 10px;
-}
-.review-progress {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--muted);
-  padding: 19px 0 6px;
-}
-.progress {
-  height: 4px;
-  width: 100%;
 }
 .review-chart {
   margin-top: 15px;
@@ -437,31 +234,6 @@
   color: var(--muted);
   margin: 0 0 21px;
 }
-.review-statistics {
-  display: flex;
-  gap: 30px;
-  padding: 13px 0;
-  border-block: 1px solid var(--line);
-}
-.review-statistics > div {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.review-statistics span {
-  font-size: 10px;
-  color: var(--muted);
-}
-.review-statistics strong {
-  font-family: var(--mono);
-  font-size: 22px;
-  font-weight: 400;
-}
-.review-statistics small {
-  font-size: 10px;
-  color: var(--muted);
-}
 .move-insight {
   margin-top: 18px;
   background: var(--tint);
@@ -491,12 +263,6 @@
   font-size: 11px;
   min-height: 30px;
 }
-.review-invitation {
-  font-size: 11px;
-  line-height: 1.7;
-  color: var(--muted);
-  margin-top: 18px;
-}
 .turning-points {
   padding-top: 20px;
   margin-bottom: 20px;
@@ -517,181 +283,157 @@
 .turning-points button .muted {
   margin-left: auto;
   font-size: 10px;
-}
-.library-toolbar {
+} /* Play card */
+.play-card {
+  padding: 15px 18px 13px;
   display: flex;
-  gap: 20px;
-  justify-content: space-between;
-  padding: 16px 0 25px;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
 }
-.library-search,
-.parameter-search {
+.play-status strong {
+  display: block;
+  font-family: var(--display);
+  font-size: 19px;
+  letter-spacing: -0.2px;
+}
+.play-status span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.hint-line {
   display: flex;
   align-items: center;
-  gap: 9px;
-  background: var(--color-base-100);
+  gap: 7px;
+  font-size: 12px;
+  color: var(--color-primary);
+}
+.clock-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.clock-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 9px;
   border: 1px solid var(--line);
   border-radius: 7px;
-  padding: 0 13px;
 }
-.library-search {
-  min-width: 200px;
-  max-width: 380px;
-  flex: 1;
+.clock-summary:hover {
+  background: var(--tint);
 }
-.library-search input,
-.parameter-search input {
-  border: 0;
-  outline: 0;
-  min-height: 44px;
-  width: 100%;
-  background: transparent;
-  min-width: 0;
-  font-size: 13px;
-}
-.library-search:focus-within,
-.parameter-search:focus-within {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
-}
-.library-buttons {
-  display: flex;
-  gap: 9px;
-}
-.library-filters {
-  display: flex;
-  gap: 24px;
-  border-bottom: 1px solid var(--line);
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-.library-filters button {
+.clock-row .small-button {
+  font-size: 11px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
   color: var(--muted);
-  min-height: 45px;
-  border-bottom: 2px solid transparent;
 }
-.library-filters button.active {
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-  font-weight: 600;
+.clock-row .small-button:hover {
+  background: var(--tint);
+  color: var(--color-base-content);
 }
-.library-filters span {
-  font-size: 10px;
-  padding-left: 5px;
-}
-.saved-game {
+.clock-editor {
   display: flex;
   align-items: center;
-  gap: 20px;
-  border-bottom: 1px solid var(--line);
-  padding: 22px 0;
-}
-.mini-board-button {
-  flex-shrink: 0;
-}
-.saved-game-info {
-  flex: 1;
-  min-width: 0;
-}
-.saved-game-title {
-  font-size: 16px;
-  font-weight: 600;
-  text-align: left;
-  margin-bottom: 4px;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.saved-game-title:hover {
-  color: var(--color-primary);
-}
-.saved-game-info > p {
-  font-size: 12px;
-  margin-bottom: 9px;
-}
-.saved-game-meta {
-  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
-  gap: 13px;
-  color: var(--muted);
-  font-size: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-base-200) 70%, transparent);
+  font-size: 11px;
 }
-.saved-game-actions {
+.clock-editor label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+}
+.clock-editor input {
+  width: 62px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--color-base-100);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.clock-editor .fine-print {
+  flex-basis: 100%;
+}
+.play-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+} /* Study card */
+.study-card {
+  border-bottom: 1px solid var(--line);
+}
+.study-tabs {
   display: flex;
   gap: 4px;
+  padding: 10px 12px 0;
 }
-.rename-form {
-  display: flex;
+.study-tabs button {
+  display: inline-flex;
   align-items: center;
-  gap: 3px;
-  margin-bottom: 6px;
-}
-.rename-form .input {
-  min-height: 37px;
-  height: 37px;
-  max-width: 420px;
-}
-.library-empty {
-  padding: 67px 24px 78px;
-  max-width: 590px;
-  margin: 0 auto;
-  text-align: center;
-}
-.library-empty > svg {
-  margin: 0 auto 25px;
-  color: var(--color-primary);
-  opacity: 0.7;
-}
-.library-empty h2 {
-  font-family: var(--display);
-  font-size: 33px;
-  line-height: 1.2;
-  font-weight: 430;
-  margin-bottom: 15px;
-}
-.library-empty p {
+  gap: 6px;
+  font-size: 12px;
+  padding: 6px 11px;
+  border-radius: 7px;
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.8;
-  margin-bottom: 24px;
 }
-.library-empty > div {
+.study-tabs button.active {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+}
+.analysis-summary,
+.review-controls,
+.review-progress,
+.review-statistics,
+.move-insight,
+.turning-points,
+.study-actions,
+.study-empty {
+  padding-inline: 18px;
+}
+.study-actions {
+  padding-block: 4px 15px;
   display: flex;
-  gap: 8px;
-  justify-content: center;
+  gap: 6px;
   flex-wrap: wrap;
 }
-.empty-search {
-  padding: 50px 20px;
-  color: var(--muted);
-  text-align: center;
-}
-.storage-note {
+.study-empty {
+  padding-block: 14px 18px;
   display: flex;
-  gap: 13px;
-  margin-top: 33px;
-  align-items: start;
+  flex-direction: column;
+  gap: 10px;
   font-size: 12px;
+  color: var(--muted);
 }
-.storage-note > svg {
-  color: var(--color-primary);
-  flex-shrink: 0;
-  margin-top: 3px;
-}
-.storage-note > div {
+.review-controls {
+  padding-top: 14px;
+  padding-bottom: 4px;
+  display: flex;
+  gap: 7px;
+} /* Moves */
+.move-section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   flex: 1;
 }
-.storage-note strong {
+.moves-empty {
+  padding: 16px 18px;
   font-size: 12px;
-  font-weight: 550;
-}
-.storage-note p {
-  font-size: 11px;
-  line-height: 1.7;
   color: var(--muted);
-  margin-top: 4px;
 }
-.storage-note .text-action {
-  font-size: 10px;
+.move-list {
+  max-height: none;
+  flex: 1;
 }
