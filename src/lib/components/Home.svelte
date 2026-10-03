@@ -140,6 +140,126 @@
   }
 </script>
 
+{#snippet gamesPanel()}
+  <section class="home-games" aria-label="Saved games">
+    <div class="games-head">
+      <div class="library-search">
+        <label class="sr-only" for="library-search">Search saved games</label
+        ><input
+          id="library-search"
+          placeholder="Search games"
+          bind:value={query}
+        />
+      </div>
+      <button
+        class="btn btn-ghost small-button"
+        onclick={() => session.openDialog('import')}
+        ><Upload size={15} />Import</button
+      >
+      <button
+        class="btn btn-ghost small-button"
+        disabled={!s.library.length}
+        onclick={() => void session.exportAll()}
+        ><Download size={15} />Export all</button
+      >
+    </div>
+    {#if !games.length}
+      <p class="games-empty">
+        {s.library.length
+          ? 'No saved game matches that search.'
+          : 'Played games and imported PGNs appear here with their reviews.'}
+      </p>
+    {:else}
+      <ul class="saved-games">
+        {#each games as game (game.id)}
+          <li class="saved-game">
+            <MiniBoard
+              fen={game.plies ? game.fen : s.record.startFen}
+              pieces={s.preferences.pieces}
+              theme={s.preferences.board}
+            />
+            <div class="saved-meta">
+              {#if renaming === game.id}
+                <div class="rename-row">
+                  <input
+                    aria-label="Game name"
+                    bind:value={name}
+                    onkeydown={(event) => {
+                      if (event.key === 'Enter') void rename(game.id);
+                    }}
+                  />
+                  <button
+                    class="icon-action"
+                    aria-label="Save game name"
+                    onclick={() => void rename(game.id)}
+                    ><Check size={15} /></button
+                  >
+                  <button
+                    class="icon-action"
+                    aria-label="Cancel rename"
+                    onclick={() => {
+                      renaming = null;
+                    }}><X size={15} /></button
+                  >
+                </div>
+              {:else}
+                <strong>{game.title}</strong>
+                <span class="saved-detail">
+                  {game.white} vs {game.black} · {Math.ceil(game.plies / 2)}
+                  {Math.ceil(game.plies / 2) === 1 ? 'move' : 'moves'} ·
+                  {game.result === '*'
+                    ? 'unfinished'
+                    : resultText(game.result as Result)}
+                </span>
+              {/if}
+            </div>
+            {#if game.reviewComplete}
+              <span class="reviewed-badge">Reviewed</span>
+            {/if}
+            <div class="saved-actions">
+              <button
+                class="icon-action"
+                aria-label={`Open ${game.title}`}
+                title="Open"
+                onclick={() => void session.openSaved(game.id, 'play')}
+                ><Play size={15} /></button
+              >
+              <button
+                class="icon-action"
+                aria-label={`Study ${game.title}`}
+                title="Study"
+                onclick={() => void session.openSaved(game.id, 'study')}
+                ><ScanSearch size={15} /></button
+              >
+              <button
+                class="icon-action"
+                aria-label={`Export ${game.title}`}
+                title="Export PGN"
+                onclick={() => void exportOne(game.id)}
+                ><Download size={15} /></button
+              >
+              <button
+                class="icon-action"
+                aria-label={`Rename ${game.title}`}
+                title="Rename"
+                onclick={() => {
+                  renaming = game.id;
+                  name = game.title;
+                }}><Pencil size={15} /></button
+              >
+              <button
+                class="icon-action danger"
+                aria-label={`Delete ${game.title}`}
+                title="Delete"
+                onclick={() => remove(game.id)}><Trash2 size={15} /></button
+              >
+            </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  </section>
+{/snippet}
 <div class="home">
   <h1 class="sr-only">gwaymaegyi chess</h1>
   <section class="home-start" aria-label="New game">
@@ -317,126 +437,6 @@
       >
     </div>
   </section>
-  {#snippet gamesPanel()}
-    <section class="home-games" aria-label="Saved games">
-      <div class="games-head">
-        <div class="library-search">
-          <label class="sr-only" for="library-search">Search saved games</label
-          ><input
-            id="library-search"
-            placeholder="Search games"
-            bind:value={query}
-          />
-        </div>
-        <button
-          class="btn btn-ghost small-button"
-          onclick={() => session.openDialog('import')}
-          ><Upload size={15} />Import</button
-        >
-        <button
-          class="btn btn-ghost small-button"
-          disabled={!s.library.length}
-          onclick={() => void session.exportAll()}
-          ><Download size={15} />Export all</button
-        >
-      </div>
-      {#if !games.length}
-        <p class="games-empty">
-          {s.library.length
-            ? 'No saved game matches that search.'
-            : 'Played games and imported PGNs appear here with their reviews.'}
-        </p>
-      {:else}
-        <ul class="saved-games">
-          {#each games as game (game.id)}
-            <li class="saved-game">
-              <MiniBoard
-                fen={game.plies ? game.fen : s.record.startFen}
-                pieces={s.preferences.pieces}
-                theme={s.preferences.board}
-              />
-              <div class="saved-meta">
-                {#if renaming === game.id}
-                  <div class="rename-row">
-                    <input
-                      aria-label="Game name"
-                      bind:value={name}
-                      onkeydown={(event) => {
-                        if (event.key === 'Enter') void rename(game.id);
-                      }}
-                    />
-                    <button
-                      class="icon-action"
-                      aria-label="Save game name"
-                      onclick={() => void rename(game.id)}
-                      ><Check size={15} /></button
-                    >
-                    <button
-                      class="icon-action"
-                      aria-label="Cancel rename"
-                      onclick={() => {
-                        renaming = null;
-                      }}><X size={15} /></button
-                    >
-                  </div>
-                {:else}
-                  <strong>{game.title}</strong>
-                  <span class="saved-detail">
-                    {game.white} vs {game.black} · {Math.ceil(game.plies / 2)}
-                    {Math.ceil(game.plies / 2) === 1 ? 'move' : 'moves'} ·
-                    {game.result === '*'
-                      ? 'unfinished'
-                      : resultText(game.result as Result)}
-                  </span>
-                {/if}
-              </div>
-              {#if game.reviewComplete}
-                <span class="reviewed-badge">Reviewed</span>
-              {/if}
-              <div class="saved-actions">
-                <button
-                  class="icon-action"
-                  aria-label={`Open ${game.title}`}
-                  title="Open"
-                  onclick={() => void session.openSaved(game.id, 'play')}
-                  ><Play size={15} /></button
-                >
-                <button
-                  class="icon-action"
-                  aria-label={`Study ${game.title}`}
-                  title="Study"
-                  onclick={() => void session.openSaved(game.id, 'study')}
-                  ><ScanSearch size={15} /></button
-                >
-                <button
-                  class="icon-action"
-                  aria-label={`Export ${game.title}`}
-                  title="Export PGN"
-                  onclick={() => void exportOne(game.id)}
-                  ><Download size={15} /></button
-                >
-                <button
-                  class="icon-action"
-                  aria-label={`Rename ${game.title}`}
-                  title="Rename"
-                  onclick={() => {
-                    renaming = game.id;
-                    name = game.title;
-                  }}><Pencil size={15} /></button
-                >
-                <button
-                  class="icon-action danger"
-                  aria-label={`Delete ${game.title}`}
-                  title="Delete"
-                  onclick={() => remove(game.id)}><Trash2 size={15} /></button
-                >
-              </div>
-            </li>
-          {/each}
-        </ul>
-      {/if}
-    </section>
-  {/snippet}
   {#if !s.compact}
     {@render gamesPanel()}
   {/if}

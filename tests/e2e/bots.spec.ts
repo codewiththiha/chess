@@ -31,7 +31,7 @@ function row(page: import('@playwright/test').Page, name: string) {
 
 /** Open one saved game from the Home library through its own action button. */
 async function openSaved(page: import('@playwright/test').Page, title: string) {
-  await go(page, 'Home');
+  await homeGames(page);
   await page.getByRole('button', { name: `Open ${title}` }).click();
   await expect(page.locator('.player-row')).toHaveCount(2);
 }
