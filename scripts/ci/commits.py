@@ -32,16 +32,29 @@ def revision_range(event: str, payload: object) -> str:
     return "HEAD^..HEAD"
 
 
+def source_commits(selected: str) -> list[str]:
+    """The commits a range names, or the one it landed when it cannot be walked.
+
+    A force push can name a base commit the repository no longer has — an amended
+    or rebased tip that was thrown away. `git rev-list` then fails outright on a
+    range that starts outside the repository, and the gate would report a failure
+    no commit caused. The commit the push actually landed is still validated.
+    """
+    try:
+        return subprocess.check_output(
+            ["git", "rev-list", "--reverse", "--no-merges", selected], text=True
+        ).splitlines()
+    except subprocess.CalledProcessError:
+        tip = selected.split("..")[-1]
+        print(f"{selected} cannot be walked; validating the commit it landed: {tip}")
+        return [tip]
+
+
 def main() -> None:
     payload = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
     event = os.environ["GITHUB_EVENT_NAME"]
     selected = revision_range(event, payload)
-    if event not in ("push", "pull_request"):
-        revisions = ["HEAD"]
-    else:
-        revisions = subprocess.check_output(
-            ["git", "rev-list", "--reverse", "--no-merges", selected], text=True
-        ).splitlines()
+    revisions = ["HEAD"] if event not in ("push", "pull_request") else source_commits(selected)
     if not revisions:
         raise SystemExit("No source commits were selected for validation")
     validator = Path(__file__).resolve().parents[1] / "check_commit.py"

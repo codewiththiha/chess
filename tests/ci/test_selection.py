@@ -1,13 +1,16 @@
 # Prove full/partial classification, prerequisite selection, and failure propagation.
+import os
 from pathlib import Path
+import subprocess
 import sys
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts/ci"))
 from selection import decode
 from result import evaluate
-from commits import revision_range, ZERO
+from commits import revision_range, source_commits, ZERO
 
 
 def options(**changes: object) -> dict[str, object]:
@@ -89,6 +92,39 @@ class SelectionTests(unittest.TestCase):
     def test_invalid_commit_metadata_is_rejected(self):
         with self.assertRaises(ValueError):
             revision_range("push", {"before": "HEAD; echo bad", "after": "b" * 40})
+
+
+def git(*args: str) -> str:
+    return subprocess.check_output(["git", *args], text=True).strip()
+
+
+class SourceCommitTests(unittest.TestCase):
+    """The range walk in a throwaway repository, walked exactly as the gate does."""
+
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        here = os.getcwd()
+        self.addCleanup(os.chdir, here)
+        os.chdir(temporary.name)
+        git("init", "-q")
+        git("config", "user.name", "ci")
+        git("config", "user.email", "ci@example.com")
+        Path("board.txt").write_text("one\n")
+        git("add", "board.txt")
+        git("commit", "-qm", "first")
+        Path("board.txt").write_text("two\n")
+        git("commit", "-aqm", "second")
+
+    def test_a_walkable_range_names_its_commits(self):
+        head = git("rev-parse", "HEAD")
+        self.assertEqual(source_commits(f"{git('rev-parse', 'HEAD^')}..{head}"), [head])
+
+    def test_a_force_pushed_base_falls_back_to_the_commit_that_landed(self):
+        # The event names the commit the branch pointed at before the push; after
+        # a force push it is gone, and no range can be walked from it.
+        head = git("rev-parse", "HEAD")
+        self.assertEqual(source_commits(f"{'0' * 40}..{head}"), [head])
 
 
 if __name__ == "__main__":
