@@ -382,13 +382,14 @@ body[data-compact] .modal-box {
   max-height: calc(100dvh - 32px);
 }
 
-/* ---------------- the landing page fits too ---------------- */
-/* Two bands, each with its own scroll: the picker on top, the saved games below.
-   The games band is bounded, so nothing in it is ever clipped out of reach. */
+/* ---------------- the landing page ---------------- */
+/* One decision at a time: the picker on top, then the dock with the two buttons
+   that act on it. The saved games are the secondary errand, so on a phone they
+   open in the same sheet the rest of the app uses. */
 body[data-compact] .home {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -397,30 +398,87 @@ body[data-compact] .home {
 body[data-compact] .home-start {
   flex: 1 1 auto;
   justify-content: start;
-  gap: 10px;
+  gap: 8px;
   min-height: 0;
+}
+body[data-compact] .home-options {
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 8px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-body[data-compact] .home-games {
-  flex: 0 1 34%;
-  min-height: 132px;
+/* Four categories in a 2x2 block keeps the whole picker on one screen. */
+body[data-compact] .time-groups {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
 }
 body[data-compact] .time-group {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 6px;
+  padding: 8px 10px 9px;
+}
+body[data-compact] .time-group-head {
+  gap: 7px;
+}
+body[data-compact] .time-group-head strong {
+  font-size: 14px;
+}
+body[data-compact] .time-group-head span {
+  font-size: 9.5px;
+}
+body[data-compact] .time-chips {
   gap: 6px;
 }
-body[data-compact] .start-button {
-  margin-left: 0;
+body[data-compact] .time-chip {
+  flex: 1 1 auto;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+/* The controls stack and fill the width, so nothing can hang over the edge. */
+body[data-compact] .start-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+body[data-compact] .custom-control {
+  width: 100%;
+  gap: 5px;
+  padding: 5px 8px;
+}
+body[data-compact] .custom-control input {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 48px;
+}
+body[data-compact] .segmented {
+  display: flex;
+  width: 100%;
+}
+body[data-compact] .segmented button {
+  flex: 1 1 0;
+  justify-content: center;
+  padding-inline: 6px;
+}
+body[data-compact] .chess960-toggle {
+  min-height: 30px;
+}
+body[data-compact] .position-input {
+  width: 100%;
 }
 /* Vertical space is the scarce one on a phone: the opponents swipe sideways in
    one row instead of stacking. */
 body[data-compact] .bot-picker {
   display: flex;
   flex-wrap: nowrap;
+  gap: 7px;
   overflow-x: auto;
   scroll-snap-type: x proximity;
-  padding-bottom: 5px;
+  padding-bottom: 4px;
   scrollbar-width: none;
 }
 body[data-compact] .bot-picker::-webkit-scrollbar {
@@ -428,20 +486,51 @@ body[data-compact] .bot-picker::-webkit-scrollbar {
 }
 body[data-compact] .bot-card {
   flex: 0 0 auto;
+  min-width: 164px;
   scroll-snap-align: start;
 }
-body[data-compact] .saved-games {
+body[data-compact] .bot-new {
+  min-width: 0;
+}
+/* The dock: the games sheet on the left, Start taking what is left. */
+body[data-compact] .start-dock {
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: stretch;
+  gap: 8px;
+  padding-top: 2px;
+}
+body[data-compact] .start-dock .inline-error {
+  flex: 1 1 100%;
+  margin: 0;
+}
+body[data-compact] .games-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: 44px;
+}
+body[data-compact] .start-button {
   flex: 1 1 auto;
+  min-height: 44px;
+  font-size: 15px;
+}
+body[data-compact] .home-games {
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+body[data-compact] .home-games .games-head {
+  padding: 10px 12px;
+}
+body[data-compact] .saved-games {
+  max-height: none;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-/* A dialog taller than the screen still has to be usable without a page scroll. */
-body[data-compact] .modal-box {
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
 /* ---------------- landscape phones: board left, strip right ---------------- */
 @media (max-height: 640px) and (min-width: 560px) {
   body[data-compact] .workspace {
@@ -455,14 +544,23 @@ body[data-compact] .modal-box {
     align-self: center;
     max-height: 100%;
   }
+  /* Landscape has the width, so the picker and the dock sit side by side. */
   body[data-compact] .home {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.7fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: minmax(0, 1fr);
+    gap: 10px;
   }
-  body[data-compact] .home-start,
-  body[data-compact] .home-games {
-    min-height: 0;
-    overflow-y: auto;
+  body[data-compact] .home-start {
+    display: flex;
+    flex-direction: column;
+  }
+  body[data-compact] .start-dock {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  body[data-compact] .start-button,
+  body[data-compact] .games-toggle {
+    flex: 0 0 auto;
   }
 }

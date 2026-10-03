@@ -1,10 +1,11 @@
 // Verify PGN recording, resumable engine review, one-record branching, and exports.
 import { test, expect } from '@playwright/test';
 import {
+  go,
+  homeGames,
   open,
   start,
   study,
-  go,
   importGame,
   move,
   exchange,
@@ -55,7 +56,7 @@ test('import, real review, refresh, export, rename and delete stay on one record
   await expect(chart).toHaveAttribute('aria-valuenow', '0');
   await page.keyboard.press('ArrowRight');
   await expect(chart).toHaveAttribute('aria-valuenow', '1');
-  await go(page, 'Home');
+  await homeGames(page);
   const downloadPromise = page.waitForEvent('download');
   await page
     .getByRole('button', { name: 'Export White vs Black', exact: true })
@@ -84,7 +85,7 @@ test('import, real review, refresh, export, rename and delete stay on one record
   await expect(page.locator('.saved-game')).toHaveCount(0);
   await page.reload();
   await expect(page.locator('.rail')).toBeVisible();
-  await go(page, 'Home');
+  await homeGames(page);
   await expect(page.locator('.saved-game')).toHaveCount(0);
 });
 
@@ -154,7 +155,7 @@ test('bad PGN/FEN is rejected without erasing the active game', async ({
     .click();
   await expect(page.getByRole('dialog')).toContainText('FEN has invalid');
   await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
-  await go(page, 'Home');
+  await homeGames(page);
   await page.getByRole('button', { name: 'Import', exact: true }).click();
   await page.getByLabel('PGN notation').fill('1. e5 *');
   await page.getByRole('button', { name: 'Import game', exact: true }).click();

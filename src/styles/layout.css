@@ -230,6 +230,23 @@ main {
   gap: 14px;
   min-width: 0;
 }
+/* The picker scrolls, the dock does not: the primary action is never off screen. */
+.home-options {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.start-dock {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+}
+.games-toggle {
+  display: none;
+}
 .time-groups {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(392px, 100%), 1fr));
@@ -492,8 +509,21 @@ main {
   font-size: 13px;
 }
 .start-button {
-  margin-left: auto;
   padding-inline: 24px;
+}
+.games-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--tint);
+  color: var(--color-primary);
+  font-family: var(--mono);
+  font-size: 10px;
 }
 .inline-error {
   color: var(--color-error);

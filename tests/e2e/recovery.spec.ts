@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 import {
   exchange,
   go,
+  homeGames,
   move,
   open,
   panel,
@@ -40,7 +41,7 @@ test('restored clocks keep running and expire by elapsed time', async ({
     timeout: 15000,
   });
   await expect(page.locator('.play-status span')).toContainText('Black wins');
-  await go(page, 'Home');
+  await homeGames(page);
   await expect(page.locator('.saved-game')).toHaveCount(1);
 });
 
@@ -70,7 +71,7 @@ test('engine settings survive a reload as one local record each time', async ({
   await start(page, { preset: '3 min' });
   await move(page, 'e2', 'e4');
   await exchange(page, 2);
-  await go(page, 'Home');
+  await homeGames(page);
   await expect(page.locator('.saved-game')).toHaveCount(1);
 });
 

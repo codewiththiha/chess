@@ -1,6 +1,14 @@
 // Verify the bot library: shipped bots, a custom bot with a picture, and reload.
 import { test, expect } from '@playwright/test';
-import { exchange, go, move, open, savedGames, start } from './helpers';
+import {
+  exchange,
+  go,
+  homeGames,
+  move,
+  open,
+  savedGames,
+  start,
+} from './helpers';
 
 /** A one-pixel PNG, the smallest picture a reader could actually pick. */
 const PICTURE = Buffer.from(
@@ -100,7 +108,7 @@ test('a custom bot with a picture survives a reload and plays a game', async ({
   );
   await move(page, 'e2', 'e4');
   await exchange(page, 2);
-  await go(page, 'Home');
+  await homeGames(page);
   await expect(page.locator('.saved-game').first()).toContainText('Rook Robot');
   await openSaved(page, 'You vs Rook Robot');
   await expect(row(page, 'Rook Robot').locator('.player-meta')).toContainText(

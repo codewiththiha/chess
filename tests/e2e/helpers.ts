@@ -45,6 +45,16 @@ export async function panel(page: Page): Promise<void> {
   await expect(page.locator('dialog.sheet[open]')).toHaveCount(1);
 }
 
+/** Home with its saved games in reach: on a phone they open in a sheet. */
+export async function homeGames(page: Page): Promise<void> {
+  await go(page, 'Home');
+  const toggle = page.locator('[data-games-toggle]');
+  if (!(await page.locator('body[data-compact]').count())) return;
+  if (await page.locator('dialog.sheet[open]').count()) return;
+  await toggle.click();
+  await expect(page.locator('dialog.sheet[open]')).toHaveCount(1);
+}
+
 /** A rail button: the sheet is modal, so it stands aside first. */
 export async function rail(page: Page, name: string): Promise<void> {
   await closePanel(page);
@@ -234,7 +244,7 @@ export async function loadFen(
 }
 
 export async function importGame(page: Page, pgn: string): Promise<void> {
-  await go(page, 'Home');
+  await homeGames(page);
   await page.getByRole('button', { name: 'Import', exact: true }).click();
   await page.getByLabel('PGN notation').fill(pgn);
   await page.getByRole('button', { name: 'Import game', exact: true }).click();
@@ -243,7 +253,7 @@ export async function importGame(page: Page, pgn: string): Promise<void> {
 
 /** Home lists exactly one row per stored game, so duplicate records are visible. */
 export async function savedGames(page: Page): Promise<number> {
-  await go(page, 'Home');
+  await homeGames(page);
   const games = page.locator('.saved-game');
   // Records are written through the SQLite worker, so the list can trail the
   // last move by a moment; no caller ever expects an empty history here.
@@ -252,6 +262,6 @@ export async function savedGames(page: Page): Promise<number> {
 }
 
 export async function savedTitles(page: Page): Promise<string[]> {
-  await go(page, 'Home');
+  await homeGames(page);
   return page.locator('.saved-game strong').allInnerTexts();
 }
