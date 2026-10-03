@@ -525,6 +525,24 @@ body[data-compact] .home-games {
 body[data-compact] .home-games .games-head {
   padding: 10px 12px;
 }
+/* The game-actions menu is a floating layer on the desktop, where the tools row
+   has room beside it. In the sheet it takes a row of its own and flows, so it
+   can never hang off a phone's edge. */
+body[data-compact] .board-utilities {
+  flex-wrap: wrap;
+}
+body[data-compact] .game-actions-menu {
+  position: static;
+}
+body[data-compact] .game-actions-menu[open] {
+  flex: 1 1 100%;
+}
+body[data-compact] .action-popover {
+  position: static;
+  width: 100%;
+  margin-top: 6px;
+  box-shadow: none;
+}
 body[data-compact] .saved-games {
   max-height: none;
   min-height: 0;

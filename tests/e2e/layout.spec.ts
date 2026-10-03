@@ -3,6 +3,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page, TestInfo } from '@playwright/test';
 import {
+  closePanel,
   exchange,
   homeGames,
   importGame,
@@ -170,7 +171,10 @@ test('Dialogs: settings and the opponent editor fit', async ({
   });
   expect(await spill(page)).toEqual([]);
   await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  // The games are one tap away; on a phone that tap is a sheet, and the picker
+  // it covers has to come back before the bot editor can be opened from it.
   await homeGames(page);
+  await closePanel(page);
   await page.getByRole('button', { name: 'Add bot' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(1);
   await testInfo.attach(`${testInfo.project.name}-bot-editor`, {

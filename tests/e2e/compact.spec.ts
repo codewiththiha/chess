@@ -57,9 +57,9 @@ test('the picker may scroll, but Start never leaves the screen', async ({
   // outside it. Walk the picker to its end and back: Start must not move, and
   // nothing may paint over it — the earlier layout let a longer control column
   // push it out of sight behind the saved games.
-  const start = page.locator('.start-button');
-  await expect(start).toBeInViewport();
-  const resting = await start.boundingBox();
+  const startButton = page.locator('.start-button');
+  await expect(startButton).toBeInViewport();
+  const resting = await startButton.boundingBox();
   if (!resting) throw new Error('Start is not on screen.');
   const options = page.locator('.home-options');
   const depth = await options.evaluate((node) => node.scrollHeight);
@@ -67,8 +67,8 @@ test('the picker may scroll, but Start never leaves the screen', async ({
     await options.evaluate((node, ratio) => {
       node.scrollTop = (node.scrollHeight - node.clientHeight) * ratio;
     }, step);
-    await expect(start).toBeInViewport();
-    const moved = await start.boundingBox();
+    await expect(startButton).toBeInViewport();
+    const moved = await startButton.boundingBox();
     if (!moved) throw new Error('Start left the screen with the picker.');
     expect(Math.abs(moved.y - resting.y)).toBeLessThanOrEqual(1);
   }
