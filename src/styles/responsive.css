@@ -313,9 +313,12 @@ body[data-compact] .sheet.modal {
      properties has to be answered here, the background included. */
   display: flex;
   flex-direction: column;
-  margin: auto auto 0;
-  /* Stop above the rail, so the navigation stays in sight while a sheet is up. */
-  margin-block-end: calc(58px + env(safe-area-inset-bottom, 0px));
+  /* Hug the content: daisyUI pins the dialog to every edge (inset: 0), so with
+     an automatic height it would always stand at its cap and leave a column of
+     empty card under a short panel. Anchored to the foot instead, and stopped
+     above the rail so the navigation stays in sight while a sheet is up. */
+  inset: auto 0 0 0;
+  margin: 0 0 calc(58px + env(safe-area-inset-bottom, 0px));
   width: 100%;
   max-width: none;
   height: auto;
