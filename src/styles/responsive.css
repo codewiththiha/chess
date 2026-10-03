@@ -401,6 +401,13 @@ body[data-compact] .sheet-tools {
 body[data-compact] .modal-box {
   max-height: calc(100dvh - 32px);
   padding: 18px;
+  /* A phone dialog is one card: it arrives without a scale animation, so no
+     frame can catch it half-built, and nothing inside may paint outside it. */
+  scale: 1;
+  transform: none;
+  animation: none;
+  contain: paint;
+  overflow-x: clip;
 }
 /* A dialog's own footer: wrapped on a phone, so a long caption and two buttons
    never fight for one row at the very edge of the screen. */
@@ -410,9 +417,10 @@ body[data-compact] .dialog-footer {
   gap: 6px;
 }
 body[data-compact] .dialog-footer .btn {
-  flex: 1 1 40%;
+  flex: 0 1 auto;
   min-height: 44px;
   justify-content: center;
+  white-space: nowrap;
 }
 body[data-compact] .settings-footer {
   bottom: calc(-18px - env(safe-area-inset-bottom, 0px));
