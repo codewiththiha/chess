@@ -693,3 +693,51 @@ first release that carries the app mark):
   the desktop job's `cargo build --locked` would have refused to run.
   `tests/ci/test_release.py` now checks all four instead of two, and the check
   was shown to fail when the crate is left behind.
+
+## Mobile: one screen, no scrolling (2026-10-03)
+
+The two screenshots and the report behind this change were both about the phone
+layout: the notes lived under the board, so the page scrolled, and a bubble or a
+longer line of state resized the board while the reader was looking at it. The
+fix is one shell for narrow or short views, verified on the real iPhone 13
+viewport rather than by eye.
+
+- **`ci.yml` dispatch 37093591157 on `efcabc3`, all eight jobs green** in about
+  three minutes: Selection, Quality (28 CI-script tests, strict Svelte/TS,
+  oxlint/provenance, Prettier, actionlint 1.7.12), Production build, Commit
+  messages, Unit and WASM, Browser (desktop) and Browser (mobile), and Full
+  verification.
+- **Unit and WASM: 189 tests in 19 files** — the previous 184 in 18 plus
+  `tests/unit/viewport.test.ts`, which pins the compact rule (phones and short
+  windows in, 1000px and up out) and `fitSquare` (the smaller axis less the
+  evaluation rail, floored to whole pixels, never negative).
+- **Browser (mobile): 34 passed, 1 skipped (1.3 m)** and **Browser (desktop):
+  46 passed, 6 skipped (1.8 m)**. The phone job is where this change is actually
+  proven: `compact.spec.ts` measures the document height against the viewport on
+  Home, play and study (nothing scrolls, `scrollY` stays 0); checks the board,
+  both player rows, the strip and the rail are all inside the screen at once;
+  holds the board's box still across a move, a fresh line of talk, and a sheet
+  opening and closing; opens the move data and the board actions from the
+  three-dash button and finds them gone again once it closes; watches a resigned
+  game bring its own move data up; walks every move row to prove five children
+  still fit one line; and in review checks the board, the ply control and the
+  sentence about the current move are all on screen together with the sheet shut.
+  The six skips on desktop are that spec, which is about the phone layout alone.
+- **Three CI iterations to get there, each failure a real bug.** The first run
+  failed 23 specs because they waited on `.move-cell`, which on a phone only
+  exists inside the sheet: the helpers now open it, and rail buttons go through a
+  `rail()` helper that sets the modal aside first. The second failed one spec,
+  and the trace showed why: after a reload the app is briefly on the landing view
+  while the stored game loads, so the sheet helper found no button and silently
+  did nothing — it now waits for the game shell. The third failed one spec for
+  the same reason as the first, a board control clicked through the sheet; the
+  fourth run was green. The runs before them are kept: 37092059615 (23 failed),
+  37092730733 (7 failed), 37093185882 (1 failed), 37093424223 (mobile only, 34
+  passed).
+- **The sheet sits above the rail**, so the navigation stays in sight while it is
+  up, and the landing page is two bounded scroll bands — the picker above, the
+  saved games below — after a saved game's own buttons were found clipped out of
+  reach inside an unbounded band (`bots.spec.ts`, mobile).
+- **Desktop is untouched by the new shell.** The compact rules key off
+  `body[data-compact]`, which only exists under the same query, and the browser
+  project list for the phone is unchanged apart from `compact.spec.ts`.
