@@ -35,27 +35,32 @@ async function spill(page: Page): Promise<Spill[]> {
   return page.evaluate(() => {
     const offenders: Spill[] = [];
     const width = window.innerWidth;
-    /** A carousel is allowed to hold content out of view. */
-    function scrollsSideways(node: Element): boolean {
-      let current: Element | null = node.parentElement;
-      while (current && current !== document.body) {
-        const style = getComputedStyle(current);
-        if (
-          (style.overflowX === 'auto' || style.overflowX === 'scroll') &&
-          current.scrollWidth > current.clientWidth + 1
-        )
-          return true;
-        current = current.parentElement;
-      }
-      return false;
+    // Anything that scrolls sideways is allowed to hold content out of view:
+    // a carousel is not a spilled control.
+    const scrollers = new Set<Element>();
+    for (const candidate of document.querySelectorAll('body *')) {
+      const style = getComputedStyle(candidate);
+      if (
+        (style.overflowX === 'auto' || style.overflowX === 'scroll') &&
+        candidate.scrollWidth > candidate.clientWidth + 1
+      )
+        scrollers.add(candidate);
     }
     for (const element of document.querySelectorAll('body *')) {
       const box = element.getBoundingClientRect();
       if (box.width === 0 || box.height === 0) continue;
       if (box.right <= width + 1 && box.left >= -1) continue;
       if (element.closest('[hidden], dialog:not([open]), .skip-link')) continue;
-      if (box.height <= 1 || box.width <= 1) continue;
-      if (scrollsSideways(element)) continue;
+      let insideScroller = false;
+      let parent: Element | null = element.parentElement;
+      while (parent && parent !== document.body) {
+        if (scrollers.has(parent)) {
+          insideScroller = true;
+          break;
+        }
+        parent = parent.parentElement;
+      }
+      if (insideScroller) continue;
       offenders.push({
         tag: element.tagName.toLowerCase(),
         cls: typeof element.className === 'string' ? element.className : '',
