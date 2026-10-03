@@ -165,6 +165,52 @@ scrolling" check, which cannot hold on a scrolling narrow layout. Coverage inclu
   focus, reduced motion, 320 px no-horizontal-overflow checks, and automated axe
   WCAG 2 A/AA, 2.1 AA, and 2.2 AA audits in light/dark states.
 
+## Release 0.2.0 (2026-10-03)
+
+The third release, and the first to carry the redesign: the shipped interface,
+the three characters and the coached review, on top of the evaluation rail and
+the accuracy report that closed the work above.
+
+Verified on 2026-10-03 (local date), source commit `2328ba5`, tag `v0.2.0`:
+
+- [CI run 37136150097](https://github.com/codewiththiha/chess/actions/runs/37136150097)
+  on the version bump: eight of eight gates green in 3 minutes 34 seconds, both
+  browser projects included. It is the run the tag was cut from, so the revision
+  the release names is a revision the full suite passed on.
+- [Release run 37136422697](https://github.com/codewiththiha/chess/actions/runs/37136422697):
+  seven of seven jobs green in 8 minutes 17 seconds from the tag — Prepare 8s,
+  Web bundle 18s, the desktop matrix in 3m 44s to 5m 35s, Android 8m 8s.
+  Published [v0.2.0](https://github.com/codewiththiha/chess/releases/tag/v0.2.0):
+  sixteen assets, 237.7 MB, the same set as 0.1.1 — five signed APKs, the Play
+  bundle, the four desktop platforms, and `gwaymaegyi-chess-0.2.0-web.tar.gz`
+  (7.25 MB).
+- The version bump moved the four files that must agree — `src-tauri/tauri.conf.json`
+  (what the release gate reads), `package.json`, `src-tauri/Cargo.toml`, and the
+  crate's own `src-tauri/Cargo.lock` entry, without which the desktop job's
+  `cargo build --locked` refuses to run. `scripts/ci/release.py` matched `v0.2.0`
+  to the version the bundles carry before the release opened, and refused `v0.1.1`
+  against the bumped tree, which is the check doing its job.
+- What the published files contain, read back rather than assumed:
+  - **`gwaymaegyi-chess-0.2.0-web.tar.gz`** (108 entries): the static bundle, with
+    both engine builds (`engine/portable/` and `engine/simd128/`) and the SQLite
+    wasm beside the app's own chunks and the licence texts. The main chunk carries
+    the rail markup, the decided rail's copy and the accuracy block — the features
+    above are in the released bytes, not only in the repository.
+  - **`app-arm64-release.apk`**: `assets/tauri.conf.json` reports version `0.2.0`
+    for `com.codewiththiha.gwaymaegyi`, with `classes.dex` and
+    `lib/arm64-v8a/libgwaymaegyi_chess_lib.so` present — the Rust core compiled
+    for the device, not a web wrapper.
+  - **`gwaymaegyi.chess_0.2.0_amd64.deb`**: `Package: gwaymaegyi-chess`,
+    `Version: 0.2.0`, `Architecture: amd64`, installing the app's hicolor icons at
+    32, 128 and 512 px.
+- The release notes were written by hand rather than left to `--generate-notes`,
+  which produces an empty body in this repository — the bodies of `v0.1.0` and
+  `v0.1.1` are empty for the same reason. 0.2.0's body states what the version
+  carries, the two runs above, what was read back out of the artifacts, and what
+  is not claimed.
+- No Rust and no browser was run in this workspace for the release; the evidence
+  is the hosted runs, and the artifact checks were read from the published files.
+
 ## Initial release gate results (2026-10-01)
 
 | Gate                                               | Final status                                                                |
