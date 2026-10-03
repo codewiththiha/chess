@@ -243,7 +243,7 @@
   </main>
 </div>
 <Dialogs {session} />
-{#if s.notice}<div
+{#if s.notice && (s.view === 'home' || !s.compact || s.notice.error)}<div
     class="app-toast"
     class:error-toast={s.notice.error}
     role={s.notice.error ? 'alert' : 'status'}

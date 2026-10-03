@@ -21,7 +21,11 @@
 
 <div class="compact-bar">
   <div class="compact-state">
-    {#if s.view === 'play'}
+    {#if s.notice && !s.notice.error}
+      <!-- A message about the game belongs where the game's state is, not in a
+           layer over the controls. -->
+      <p class="compact-notice" role="status">{s.notice.text}</p>
+    {:else if s.view === 'play'}
       <GameStatus {session} />
     {:else}
       <!-- In study the strip carries the sentence about the move on the board,

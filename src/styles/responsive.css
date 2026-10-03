@@ -99,13 +99,20 @@ body[data-compact] main {
 body[data-compact] .app-banner {
   margin: 6px 8px 0;
 }
-/* Above the rail, never blocking it, and untappable: it is a message, not a
-   control, so a tap always reaches whatever it is covering. */
+/* A phone keeps its controls at the foot of the screen, so a floating message
+   goes to the top instead of covering them; it is untappable, so whatever it
+   passes over stays usable while it is up. Game messages do not float at all:
+   the strip shows them in place of the state line. */
 body[data-compact] .app-toast {
-  bottom: calc(66px + env(safe-area-inset-bottom, 0px));
-  max-width: calc(100% - 24px);
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  bottom: auto;
+  left: 12px;
+  right: 12px;
+  max-width: none;
+  transform: none;
   text-align: center;
   pointer-events: none;
+  animation: message-in 180ms ease-out;
 }
 
 /* Rail, now a fixed bottom row of icons. */
@@ -233,6 +240,14 @@ body[data-compact] .compact-state {
   display: grid;
   align-content: center;
   height: 34px;
+}
+body[data-compact] .compact-notice {
+  margin: 0;
+  align-self: center;
+  font-size: 13.5px;
+  line-height: 1.2;
+  color: var(--color-primary);
+  animation: message-in 180ms ease-out;
 }
 body[data-compact] .compact-bar .play-status strong {
   font-size: 15px;
