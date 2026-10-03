@@ -41,6 +41,11 @@
 
 <section class="play-card" aria-label="Game controls">
   {#if status}<GameStatus {session} />{/if}
+  {#if status && s.notice && !s.notice.error}
+    <!-- A message about the game sits with the state it belongs to, in the card,
+         instead of floating over the board's controls. -->
+    <p class="notice-line" role="status">{s.notice.text}</p>
+  {/if}
   {#if s.hint?.bestMove}
     <p class="hint-line">
       <Lightbulb size={15} />Try

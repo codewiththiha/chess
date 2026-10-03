@@ -24,7 +24,7 @@
     {#if s.notice && !s.notice.error}
       <!-- A message about the game belongs where the game's state is, not in a
            layer over the controls. -->
-      <p class="compact-notice" role="status">{s.notice.text}</p>
+      <p class="notice-line" role="status">{s.notice.text}</p>
     {:else if s.view === 'play'}
       <GameStatus {session} />
     {:else}

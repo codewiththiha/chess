@@ -76,6 +76,8 @@ h1 {
   background: var(--rail-track);
   box-shadow: 0 10px 30px var(--shadow-sheet);
   animation: toast-rise 180ms ease-out;
+  /* A message never takes a tap: whatever it passes over stays usable. */
+  pointer-events: none;
 }
 @keyframes toast-rise {
   from {

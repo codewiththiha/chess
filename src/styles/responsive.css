@@ -241,13 +241,9 @@ body[data-compact] .compact-state {
   align-content: center;
   height: 34px;
 }
-body[data-compact] .compact-notice {
-  margin: 0;
+body[data-compact] .notice-line {
   align-self: center;
-  font-size: 13.5px;
   line-height: 1.2;
-  color: var(--color-primary);
-  animation: message-in 180ms ease-out;
 }
 body[data-compact] .compact-bar .play-status strong {
   font-size: 15px;

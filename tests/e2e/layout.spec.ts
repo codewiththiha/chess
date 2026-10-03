@@ -5,12 +5,14 @@ import type { Page, TestInfo } from '@playwright/test';
 import {
   closePanel,
   exchange,
+  go,
   homeGames,
   importGame,
   move,
   open,
   panel,
   plies,
+  rail,
   start,
   study,
 } from './helpers';
@@ -155,6 +157,40 @@ test('Study: the analysis card and the review conversation fit', async ({
     contentType: 'image/png',
   });
   expect(await spill(page)).toEqual([]);
+});
+
+test('Dark: every screen keeps its controls where they were', async ({
+  page,
+}, testInfo) => {
+  // The same three screens the light audit covers, in the other theme: the
+  // accessibility suite proves the contrast, this proves the layout.
+  await open(page);
+  await rail(page, 'Board appearance');
+  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Save appearance', exact: true })
+    .click();
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-theme',
+    'chess-dark',
+  );
+  const shot = async (name: string) => {
+    await testInfo.attach(`${testInfo.project.name}-dark-${name}`, {
+      body: await page.screenshot(),
+      contentType: 'image/png',
+    });
+    expect(await spill(page)).toEqual([]);
+  };
+  await go(page, 'Home');
+  await shot('home');
+  await start(page, { preset: '3 min' });
+  await move(page, 'e2', 'e4');
+  await exchange(page, 2);
+  await shot('play');
+  await importGame(page, BLUNDER_PGN);
+  await plies(page, 6);
+  await study(page, 'Review');
+  await shot('review');
 });
 
 test('Dialogs: settings and the opponent editor fit', async ({

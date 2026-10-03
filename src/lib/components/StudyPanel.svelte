@@ -21,7 +21,11 @@
   import Coach from './Coach.svelte';
   import type { Session } from '../controllers/session';
   import type { StudyTab } from '../state/app.svelte';
-  let { session }: { session: Session } = $props();
+  let {
+    session,
+    /** The side panel owns the message line; the phone's strip already shows it. */
+    notice = true,
+  }: { session: Session; notice?: boolean } = $props();
   const s = $derived(session.state);
   let preset = $state<keyof typeof REVIEW_PRESETS>('balanced');
   const tabs: { id: StudyTab; label: string; icon: typeof ScanSearch }[] = [
@@ -61,6 +65,9 @@
 </script>
 
 <section class="study-card" aria-label="Study">
+  {#if notice && s.notice && !s.notice.error}
+    <p class="notice-line" role="status">{s.notice.text}</p>
+  {/if}
   <div class="study-tabs" role="tablist" aria-label="Study mode">
     {#each tabs as tab}
       <button

@@ -296,6 +296,14 @@
   margin-left: auto;
   font-size: 10px;
 } /* Play card */
+/* A message about the game, shown where the game's state already lives. */
+.notice-line {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.25;
+  color: var(--color-primary);
+  animation: message-in 180ms ease-out;
+}
 .play-card {
   padding: 15px 18px 13px;
   display: flex;

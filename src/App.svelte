@@ -231,7 +231,7 @@
           {#if s.view === 'play'}
             <PlayPanel {session} status={false} />
           {:else}
-            <StudyPanel {session} />
+            <StudyPanel {session} notice={false} />
           {/if}
           <MoveList {session} />
           <div class="sheet-tools">
@@ -243,7 +243,7 @@
   </main>
 </div>
 <Dialogs {session} />
-{#if s.notice && (s.view === 'home' || !s.compact || s.notice.error)}<div
+{#if s.notice && (s.view === 'home' || s.notice.error)}<div
     class="app-toast"
     class:error-toast={s.notice.error}
     role={s.notice.error ? 'alert' : 'status'}
