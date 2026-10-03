@@ -1,6 +1,7 @@
 // Exercise dynamic controls, browser backends, appearance persistence, and live limit updates.
 import { test, expect } from '@playwright/test';
 import {
+  closePanel,
   exchange,
   move,
   open,
@@ -173,6 +174,8 @@ test('live performance changes and cancellation do not produce stale analysis mo
   // one real answer and no stale line.
   await plies(page, 2);
   await expect(page.locator('.move-cell.missing')).toHaveCount(0);
+  // The ply controls sit on the board, so the sheet steps aside for them.
+  await closePanel(page);
   await page
     .getByRole('button', { name: 'First position', exact: true })
     .click();
