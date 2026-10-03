@@ -380,6 +380,23 @@ body[data-compact] .sheet-tools {
 /* ---------------- dialogs respect the system bars ---------------- */
 body[data-compact] .modal-box {
   max-height: calc(100dvh - 32px);
+  padding: 18px;
+}
+/* A dialog's own footer: wrapped on a phone, so a long caption and two buttons
+   never fight for one row at the very edge of the screen. */
+body[data-compact] .dialog-footer {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+body[data-compact] .dialog-footer .btn {
+  flex: 1 1 40%;
+  min-height: 44px;
+  justify-content: center;
+}
+body[data-compact] .settings-footer {
+  bottom: calc(-18px - env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ---------------- the landing page ---------------- */
@@ -397,7 +414,8 @@ body[data-compact] .home {
 }
 body[data-compact] .home-start {
   flex: 1 1 auto;
-  justify-content: start;
+  /* The dock is pinned by the rail, so no dead band is left between them. */
+  justify-content: flex-end;
   gap: 8px;
   min-height: 0;
 }

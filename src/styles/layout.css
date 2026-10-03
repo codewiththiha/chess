@@ -226,7 +226,9 @@ main {
 .home-start {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* Top-aligned: a column that re-centres itself whenever the picker changes
+     height (two players, Chess960) reads as the page jumping. */
+  justify-content: flex-start;
   gap: 14px;
   min-width: 0;
 }
