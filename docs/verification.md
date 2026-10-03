@@ -218,7 +218,10 @@ Final production screenshots are kept as `docs/desktop-home.png`,
 `docs/mobile-review.png`. The published set depicts the `a27443b` shell; the same
 files were re-captured on 2026-10-02 from the redesigned shell (Home, Play,
 Study/Review) with real engine replies and a real restored record — still actual
-WASM-driven play, never fabricated UI data.
+WASM-driven play, never fabricated UI data. On 2026-10-03 the whole set was
+re-captured from the reviewed shell (see "Interface review" below); the two
+phone files show Play with its game strip, and the game sheet with the move
+data, the tools and the rail all in view.
 
 Desktop project: Chromium at 1440×1000. Mobile project: touch-enabled iPhone 13
 viewport/device emulation at 390×664 **using Chromium**, plus 320×740 checks. This is not a
@@ -744,3 +747,57 @@ viewport rather than by eye.
 - **Desktop is untouched by the new shell.** The compact rules key off
   `body[data-compact]`, which only exists under the same query, and the browser
   project list for the phone is unchanged apart from `compact.spec.ts`.
+
+## Interface review (2026-10-03)
+
+The home screens were reviewed visually, screen by screen, at both sizes
+(desktop 1440×1000 and phone 390×664), against the audit screenshots the browser
+projects attach — eight phone frames and seven desktop frames per run, covering
+Home, Play, Study/Review, every dialog, the game sheet, the landing sheet and a
+finished game, in both light and dark. Every oddity that was visible, down to
+margin level, is fixed; the search below is what it turned up.
+
+- **Start is visible, reachable, and un-coverable.** The landing page's picker
+  scrolls and the dock does not, so the primary action is pinned above the rail
+  on a phone and at the foot of the picker column on a desktop — `compact.spec.ts`
+  scrolls the picker to both ends and measures Start still inside the viewport,
+  at least 44 px tall, above the rail, and drifting by no more than a pixel.
+  Control heights were evened at the same time (`3fe7975`).
+- **The game's own message no longer covers the controls.** What looked like a
+  green button repeating the opponent's name between the board and the strip was
+  the game-start notice "Nay Chi · Blitz · 3 min" — brand green, at button
+  height, exactly where the ply controls sit, hiding them for three seconds. It
+  is ink on cream now, dropping into the strip's state line on play and study
+  (`580ec7d`), and a floating notice on a phone is anchored to the top of the
+  screen, out of every control's way and untappable (`4ad3e51`, `580ec7d`).
+- **Dialogs open complete.** daisyUI fades a dialog's scrim in over 300 ms and
+  its card over 100 ms, so for that moment the page behind read straight through
+  the card: the dialog looked see-through and half-built, on screen and in every
+  dialog screenshot. That the audit's assertions passed while the pictures looked
+  broken is why this review was worth doing, and why the shipped CSS was read out
+  of the production artifact to find the cause. Dialogs now appear complete, with
+  no entrance transition, scale or fade (`e4ea0fa`).
+- **The bottom sheet hugs its content.** daisyUI pins a dialog to every edge, so
+  with an automatic height the sheet always stood at its cap: a game of two moves
+  opened a panel two-thirds of the screen tall with a column of empty card under
+  the tools. It is anchored to the foot now and grows only with its content
+  (`8b44890`); its footer wraps, keeps 44 px targets, and clears the system bar
+  (`8eecb57`).
+- **The desktop picker is top-aligned.** It was centred vertically, so every
+  change that altered its height — two players, Chess960 — re-centred the whole
+  column and read as the page jumping (`7621af0`). The empty library keeps its
+  centred empty state, which is the one place centring is the point.
+- **The board's action menu stays inside the phone** (`260c298`), and on a phone
+  the dock takes the slack so no dead band is left above the rail (`7621af0`).
+
+Evidence for the fixes is the same audit run: `37110162975`, `37110401956`,
+`37110679503`, `37110941887`, `37111203977` and `37111463596` — each dispatched
+on the pushed commit, each eight of eight jobs green. The final screenshots were
+re-captured from the reviewed build and replace the set in `docs/`.
+
+One oddity is recorded rather than fixed: on a phone the play strip repeats the
+opponent's name that the header already shows, within the same 660 px frame. The
+strip's label and the clocks have to share one row, and the label is what says
+which game the controls belong to once the header is scrolled past on a taller
+screen; dropping the name would leave the time control with no owner. The
+duplication was judged the lesser cost and is left in place deliberately.
