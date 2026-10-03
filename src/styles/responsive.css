@@ -497,6 +497,10 @@ body[data-compact] .start-row {
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
+  /* The row is a flex item too: without this it takes its own content's width,
+     which is the width of the widest thing inside it. */
+  width: 100%;
+  min-width: 0;
 }
 body[data-compact] .custom-control {
   width: 100%;

@@ -211,8 +211,9 @@ test('a bot on the board plays to its own card, so the strength controls rest', 
     'plays with the style and strength on their own card',
   );
   // The rest of the dialog is untouched: memory, seed and backend still apply.
-  await expect(page.getByLabel('Hash memory', { exact: true })).toBeEnabled();
-  await expect(page.getByLabel('WASM backend', { exact: true })).toBeEnabled();
+  await expect(page.locator('#engine-hash')).toBeEnabled();
+  await expect(page.locator('#engine-backend')).toBeEnabled();
+  await expect(page.locator('#engine-seed')).toBeEnabled();
   await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
