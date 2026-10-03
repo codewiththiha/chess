@@ -211,6 +211,67 @@ Verified on 2026-10-03 (local date), source commit `2328ba5`, tag `v0.2.0`:
 - No Rust and no browser was run in this workspace for the release; the evidence
   is the hosted runs, and the artifact checks were read from the published files.
 
+## Release 0.2.1 (2026-10-04)
+
+The mobile pass that closed item 16, and the panel that stopped walking away: the
+quick resign on the phone's play screen, a character picker that fits one screen,
+strength controls that rest while a character's card governs the game, the study
+strip carrying the review's own sentence, and a commit that no longer closes a
+dialog the reader opened - the engine replies through the same path a move takes.
+
+Verified on 2026-10-04 (local date), source commit `49fa3fe`, tag `v0.2.1`:
+
+- [CI run 37145235223](https://github.com/codewiththiha/chess/actions/runs/37145235223)
+  on the version bump: eight of eight gates green in 3 minutes 39 seconds, both
+  browser projects included (desktop 57 passed with 10 skips, mobile 47 passed
+  with 1 skip, no retries). It is the run the tag was cut from, so the revision the
+  release names is a revision the full suite passed on.
+- [Release run 37145555523](https://github.com/codewiththiha/chess/actions/runs/37145555523):
+  seven of seven jobs green in 9 minutes 59 seconds from the tag - Prepare 7s, Web
+  bundle 19s, the desktop matrix in 3m 8s to 6m 41s, Android 9m 44s. Published
+  [v0.2.1](https://github.com/codewiththiha/chess/releases/tag/v0.2.1): sixteen
+  assets, 249.3 MB, the same set as 0.2.0 - five signed APKs, the Play bundle, the
+  four desktop platforms, and `gwaymaegyi-chess-0.2.1-web.tar.gz` (7.61 MB).
+- The two fixes that carried the mobile pass are pinned by tests rather than by
+  eye: `tests/e2e/settings.spec.ts:221` opens the engine settings while the
+  character's reply is still being searched for and requires the panel to still be
+  there when it lands, and two cases in `tests/unit/game-actions.test.ts` separate
+  what a commit may close - the promotion picker - from the dialog it must leave
+  alone. The Home picker's overflow was located by measuring the DOM chain in CI
+  (`.home` 390, `.start-row` 370 with `scrollWidth` 748, the picker at x=388): a
+  wrapping column flex was laying its overflow out in a second column beside the
+  first. The measured fix, `flex-wrap: nowrap` on the stacked start row, is what
+  the run above passed on.
+- The version bump moved the four files that must agree - `package.json`,
+  `src-tauri/tauri.conf.json` (what the release gate reads), `src-tauri/Cargo.toml`
+  and the crate's own `src-tauri/Cargo.lock` entry, without which the desktop job's
+  `cargo build --locked` refuses to run. `scripts/ci/release.py` matched `v0.2.1` to
+  the version the bundles carry before the release opened.
+- What the published files contain, read back rather than assumed:
+  - **`gwaymaegyi-chess-0.2.1-web.tar.gz`** (108 entries): both engine builds
+    (`./engine/portable/` and `./engine/simd128/`, each with its wasm binary and
+    worker scripts) and the SQLite worker beside the app's own chunks. The main
+    chunk carries this version's markup - the quick-resign control
+    (`data-quick-resign`, "Resign this game"), the study strip, and the clause that
+    says whose card governs a game.
+  - **`app-arm64-release.apk`**: `assets/tauri.conf.json` reports version `0.2.1`
+    for `com.codewiththiha.gwaymaegyi`, with `lib/arm64-v8a/libgwaymaegyi_chess_lib.so`
+    present - the Rust core compiled for the device, not a web wrapper.
+  - **`gwaymaegyi.chess_0.2.1_amd64.deb`**: `Package: gwaymaegyi-chess`,
+    `Version: 0.2.1`, `Architecture: amd64`, 8,523 KiB installed, with the app's
+    hicolor icons installed at four sizes.
+- The release notes were written by hand again, as 0.2.0's were: this repository's
+  generated notes come out empty, which is why `v0.1.0` and `v0.1.1` have empty
+  bodies. 0.2.1's body states what the version carries, the two runs above, what was
+  read back out of the artifacts, and what is not claimed.
+- One scenario is recorded as timing-sensitive rather than as fixed: adopting
+  no-deadline limits while the engine is still searching gets a single 30-second
+  wait (`settings.spec.ts:151`), and on a loaded runner it missed that wait once
+  while passing on the tagged revision and on the neighbouring runs. No product-side
+  cause was found, and the release body says so.
+- No Rust and no browser was run in this workspace for the release; the evidence is
+  the hosted runs, and the artifact checks were read from the published files.
+
 ## Initial release gate results (2026-10-01)
 
 | Gate                                               | Final status                                                                |
