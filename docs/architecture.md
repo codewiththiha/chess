@@ -83,6 +83,25 @@ Native dialogs own focus trapping/Escape/backdrop dismissal and restore the prio
 focus without scrolling. Settings are staged and validated before acceptance.
 Reduced motion overrides piece animations; mobile form text is at least 16 px.
 
+## One-screen layout
+
+`src/lib/domain/viewport.ts` holds one rule — narrow (`max-width: 999px`) or short
+(`max-height: 640px`) — and `App.svelte` applies it before the first paint, sets
+`body[data-compact]`, and renders `CompactBar` instead of the side panel. The
+stylesheet keys every compact rule off that attribute, so the layout and the
+component tree cannot disagree about which shell is on screen.
+
+That shell is fixed at `100dvh` with `overflow: hidden`, so no page ever scrolls.
+The board is the flexible row: a `ResizeObserver` measures the frame the players
+and the strip leave behind and writes `--board-size`, the largest square that fits
+both axes and the evaluation rail (`fitSquare`). The measurement depends only on
+the frame, never on the board, so it cannot feed back into the layout; the talk
+strip and the control strip both hold a fixed height, so nothing the game does
+resizes the board while the reader is looking at it. Everything that does not fit
+— move data, the study card, the time control, the library — opens as a bottom
+sheet (a native `<dialog>`, so focus trapping and Escape come for free) from the
+menu button in the strip; a finished game opens its own move data once.
+
 ## Worker boundary
 
 `public/favicon.svg` is the application's mark, drawn by `scripts/app_mark.py`

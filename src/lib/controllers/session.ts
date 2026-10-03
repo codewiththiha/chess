@@ -128,6 +128,8 @@ export class Session {
   navigate(view: View): void {
     const s = this.state;
     this.viewChosen = true;
+    // Am I moving the board to the side of the panel the reader just left open?
+    if (s.sheet) s.sheet = null;
     if (view === s.view) return;
     if (view !== 'study') this.review.cancel();
     this.game.enter(view);
@@ -219,6 +221,8 @@ export class Session {
   /** Dialogs snapshot restored state on mount, so never open one before then. */
   openDialog(dialog: Dialog): void {
     const show = () => {
+      // One modal at a time: a sheet is dismissed before a dialog opens.
+      this.state.sheet = null;
       this.state.dialog = dialog;
     };
     if (this.mounting && !this.state.loaded)

@@ -1,4 +1,13 @@
-/* Keep the desktop shell inside the viewport and let small screens scroll. */
+/* One screen, no page scroll.
+
+   Two kinds of rule live here. The plain media queries keep touch screens
+   comfortable anywhere. Everything keyed on body[data-compact] belongs to the
+   one-screen layout: App.svelte keeps that attribute in sync with the same
+   query, so the stylesheet and the component tree cannot disagree. On that
+   layout the board owns the height and everything that will not fit — move
+   data, the study card, the time control, the library — is a sheet behind the
+   menu button in the strip, which is why the page never scrolls. */
+
 @media (min-width: 1000px) {
   .player-row {
     min-height: 50px;
@@ -9,140 +18,19 @@
     padding-block: 9px;
   }
 }
-@media (max-width: 999px) {
-  html {
-    /* Anything scrolled into view stops clear of the fixed bottom rail. */
-    scroll-padding-bottom: 96px;
-  }
-  body {
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-  .app-shell {
-    grid-template-columns: 1fr;
-    height: auto;
-    min-height: 100dvh;
-    padding-bottom: 86px;
-  }
-  .rail {
-    position: fixed;
-    inset: auto 0 0 0;
-    flex-direction: row;
-    justify-content: space-around;
-    gap: 0;
-    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
-    border-right: 0;
-    border-top: 1px solid var(--line);
-    z-index: 40;
-  }
-  .rail-mark {
-    display: none;
-  }
-  .rail-group {
-    flex-direction: row;
-    gap: 2px;
-  }
-  /* Eight destinations share a phone's width, so each one gives a little. */
-  .rail-button {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-  }
-  .rail-bottom {
-    margin-top: 0;
-  }
-  .rail-button.active::before {
-    left: 12px;
-    right: 12px;
-    top: auto;
-    bottom: -6px;
-    width: auto;
-    height: 3px;
-    border-radius: 3px 3px 0 0;
-  }
-  .workspace {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    padding: 8px 12px 18px;
-  }
-  .board-shell {
-    width: 100%;
-  }
-  .board-with-evaluation {
-    gap: 6px;
-  }
-  .evaluation-rail {
-    width: 7px;
-    flex-basis: 7px;
-  }
-  .side-panel {
-    margin: 0;
-    max-height: none;
-  }
-  .side-panel > .play-card,
-  .side-panel > .study-card {
-    max-height: none;
-    overflow: visible;
-  }
-  .move-list {
-    max-height: 330px;
-  }
-  .home {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    padding: 10px 12px 18px;
-  }
-  .home-start {
-    gap: 12px;
-  }
-  /* Vertical space is the scarce one on a phone: the opponents swipe sideways
-     in a single row instead of stacking into three. */
-  .bot-picker {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    padding-bottom: 5px;
-    scrollbar-width: none;
-  }
-  .bot-picker::-webkit-scrollbar {
-    display: none;
-  }
-  .bot-card {
-    flex: 0 0 auto;
-    scroll-snap-align: start;
-  }
-  .home-games {
-    max-height: none;
-  }
-  .time-group {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  .start-button {
-    margin-left: 0;
-  }
-  .saved-games {
-    max-height: 420px;
-  }
-  .app-banner {
-    margin: 8px 12px 0;
-  }
-  .app-toast {
-    bottom: 84px;
-  }
-}
+
+/* ---------------- touch screens, any layout ---------------- */
 @media (max-width: 760px) {
   .input,
   .select,
   .textarea,
   .library-search input,
   .parameter-search input {
+    /* Below 16px iOS zooms the page on focus, which would scroll it. */
     font-size: 16px;
   }
   .player-row {
     padding-left: 8px;
-    min-height: 52px;
     gap: 9px;
   }
   .chess-clock {
@@ -150,16 +38,19 @@
     min-width: 84px;
     padding: 7px 9px;
   }
-  .board-tools {
-    justify-content: space-between;
-    flex-wrap: wrap;
-    row-gap: 0;
-  }
   .move-cell {
     min-height: 42px;
   }
+  .board-tools {
+    flex-wrap: wrap;
+    row-gap: 0;
+    margin-left: 0;
+  }
+  /* Every row has five children — number, move, grade dot, move, grade dot — so
+     it needs five columns. Three let the second side wrap onto a clipped row. */
   .move-row {
-    grid-template-columns: 28px 1fr 1fr;
+    grid-template-columns: 26px minmax(0, 1fr) 13px minmax(0, 1fr) 13px;
+    column-gap: 4px;
   }
   .saved-game {
     flex-wrap: wrap;
@@ -168,18 +59,11 @@
     width: 100%;
     justify-content: flex-end;
   }
-  .side-panel {
-    border-radius: 10px;
-  }
   .start-row {
     gap: 9px;
   }
 }
 @media (max-width: 380px) {
-  .rail-button {
-    width: 42px;
-    height: 42px;
-  }
   .time-chip {
     font-size: 12px;
     padding: 6px 9px;
@@ -189,5 +73,379 @@
   }
   .saved-game {
     gap: 8px;
+  }
+}
+
+/* ---------------- the compact shell ---------------- */
+body[data-compact] {
+  height: 100dvh;
+  overflow: hidden;
+}
+body[data-compact] .app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  /* Android draws edge to edge, so the app starts clear of the status bar. */
+  padding-block-start: env(safe-area-inset-top, 0px);
+}
+body[data-compact] main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+body[data-compact] .app-banner {
+  margin: 6px 8px 0;
+}
+body[data-compact] .app-toast {
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Rail, now a fixed bottom row of icons. */
+body[data-compact] .rail {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  flex-direction: row;
+  justify-content: space-around;
+  gap: 2px;
+  width: 100%;
+  height: calc(58px + env(safe-area-inset-bottom, 0px));
+  padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px));
+  border-inline-end: 0;
+  border-block-start: 1px solid var(--line);
+  z-index: 40;
+}
+body[data-compact] .rail .rail-mark {
+  display: none;
+}
+body[data-compact] .rail .rail-group {
+  flex-direction: row;
+  gap: 2px;
+}
+body[data-compact] .rail .rail-bottom {
+  margin-top: 0;
+}
+body[data-compact] .rail .rail-button {
+  width: 44px;
+  height: 44px;
+}
+body[data-compact] .rail .rail-button.active::before {
+  inset: auto 12px -4px;
+  width: auto;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+}
+
+/* ---------------- one column: board above, strip below ---------------- */
+body[data-compact] .workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 5px 8px calc(64px + env(safe-area-inset-bottom, 0px));
+}
+body[data-compact] .board-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+body[data-compact] .board-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+body[data-compact] .board-shell .player-row {
+  min-height: 32px;
+  padding-block: 1px;
+}
+body[data-compact] .board-shell .player-name-text {
+  font-size: 13px;
+}
+/* The slot the board may fill. It takes whatever the players and the strip leave
+   and takes nothing from its contents, so App.svelte can measure it and size the
+   board to both axes without the measurement feeding back into the layout. */
+body[data-compact] .board-frame {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+body[data-compact] .board-with-evaluation {
+  height: var(--board-size, 100%);
+  max-width: 100%;
+  gap: 6px;
+  margin-inline: auto;
+}
+body[data-compact] .board-surface {
+  flex: 0 0 auto;
+  height: 100%;
+  width: auto;
+}
+body[data-compact] .evaluation-rail {
+  width: 7px;
+  flex-basis: 7px;
+}
+/* One line of talk, so the character still speaks without moving the board. The
+   strip holds its height between lines, because the board is sized once. */
+body[data-compact] .bot-talk {
+  display: block;
+  min-height: 25px;
+  padding: 0 4px 3px;
+}
+body[data-compact] .bot-talk.idle {
+  display: block;
+}
+body[data-compact] .bot-bubble {
+  -webkit-line-clamp: 1;
+  font-size: 11px;
+  padding: 4px 9px;
+}
+
+/* ---------------- the strip: state, ply control, menu button ---------------- */
+body[data-compact] .compact-bar {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 3px;
+  padding: 5px 7px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--color-base-100);
+}
+/* The strip holds a fixed height whatever it says, so the board above it is
+   measured once and the page never shifts under the reader. */
+body[data-compact] .compact-state {
+  display: grid;
+  align-content: center;
+  height: 34px;
+}
+body[data-compact] .compact-bar .play-status strong {
+  font-size: 15px;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body[data-compact] .compact-bar .play-status span {
+  display: none;
+}
+/* Four 44 px targets, the ply counter, and the menu button have to share a
+   320 px screen, so the gaps between them are as tight as they can be. */
+body[data-compact] .compact-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+body[data-compact] .compact-actions .history-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  flex: 1 1 auto;
+}
+body[data-compact] .ply-counter {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  min-width: 44px;
+  font-family: var(--display);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+body[data-compact] .ply-of {
+  font-size: 11px;
+  color: var(--muted);
+}
+body[data-compact] .compact-remark {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  width: 100%;
+  height: 34px;
+  text-align: start;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+body[data-compact] .compact-remark.quiet {
+  color: var(--muted);
+}
+body[data-compact] .sheet-toggle {
+  flex: 0 0 auto;
+  border-radius: var(--radius-control);
+  background: var(--tint);
+}
+
+/* ---------------- the sheet ---------------- */
+body[data-compact] .sheet.modal {
+  /* A bottom sheet: full width at the foot of the screen, inside the safe area.
+     daisyUI styles the dialog as a centred box, so every one of those
+     properties has to be answered here, the background included. */
+  display: flex;
+  flex-direction: column;
+  margin: auto auto 0;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  max-height: min(78dvh, 620px);
+  padding: 0;
+  background: var(--color-base-100);
+  border: 0;
+  border-block-start: 1px solid var(--line);
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+}
+/* daisyUI paints its scrim as the dialog's own background and hides the
+   backdrop, which only works for a dialog that fills the screen. The sheet is a
+   small box at the foot of the screen, so it asks for the backdrop back. */
+body[data-compact] .sheet.modal::backdrop {
+  display: block;
+  background: var(--scrim);
+}
+body[data-compact] .sheet-handle {
+  width: 42px;
+  height: 4px;
+  margin: 8px auto 2px;
+  border-radius: var(--radius-pill);
+  background: var(--line);
+}
+body[data-compact] .sheet-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 8px 4px 14px;
+  border-bottom: 1px solid var(--line);
+}
+body[data-compact] .sheet-heading h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 16px;
+  letter-spacing: -0.2px;
+}
+body[data-compact] .sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-block-end: calc(10px + env(safe-area-inset-bottom, 0px));
+}
+/* Inside the sheet the content is no longer squeezed under the board, so every
+   cap, scroller, and frame that the stacked layout needed comes off. */
+body[data-compact] .sheet .play-card,
+body[data-compact] .sheet .study-card,
+body[data-compact] .sheet .move-section,
+body[data-compact] .sheet .move-list,
+body[data-compact] .sheet .coach-log,
+body[data-compact] .sheet .turning-points {
+  position: static;
+  max-height: none;
+  height: auto;
+  overflow: visible;
+  border-radius: 0;
+  border-inline: 0;
+  background: transparent;
+}
+body[data-compact] .sheet .play-card,
+body[data-compact] .sheet .study-card {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+body[data-compact] .sheet .move-section {
+  border-top: 0;
+}
+body[data-compact] .sheet .move-list {
+  padding: 2px 12px 4px;
+}
+body[data-compact] .sheet-tools {
+  border-top: 1px solid var(--line);
+  padding: 6px 10px;
+}
+
+/* ---------------- dialogs respect the system bars ---------------- */
+body[data-compact] .modal-box {
+  max-height: calc(100dvh - 32px);
+}
+
+/* ---------------- the landing page fits too ---------------- */
+body[data-compact] .home {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 8px 10px calc(64px + env(safe-area-inset-bottom, 0px));
+}
+body[data-compact] .home-start {
+  justify-content: start;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+body[data-compact] .time-group {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+body[data-compact] .start-button {
+  margin-left: 0;
+}
+/* Vertical space is the scarce one on a phone: the opponents swipe sideways in
+   one row instead of stacking. */
+body[data-compact] .bot-picker {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 5px;
+  scrollbar-width: none;
+}
+body[data-compact] .bot-picker::-webkit-scrollbar {
+  display: none;
+}
+body[data-compact] .bot-card {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+body[data-compact] .home-games {
+  min-height: 0;
+}
+body[data-compact] .saved-games {
+  max-height: none;
+  min-height: 0;
+}
+/* A dialog taller than the screen still has to be usable without a page scroll. */
+body[data-compact] .modal-box {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ---------------- landscape phones: board left, strip right ---------------- */
+@media (max-height: 640px) and (min-width: 560px) {
+  body[data-compact] .workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 216px;
+    align-items: stretch;
+    gap: 8px;
+    padding: 4px 8px calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  body[data-compact] .compact-bar {
+    align-self: center;
+    max-height: 100%;
+  }
+  body[data-compact] .home {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.7fr);
+    grid-template-rows: minmax(0, 1fr);
   }
 }

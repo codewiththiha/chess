@@ -11,10 +11,14 @@
   const line = $derived(mine ? (s.botChat.at(-1) ?? null) : null);
 </script>
 
-{#if line}
-  <div class="bot-talk" aria-live="polite">
-    <p class="bot-bubble" data-ply={line.ply} title={line.name}>
-      {line.text}
-    </p>
+{#if mine}
+  <!-- The strip keeps its place between lines: on a phone the board is sized
+       once, so a bubble arriving must not resize anything. -->
+  <div class="bot-talk" class:idle={!line} aria-live="polite">
+    {#if line}
+      <p class="bot-bubble" data-ply={line.ply} title={line.name}>
+        {line.text}
+      </p>
+    {/if}
   </div>
 {/if}

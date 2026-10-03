@@ -8,6 +8,7 @@ import {
   exchange,
   plies,
   loadFen,
+  panel,
   savedGames,
 } from './helpers';
 
@@ -36,6 +37,7 @@ test('grab and drag records legal moves, not illegal drops', async ({
   await expect(page.locator('.move-cell:not(.missing)')).toHaveCount(0);
   await drag(page, 'e2', 'e4');
   await exchange(page, 2);
+  await panel(page);
   await expect(
     page.locator('.move-cell').filter({ hasText: 'e4' }),
   ).toBeVisible();
@@ -57,6 +59,7 @@ test('keyboard moves use the same legality and notation path', async ({
   await page.keyboard.press('ArrowUp');
   await page.keyboard.press('Enter');
   await exchange(page, 2);
+  await panel(page);
   await expect(
     page.locator('.move-cell').filter({ hasText: 'e4' }),
   ).toBeVisible();
@@ -81,6 +84,7 @@ test('promotion can cancel and then explicitly underpromote', async ({
     'aria-label',
     'a8, white knight',
   );
+  await panel(page);
   await expect(
     page.locator('.move-cell').filter({ hasText: 'a8=N' }),
   ).toBeVisible();
@@ -126,12 +130,14 @@ test('history keeps the record, takeback is reversible, and resignation is recor
     .getByRole('button', { name: 'Latest position', exact: true })
     .click();
   await expect(page.locator('.play-status strong')).toHaveText('Your move');
+  await panel(page);
   await page
     .getByRole('button', { name: 'Take back move', exact: true })
     .click();
   await expect(page.locator('.move-cell:not(.missing)')).toHaveCount(0);
   await move(page, 'd2', 'd4');
   await exchange(page, 2);
+  await panel(page);
   await page.locator('.game-actions-menu summary').click();
   await page.getByRole('button', { name: 'Resign game', exact: true }).click();
   await page

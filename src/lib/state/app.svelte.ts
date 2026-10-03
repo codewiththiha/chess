@@ -31,10 +31,20 @@ export type Dialog =
 
 export type StudyTab = 'analyze' | 'review';
 
+/**
+ * A sheet is the compact layout's way of showing what will not fit on one
+ * screen: the game's move data, the study card, the time control, the library.
+ */
+export type Sheet = 'panel' | 'time' | 'library';
+
 export class AppState {
   preferences = $state<Preferences>(defaultPreferences());
   record = $state<GameRecord>(createGame(DEFAULT_NEW_GAME));
   view = $state<View>('home');
+  /** True when the viewport is too small for the stacked layout. */
+  compact = $state(false);
+  /** The sheet the compact layout is showing, if any. */
+  sheet = $state<Sheet | null>(null);
   studyTab = $state<StudyTab>('analyze');
   cursor = $state(0);
   orientation = $state<Color>('white');

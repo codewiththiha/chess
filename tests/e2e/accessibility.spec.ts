@@ -1,7 +1,7 @@
 // Audit real rendered states, reduced motion, device widths, and same-origin asset loading.
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { open, start, go, study, move, exchange } from './helpers';
+import { open, start, go, study, move, exchange, panel } from './helpers';
 
 test('all runtime assets are local and the initial screen has no serious accessibility violations', async ({
   page,
@@ -105,6 +105,7 @@ test('320px layouts and reduced-motion preferences retain all functional control
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBe(320);
+  await panel(page);
   await expect(
     page.getByRole('button', { name: 'Take back move', exact: true }),
   ).toBeVisible();

@@ -1,22 +1,13 @@
 <!-- Provide real game actions and historical navigation without crowding the board. -->
 <script lang="ts">
-  import {
-    FlipVertical2,
-    Undo2,
-    Copy,
-    Flag,
-    Handshake,
-    ChevronsLeft,
-    ChevronLeft,
-    ChevronRight,
-    ChevronsRight,
-  } from '@lucide/svelte';
+  import { FlipVertical2, Undo2, Copy, Flag, Handshake } from '@lucide/svelte';
+  import HistoryControls from './HistoryControls.svelte';
   import type { Session } from '../controllers/session';
-  let { session }: { session: Session } = $props();
+  let { session, nav = true }: { session: Session; nav?: boolean } = $props();
   const s = $derived(session.state);
 </script>
 
-<div class="board-tools">
+<div class="board-tools" class:utilities-only={!nav}>
   <div class="board-utilities">
     <button
       class="tool-button"
@@ -73,37 +64,5 @@
       </details>
     {/if}
   </div>
-  <div class="history-controls" aria-label="Position navigation">
-    <button
-      class="tool-button"
-      aria-label="First position"
-      title="First position · Home"
-      disabled={s.cursor === 0}
-      onclick={() => session.game.jump(0)}><ChevronsLeft size={19} /></button
-    >
-    <button
-      class="tool-button"
-      aria-label="Previous move"
-      title="Previous move · Left arrow"
-      disabled={s.cursor === 0}
-      onclick={() => session.game.jump(s.cursor - 1)}
-      ><ChevronLeft size={19} /></button
-    >
-    <button
-      class="tool-button"
-      aria-label="Next move"
-      title="Next move · Right arrow"
-      disabled={s.latest}
-      onclick={() => session.game.jump(s.cursor + 1)}
-      ><ChevronRight size={19} /></button
-    >
-    <button
-      class="tool-button"
-      aria-label="Latest position"
-      title="Latest position · End"
-      disabled={s.latest}
-      onclick={() => session.game.jump(s.record.moves.length)}
-      ><ChevronsRight size={19} /></button
-    >
-  </div>
+  {#if nav}<HistoryControls {session} />{/if}
 </div>

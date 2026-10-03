@@ -24,12 +24,19 @@ nothing is an error, not a green check.
 | Job                        | What it does                                                                             |
 | -------------------------- | ---------------------------------------------------------------------------------------- |
 | Selection                  | Validates typed booleans, project/filter bounds, and build prerequisites                 |
-| Quality                    | Strict Svelte/TS, oxlint/provenance, Prettier, 21 CI-script regression tests, actionlint |
+| Quality                    | Strict Svelte/TS, oxlint/provenance, Prettier, 28 CI-script regression tests, actionlint |
 | Unit and WASM              | Vitest unit/integration suite, including the real Portable/SIMD128 binaries              |
 | Production build           | Vite build; uploads the production output used by browser jobs                           |
 | Browser (desktop/mobile)   | Independent jobs test the same downloaded production build with Chromium                 |
 | Commit messages            | Validates actual source commits rather than GitHub's synthetic PR merge message          |
 | Full/Selected verification | Fails on any selected gate's failure, cancellation, or unexpected skip                   |
+
+The `Browser (mobile)` job runs the phone-relevant specs plus `compact.spec.ts`,
+which holds the one-screen contract: no page scroll on Home, play, or study; the
+board, its players, the ply control, the current review sentence, and the rail
+all inside the viewport; five-column move rows; and the sheet behind the menu
+button. The specs that drive the study card's content step by step stay on the
+desktop project, because on a phone that content lives in that sheet.
 
 The `Desktop` workflow builds `npm run build`, checks `cargo fmt`, runs
 `cargo clippy` with warnings denied, compiles the shell with `--locked` against

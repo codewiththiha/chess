@@ -1,6 +1,6 @@
 // Exercise continuous clocks, exact expiry, engine-asset recovery, and setting persistence.
 import { test, expect } from '@playwright/test';
-import { open, start, move, exchange, go, savedGames } from './helpers';
+import { open, start, move, exchange, go, panel, savedGames } from './helpers';
 
 test('restored clocks keep running and expire by elapsed time', async ({
   page,
@@ -19,6 +19,7 @@ test('restored clocks keep running and expire by elapsed time', async ({
     })
     .not.toBe(before);
   // A very short clock reaches zero while the tab stays open: no pause involved.
+  await panel(page);
   await page.locator('.clock-summary').click();
   await page.getByLabel('Clock minutes', { exact: true }).fill('0.05');
   await page.getByLabel('Clock increment', { exact: true }).fill('0');

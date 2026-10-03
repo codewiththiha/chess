@@ -24,10 +24,29 @@ export async function go(
   page: Page,
   view: 'Home' | 'Play' | 'Study',
 ): Promise<void> {
+  // The sheet is modal, so it stands between the reader and the rail.
+  await closePanel(page);
   await page
     .getByRole('navigation', { name: 'Main navigation', exact: true })
     .getByRole('button', { name: view, exact: true })
     .click();
+}
+
+/** The compact layout keeps move data and study in a bottom sheet. */
+export async function panel(page: Page): Promise<void> {
+  const toggle = page.locator('[data-sheet-toggle="panel"]');
+  // The desktop shell has no sheet, so this is a no-op there.
+  if (!(await toggle.count())) return;
+  if (await page.locator('dialog.sheet[open]').count()) return;
+  await toggle.click();
+  await expect(page.locator('dialog.sheet[open]')).toHaveCount(1);
+}
+
+export async function closePanel(page: Page): Promise<void> {
+  const sheet = page.locator('dialog.sheet[open]');
+  if (!(await sheet.count())) return;
+  await sheet.getByRole('button', { name: /^Close/ }).click();
+  await expect(page.locator('dialog.sheet[open]')).toHaveCount(0);
 }
 
 export async function study(
@@ -35,6 +54,9 @@ export async function study(
   tab: 'Analyze' | 'Review',
 ): Promise<void> {
   await go(page, 'Study');
+  // On compact the tabs are in the sheet, so the sheet stays open afterwards:
+  // whoever needs the board next closes it through tap() below.
+  await panel(page);
   await page.getByRole('tab', { name: tab, exact: true }).click();
 }
 
@@ -89,6 +111,8 @@ export async function squarePoint(
   page: Page,
   key: string,
 ): Promise<{ x: number; y: number }> {
+  // Moving on the board means looking at the board, not through the sheet.
+  await closePanel(page);
   const board = page.locator('cg-board');
   await board.scrollIntoViewIfNeeded();
   if ((page.viewportSize()?.width ?? 1440) <= 999)

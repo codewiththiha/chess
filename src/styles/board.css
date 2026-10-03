@@ -203,6 +203,9 @@ cg-board piece.dragging {
 .bot-talk {
   padding: 0 18px 6px;
 }
+.bot-talk.idle {
+  display: none;
+}
 .bot-bubble {
   display: -webkit-box;
   -webkit-box-orient: vertical;

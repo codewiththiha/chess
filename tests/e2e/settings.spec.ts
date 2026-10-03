@@ -1,6 +1,6 @@
 // Exercise dynamic controls, browser backends, appearance persistence, and live limit updates.
 import { test, expect } from '@playwright/test';
-import { open, start, move, exchange, plies, study } from './helpers';
+import { open, start, move, exchange, panel, plies, study } from './helpers';
 
 test('all discovered behaviors and parameters are editable and persisted', async ({
   page,
@@ -155,6 +155,7 @@ test('live performance changes and cancellation do not produce stale analysis mo
   // The dialog closes once the engine has actually taken the new limits, which
   // can take longer than a default wait while a no-deadline search is stopping.
   await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 30000 });
+  await panel(page);
   await expect(
     page.locator('.study-card').getByRole('button', { name: 'Stop' }),
   ).toBeVisible();
@@ -169,8 +170,11 @@ test('live performance changes and cancellation do not produce stale analysis mo
     .click();
   await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 30000 });
   // Analysis runs continuously in study, so the card shows live status instead.
+  await panel(page);
   await expect(page.locator('.analysis-summary')).toBeVisible();
   await move(page, 'e2', 'e4');
+  await plies(page, 1);
+  await panel(page);
   await expect(
     page.locator('.move-cell').filter({ hasText: 'e4' }),
   ).toBeVisible();
