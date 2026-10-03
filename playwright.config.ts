@@ -30,11 +30,11 @@ export default defineConfig({
       name: 'mobile',
       use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' },
       // On a phone the study card and the move list live in a sheet, so the
-      // specs that drive that content step by step run on the desktop project
-      // and `compact.spec.ts` covers the phone: one screen, the sheet, the strip,
-      // and the board. The rest of the suite runs on both projects.
+      // specs that drive that content step by step run on the desktop project.
+      // `compact.spec.ts` covers the one-screen shell and `layout.spec.ts` audits
+      // every screen at this size; the rest of the suite runs on both projects.
       testMatch:
-        /(accessibility|bots|compact|modes|play|recovery|settings|speech)\.spec\.ts/,
+        /(accessibility|bots|compact|layout|modes|play|recovery|settings|speech)\.spec\.ts/,
     },
   ],
   webServer: {
