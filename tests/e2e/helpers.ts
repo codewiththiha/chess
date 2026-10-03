@@ -36,7 +36,10 @@ export async function go(
 export async function panel(page: Page): Promise<void> {
   const toggle = page.locator('[data-sheet-toggle="panel"]');
   // The desktop shell has no sheet, so this is a no-op there.
-  if (!(await toggle.count())) return;
+  if (!(await page.locator('body[data-compact]').count())) return;
+  // A reload can still be on the landing view while the stored game loads, and
+  // the game shell is what carries the button.
+  await expect(toggle).toBeAttached({ timeout: 15000 });
   if (await page.locator('dialog.sheet[open]').count()) return;
   await toggle.click();
   await expect(page.locator('dialog.sheet[open]')).toHaveCount(1);

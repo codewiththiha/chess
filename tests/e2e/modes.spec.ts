@@ -1,7 +1,7 @@
 // Verify the mode split: bot games stay live in study, two-player boards are human,
 // and engine arrows are study-only.
 import { test, expect } from '@playwright/test';
-import { open, start, study, move, plies } from './helpers';
+import { open, start, study, move, plies, go } from './helpers';
 
 test('two players move both sides and no engine replies', async ({ page }) => {
   await open(page);
@@ -46,10 +46,7 @@ test('engine arrows are drawn in study and never during play', async ({
     .toBeGreaterThan(0);
   expect(await arrows.count()).toBeLessThanOrEqual(4);
   // Returning to play clears them again.
-  await page
-    .getByRole('navigation', { name: 'Main navigation', exact: true })
-    .getByRole('button', { name: 'Play', exact: true })
-    .click();
+  await go(page, 'Play');
   await expect(arrows).toHaveCount(0);
 });
 
@@ -58,8 +55,9 @@ test('premoves stay off until the setting is enabled', async ({ page }) => {
   await start(page, { preset: '3 min' });
   await move(page, 'e2', 'e4');
   await plies(page, 2);
-  // Without the setting the board refuses a queued move while the engine thinks.
+  // Without the setting the board refuses a queued move while the engine thinks,
+  // so the record still holds the two plies the game really played.
   await page.locator('.board-shell').evaluate((node) => node.scrollIntoView());
   await move(page, 'd7', 'd5');
-  expect(await page.locator('.move-cell:not(.missing)').count()).toBe(2);
+  await plies(page, 2);
 });

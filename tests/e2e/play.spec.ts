@@ -1,6 +1,7 @@
 // Verify engine play, tap/drag/keyboard input, clocks, and terminal recording in Chromium.
 import { test, expect } from '@playwright/test';
 import {
+  closePanel,
   open,
   start,
   move,
@@ -120,6 +121,7 @@ test('history keeps the record, takeback is reversible, and resignation is recor
   await start(page, { preset: '3 min' });
   await move(page, 'e2', 'e4');
   await exchange(page, 2);
+  await closePanel(page);
   await page
     .getByRole('button', { name: 'Previous move', exact: true })
     .click();

@@ -164,7 +164,6 @@ test('live performance changes and cancellation do not produce stale analysis mo
   await panel(page);
   await expect(page.locator('.analysis-summary')).toBeVisible();
   await move(page, 'e2', 'e4');
-  await plies(page, 1);
   await panel(page);
   await expect(
     page.locator('.move-cell').filter({ hasText: 'e4' }),

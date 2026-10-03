@@ -383,21 +383,28 @@ body[data-compact] .modal-box {
 }
 
 /* ---------------- the landing page fits too ---------------- */
+/* Two bands, each with its own scroll: the picker on top, the saved games below.
+   The games band is bounded, so nothing in it is ever clipped out of reach. */
 body[data-compact] .home {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  padding: 8px 10px calc(64px + env(safe-area-inset-bottom, 0px));
+  padding: 6px 10px calc(64px + env(safe-area-inset-bottom, 0px));
 }
 body[data-compact] .home-start {
+  flex: 1 1 auto;
   justify-content: start;
   gap: 10px;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+body[data-compact] .home-games {
+  flex: 0 1 34%;
+  min-height: 132px;
 }
 body[data-compact] .time-group {
   grid-template-columns: 1fr;
@@ -423,12 +430,11 @@ body[data-compact] .bot-card {
   flex: 0 0 auto;
   scroll-snap-align: start;
 }
-body[data-compact] .home-games {
-  min-height: 0;
-}
 body[data-compact] .saved-games {
-  max-height: none;
+  flex: 1 1 auto;
   min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 /* A dialog taller than the screen still has to be usable without a page scroll. */
 body[data-compact] .modal-box {
@@ -450,7 +456,13 @@ body[data-compact] .modal-box {
     max-height: 100%;
   }
   body[data-compact] .home {
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.7fr);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.7fr);
     grid-template-rows: minmax(0, 1fr);
+  }
+  body[data-compact] .home-start,
+  body[data-compact] .home-games {
+    min-height: 0;
+    overflow-y: auto;
   }
 }
