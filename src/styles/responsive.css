@@ -99,8 +99,13 @@ body[data-compact] main {
 body[data-compact] .app-banner {
   margin: 6px 8px 0;
 }
+/* Above the rail, never blocking it, and untappable: it is a message, not a
+   control, so a tap always reaches whatever it is covering. */
 body[data-compact] .app-toast {
-  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+  max-width: calc(100% - 24px);
+  text-align: center;
+  pointer-events: none;
 }
 
 /* Rail, now a fixed bottom row of icons. */
