@@ -53,6 +53,12 @@ export class AppState {
   ready = $state(false);
   report = $state<Report | null>(null);
   hint = $state<Report | null>(null);
+  /**
+   * The settled evaluation of each position, by ply, written when a search
+   * finishes. The rail and the accuracy report read these, so neither ever
+   * reacts to a search that is still running.
+   */
+  evals = $state<Record<number, number>>({});
   discovery = $state<Discovery | null>(null);
   backend = $state('');
   engineError = $state('');
@@ -85,6 +91,13 @@ export class AppState {
     action: () => void;
   } | null>(null);
   notice = $state<{ text: string; error: boolean } | null>(null);
+  /** Forget evaluations past a ply, after a takeback or a fresh branch. */
+  trimEvals(ply: number): void {
+    const kept: Record<number, number> = {};
+    for (const [key, value] of Object.entries(this.evals))
+      if (Number(key) <= ply) kept[Number(key)] = value;
+    this.evals = kept;
+  }
   fen = $derived(fenAt(this.record, this.cursor));
   pos = $derived(position(this.fen));
   claims = $derived(drawClaims(this.record));

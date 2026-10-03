@@ -178,3 +178,64 @@ test('a position can be loaded for study without inventing a game', async ({
   );
   await plies(page, 1);
 });
+
+const MATED_BLACK =
+  '[Event "Rail example"]\n[White "White"]\n[Black "Black"]\n[Result "0-1"]\n\n1. f3 e5 2. g4 Qh4# *';
+const MATED_WHITE =
+  '[Event "Rail example"]\n[White "White"]\n[Black "Black"]\n[Result "1-0"]\n\n1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6 4. Qxf7# *';
+
+test('a decided game fills the rail for its winner', async ({ page }) => {
+  await open(page);
+  await importGame(page, MATED_BLACK);
+  await plies(page, 4);
+  // An import opens on the first position, and the whole point of this test is
+  // the end of the game: Play jumps to the live position.
+  await go(page, 'Play');
+  // Black won, so the rail is empty of White — not left half-filled.
+  await expect(page.locator('.evaluation-white')).toHaveAttribute(
+    'style',
+    /height:\s*0%/,
+  );
+  await expect(page.locator('.evaluation-rail')).toHaveAttribute(
+    'title',
+    /Black wins/,
+  );
+  await importGame(page, MATED_WHITE);
+  await plies(page, 7);
+  await go(page, 'Play');
+  await expect(page.locator('.evaluation-white')).toHaveAttribute(
+    'style',
+    /height:\s*100%/,
+  );
+  await expect(page.locator('.evaluation-rail')).toHaveAttribute(
+    'title',
+    /White wins/,
+  );
+});
+
+test('a finished game reports each side its accuracy', async ({ page }) => {
+  await open(page);
+  await importGame(page, MATED_BLACK);
+  await plies(page, 4);
+  await study(page, 'Review');
+  await page
+    .locator('.study-card')
+    .getByRole('button', { name: 'Review', exact: true })
+    .click();
+  await expect(page.locator('.review-progress')).toContainText('Reviewed', {
+    timeout: 60000,
+  });
+  const sides = page.locator('.accuracy-report .accuracy-side');
+  await expect(sides).toHaveCount(2);
+  await expect(sides.nth(0)).toContainText('White');
+  await expect(sides.nth(0)).toContainText('%');
+  await expect(sides.nth(1)).toContainText('Black');
+  await expect(sides.nth(1)).toContainText('%');
+  const percent = async (index: number) =>
+    Number((await sides.nth(index).innerText()).replace(/[^\d]/g, ''));
+  const white = await percent(0);
+  const black = await percent(1);
+  // White walked into mate in four moves; Black delivered it and kept more.
+  expect(white).toBeLessThan(100);
+  expect(black).toBeGreaterThan(white);
+});

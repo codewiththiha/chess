@@ -19,6 +19,7 @@
   import { REVIEW_PRESETS } from '../controllers/review';
   import EvaluationChart from './review/EvaluationChart.svelte';
   import Coach from './Coach.svelte';
+  import Accuracy from './Accuracy.svelte';
   import type { Session } from '../controllers/session';
   import type { StudyTab } from '../state/app.svelte';
   let {
@@ -174,6 +175,7 @@
                 : 'Review'}</button
           >{/if}
       </div>
+      <Accuracy {session} />
       {#if s.review}
         <div class="review-progress">
           <span
@@ -250,7 +252,8 @@
         <p class="fine-print">
           Up to {budget.timeMs} ms and {Number(budget.nodes).toLocaleString()}
           nodes per position. Best means the engine’s first choice; other grades use
-          centipawn loss, not a calibrated accuracy score.
+          centipawn loss. Accuracy is the share of the winning chances each side kept
+          across its own moves, not a rating.
         </p>
       {/if}
       {#if s.reviewError}<p class="inline-error" role="alert">

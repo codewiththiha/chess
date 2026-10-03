@@ -3,6 +3,7 @@ import type { AppState } from '../state/app.svelte';
 import { EngineClient } from '../engine/client';
 import { Cancelled } from '../engine/types';
 import { policyForGame } from '../domain/bots';
+import { whiteScore } from '../domain/review';
 import type { GameActions } from './game';
 import type { ComputeSettings, EngineSettings } from '../domain/types';
 export class SearchController {
@@ -101,6 +102,17 @@ export class SearchController {
         if (generation !== this.generation) return;
         const update = (report: NonNullable<AppState['report']>) => {
           if (generation !== this.generation) return;
+          // Only a finished search is an evaluation: the rail keeps the last one
+          // while the next is running, and the accuracy report is built from
+          // these and nothing else.
+          if (report.finished) {
+            const cp = whiteScore(
+              report.scoreCp,
+              report.mate,
+              position % 2 === 0 ? 'white' : 'black',
+            );
+            if (cp !== null) s.evals[position] = cp;
+          }
           if (hint) {
             s.hint = report;
             return;

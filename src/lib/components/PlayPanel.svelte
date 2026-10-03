@@ -8,6 +8,7 @@
     Clock,
   } from '@lucide/svelte';
   import GameStatus from './GameStatus.svelte';
+  import Accuracy from './Accuracy.svelte';
   import { describeTime } from '../domain/time-controls';
   import { bestSan } from '../domain/chess';
   import type { Session } from '../controllers/session';
@@ -46,6 +47,7 @@
          instead of floating over the board's controls. -->
     <p class="notice-line" role="status">{s.notice.text}</p>
   {/if}
+  <Accuracy {session} />
   {#if s.hint?.bestMove}
     <p class="hint-line">
       <Lightbulb size={15} />Try

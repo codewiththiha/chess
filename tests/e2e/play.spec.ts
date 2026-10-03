@@ -10,6 +10,7 @@ import {
   plies,
   loadFen,
   panel,
+  rail,
   savedGames,
 } from './helpers';
 
@@ -151,4 +152,80 @@ test('history keeps the record, takeback is reversible, and resignation is recor
     'Black wins · 0-1',
   );
   expect(await savedGames(page)).toBe(1);
+});
+
+test('the rail holds its last settled value while a search runs', async ({
+  page,
+}) => {
+  await open(page);
+  await start(page, { preset: '3 min' });
+  const gauge = page.locator('.evaluation-rail');
+  const fill = page.locator('.evaluation-white');
+  // Once the engine has reported, a move must not blank the rail: the value of
+  // the position just left stays up until the new one has been settled. The
+  // bump this guards against was the rail dropping to its unknown half on every
+  // move, then snapping to the real score once the search finished.
+  await expect(gauge).not.toHaveClass(/unknown/, { timeout: 30000 });
+  await move(page, 'e2', 'e4');
+  for (let sample = 0; sample < 15; sample += 1) {
+    await expect(gauge).not.toHaveClass(/unknown/);
+    expect(await fill.getAttribute('style')).toMatch(/height:\s*[\d.]+%/);
+    await page.waitForTimeout(100);
+  }
+});
+
+test('a game that ends fills the rail for its winner and scores both sides', async ({
+  page,
+}, testInfo) => {
+  await open(page);
+  // Two players, so the short mate below is played by hand: the engine answers
+  // nobody here, it only settles an evaluation for every position on screen.
+  await start(page, { preset: '3 min', opponent: 'Two players' });
+  const mate: [string, string][] = [
+    ['f2', 'f3'],
+    ['e7', 'e5'],
+    ['g2', 'g4'],
+    ['d8', 'h4'],
+  ];
+  for (const [from, to] of mate) {
+    await move(page, from, to);
+    // Accuracy reads settled evaluations only, so wait for each search to finish
+    // instead of cancelling it with the next move.
+    if (from !== 'd8') await page.waitForTimeout(2500);
+  }
+  // Black delivered the mate: the rail belongs to Black, to the very top.
+  await expect(page.locator('.evaluation-rail')).toHaveAttribute(
+    'title',
+    /Black wins/,
+  );
+  await expect(page.locator('.evaluation-white')).toHaveAttribute(
+    'style',
+    /height:\s*0%/,
+  );
+  // A phone keeps the game card in its sheet; the desktop already shows it.
+  await panel(page);
+  const sides = page.locator('.accuracy-report .accuracy-side');
+  await expect(sides).toHaveCount(2);
+  const score = async (index: number) =>
+    Number(
+      (await sides.nth(index).locator('strong').innerText()).replace('%', ''),
+    );
+  // 2. g4 handed the game over, so Black kept more of its winning chances.
+  expect(await score(0)).toBeLessThan(await score(1));
+  await testInfo.attach(`${testInfo.project.name}-end-of-game`, {
+    body: await page.screenshot(),
+    contentType: 'image/png',
+  });
+  // And the same end of the same game in the dark theme: this block of tiles is
+  // new, so both themes are worth a look while it is on screen.
+  await rail(page, 'Board appearance');
+  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Save appearance', exact: true })
+    .click();
+  await panel(page);
+  await testInfo.attach(`${testInfo.project.name}-end-of-game-dark`, {
+    body: await page.screenshot(),
+    contentType: 'image/png',
+  });
 });

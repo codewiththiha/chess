@@ -296,13 +296,20 @@
   margin-left: auto;
   font-size: 10px;
 } /* Play card */
-/* A message about the game, shown where the game's state already lives. */
+/* A message about the game, shown where the game's state already lives. It
+   settles into place rather than fading: the message is text, and text that is
+   painting at half its opacity is text a contrast check has to call out. */
+@keyframes notice-in {
+  from {
+    transform: translateY(-3px);
+  }
+}
 .notice-line {
   margin: 0;
   font-size: 13.5px;
   line-height: 1.25;
   color: var(--color-primary);
-  animation: message-in 180ms ease-out;
+  animation: notice-in 180ms ease-out;
 }
 .play-card {
   padding: 15px 18px 13px;
@@ -427,11 +434,20 @@
 .review-controls,
 .review-progress,
 .review-statistics,
+.accuracy-report,
 .move-insight,
 .turning-points,
 .study-actions,
 .study-empty {
   padding-inline: var(--pad-card);
+}
+/* A study card block separates itself from the one above; the play card already
+   spaces its children, so there the report needs no room of its own. */
+.accuracy-report {
+  padding-top: 14px;
+}
+.play-card .accuracy-report {
+  padding-top: 0;
 }
 .study-actions {
   padding-block: 4px 15px;
@@ -530,6 +546,40 @@
   font-weight: 400;
   color: var(--muted);
   margin-left: 2px;
+}
+/* The end of a game: how much of the winning chances each side kept. It wears
+   the same tiles as the review's own statistics, because it is one of them. */
+.accuracy-report h3 {
+  font-size: 11px;
+  font-weight: 650;
+  margin-bottom: 7px;
+}
+.accuracy-sides {
+  display: flex;
+  gap: 9px;
+}
+.accuracy-side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+}
+.accuracy-side span {
+  font-size: 10px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.accuracy-side strong {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
 } /* Moves */
 .move-section {
   display: flex;

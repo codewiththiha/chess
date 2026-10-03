@@ -62,6 +62,7 @@ export class GameActions {
     s.reviewError = '';
     s.hint = null;
     s.report = null;
+    s.evals = {};
     s.dialog = null;
     this.stamp();
     this.startIfNeeded();
@@ -81,6 +82,7 @@ export class GameActions {
     s.reviewError = '';
     s.report = null;
     s.hint = null;
+    s.evals = {};
     this.onChange();
   }
 
@@ -186,8 +188,10 @@ export class GameActions {
       settleClock(s.record.clock, this.now());
       incrementClock(s.record.clock, entry.color);
     }
-    if (s.view === 'study' && !s.latest)
+    if (s.view === 'study' && !s.latest) {
       s.record.moves = s.record.moves.slice(0, s.cursor);
+      s.trimEvals(s.cursor);
+    }
     entry.whiteMs = s.record.clock.whiteMs;
     entry.blackMs = s.record.clock.blackMs;
     s.record.moves.push(entry);
@@ -257,6 +261,7 @@ export class GameActions {
     s.review = null;
     s.report = null;
     s.hint = null;
+    s.evals = {};
     s.reviewError = '';
     this.onChange();
   }
@@ -296,6 +301,7 @@ export class GameActions {
     s.review = null;
     s.report = null;
     s.hint = null;
+    s.trimEvals(target);
     if (s.view !== 'home') this.resumeClock();
     this.stamp();
     this.onChange();
