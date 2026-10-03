@@ -3,6 +3,23 @@
   background: var(--scrim);
   backdrop-filter: none;
 }
+/* Dialogs appear complete. daisyUI fades the scrim and the box in over a third
+   of a second, and until that settles the page behind reads straight through
+   the card — which looks like a broken, see-through dialog both on screen and
+   in a screenshot. This app has no entrance flourish. */
+body .modal,
+body .modal[open],
+body .modal::backdrop,
+body .modal[open] > .modal-box {
+  transition: none;
+  animation: none;
+}
+body .modal[open],
+body .modal[open] > .modal-box {
+  opacity: 1;
+  scale: 1;
+  translate: 0;
+}
 .modal-box {
   max-width: 480px;
   width: calc(100% - 32px);
