@@ -214,8 +214,11 @@ npm run check:commit
 ## Visual evidence and limits
 
 Final production screenshots are kept as `docs/desktop-home.png`,
-`docs/desktop-play.png`, `docs/mobile-play.png`, `docs/desktop-review.png`, and
-`docs/mobile-review.png`. The published set depicts the `a27443b` shell; the same
+`docs/desktop-play.png`, `docs/mobile-play.png`, `docs/desktop-review.png`,
+`docs/mobile-review.png`, `docs/desktop-end-of-game.png`,
+`docs/desktop-end-of-game-dark.png`, `docs/mobile-end-of-game.png`, and
+`docs/mobile-end-of-game-dark.png` (the last four are the finished game, light
+and dark, on both sizes; see "Evaluation rail and accuracy" below). The published set depicts the `a27443b` shell; the same
 files were re-captured on 2026-10-02 from the redesigned shell (Home, Play,
 Study/Review) with real engine replies and a real restored record — still actual
 WASM-driven play, never fabricated UI data. On 2026-10-03 the whole set was
@@ -863,3 +866,65 @@ with their footers whole. Dark theme: the same frames with the dark surfaces.
 **What is not claimed.** The dark pass is Chromium only. The phone frames remain
 390×664 Chromium emulation, not physical hardware. Screenshots are the audit's
 own attachments, so they show exactly the state the assertions ran against.
+
+## Evaluation rail and accuracy (2026-10-03)
+
+Three complaints came out of using the shipped build: a decided game left the
+rail half filled instead of filling it for the side that won; on a phone the
+rail "bumps up to the upper a bit as progress then went back to actual one" move
+after move; and there was no accuracy score at the end of a game.
+
+All three were the same fault seen from different sides. The rail drew whatever
+report happened to be in state against the turn on the board, and the engine
+streams partial reports while it searches: mid-game the rail was showing a
+running guess, and once a game ended the report was cleared, so the rail fell
+back to its unknown half instead of the result. Nothing about a finished game
+reached the rail at all.
+
+- **A decided game fills the rail for its winner.** `resultValue` reads the
+  record's result — `1-0` fills for White, `0-1` for Black, a draw levels the
+  rail — and the rail shows it whenever the board stands on the last ply of a
+  finished game, however that game ended: mate, resignation, a flag or an
+  agreement. A proven mate fills the rail outright as well, so a mate no longer
+  stops at the ceiling of the ordinary curve (`railExtent` saturates at
+  `MATE_CP` rather than at the end of the tanh term).
+- **The rail only shows settled evaluations.** Every finished search is filed
+  against the ply it was run for, in `AppState.evals`; the rail shows the value
+  of the move on the board or the most recent one before it, and never anything
+  from a search still running. A move therefore cannot blank the rail or bump it
+  while the engine thinks, and a takeback or a fresh branch forgets the plies
+  past the cursor instead of leaving a stale number behind.
+- **Accuracy is reported at the end of a game.** Each side's accuracy is the
+  share of the winning chances it kept across its own moves, taken from the same
+  settled evaluations and overridden by the review's deeper points wherever a
+  review covers the game. It appears once the game is over — in the play card at
+  both sizes (on a phone, in the sheet that opens at the end) and in the study
+  card beside the review — and it is never shown mid-game or when only one side
+  has had a move evaluated, so no number is invented. It is not a rating, and
+  the review's own fine print says exactly that.
+
+Unit coverage is `tests/unit/evaluation.test.ts`. The browser suites exercise
+the behaviour directly: "the rail holds its last settled value while a search
+runs" samples the rail fifteen times while the engine answers a move; "a game
+that ends fills the rail for its winner and scores both sides" plays a mate by
+hand in two-player mode and reads the rail and both accuracy figures; "a decided
+game fills the rail for its winner" does the same for an imported game of each
+colour; and "a finished game reports each side its accuracy" runs a real review
+and reads the two numbers back out of the card.
+
+Evidence: `37119975975`, dispatched on `fe2fa59`, eight of eight jobs green for
+both browser projects. The four new frames in `docs/` are that run's own
+attachments. `docs/desktop-end-of-game.png` shows the mate with "Black wins ·
+0-1" and 11 % against 99 % in the play card, the whole game decided; the rail
+beside the board stands empty of White from the board's top edge to its bottom.
+`docs/desktop-end-of-game-dark.png` is the same state in the dark theme, and the
+two `docs/mobile-end-of-game*.png` frames show the phone's sheet arriving with
+the game's end — both accuracy figures, the clocks, the move list — with the
+rail filled for Black behind it. The rail was measured in those frames as well:
+its own column on the desktop light frame is nine pixels of track colour with no
+fill on it, and no cream is inside the rail in either dark frame.
+
+**What is not claimed.** Accuracy is an engine-judged number, not a rating, and
+it is deliberately absent where too little of the game was evaluated to say
+anything. The rail stays a signed evaluation, explicitly not a win probability,
+and the phone frames remain emulated Chromium at 390×664.
