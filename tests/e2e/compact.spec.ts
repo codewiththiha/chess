@@ -361,32 +361,6 @@ test('every opponent is on the phone screen at once', async ({
   }));
   expect(scroll.content).toBeLessThanOrEqual(scroll.width + 1);
   const screen = await page.evaluate(() => window.innerWidth);
-  // Diagnostic while this layout settles: the whole chain, measured.
-  const chain = await page.evaluate(() => {
-    const rows: Record<string, unknown> = {};
-    for (const selector of [
-      '.home',
-      '.home-start',
-      '.home-options',
-      '.start-row',
-      '.bot-picker',
-      '.bot-card',
-    ]) {
-      const node = document.querySelector<HTMLElement>(selector);
-      if (!node) continue;
-      const style = getComputedStyle(node);
-      rows[selector] = {
-        rect: node.getBoundingClientRect().toJSON(),
-        scroll: { width: node.scrollWidth, client: node.clientWidth },
-        width: style.width,
-        minWidth: style.minWidth,
-        display: style.display,
-        columns: style.gridTemplateColumns,
-      };
-    }
-    return rows;
-  });
-  console.log('LAYOUT', JSON.stringify(chain, null, 1));
   const cards = await page.locator('.bot-card').all();
   expect(cards.length).toBeGreaterThan(3);
   for (const card of cards) {

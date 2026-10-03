@@ -495,10 +495,13 @@ body[data-compact] .time-chip {
 body[data-compact] .start-row {
   display: flex;
   flex-direction: column;
+  /* Stacking means stacking: a wrapped column lays its items out in a second
+     column to the right, which on a phone is off the screen entirely. The row
+     keeps its own height and the picker above it scrolls instead. */
+  flex-wrap: nowrap;
+  flex-shrink: 0;
   align-items: stretch;
   gap: 8px;
-  /* The row is a flex item too: without this it takes its own content's width,
-     which is the width of the widest thing inside it. */
   width: 100%;
   min-width: 0;
 }
