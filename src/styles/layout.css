@@ -474,7 +474,8 @@ main {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  min-height: 32px;
+  /* The same height as a time chip, so the row of controls reads as one band. */
+  min-height: 36px;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
@@ -509,6 +510,7 @@ main {
   font-size: 13px;
 }
 .start-button {
+  min-height: 44px;
   padding-inline: 24px;
 }
 .games-count {
@@ -557,11 +559,26 @@ main {
   background: var(--color-base-200);
   font-size: 13px;
 }
+/* An empty library is a state, not a hole: centred, with what will land here. */
 .games-empty {
-  padding: 22px 18px;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 9px;
+  flex: 1;
+  padding: 30px 26px;
+  text-align: center;
   font-size: 12px;
   line-height: 1.7;
   color: var(--muted);
+}
+.games-empty svg {
+  color: var(--color-primary);
+  opacity: 0.75;
+}
+.games-empty p {
+  margin: 0;
+  max-width: 260px;
 }
 .saved-games {
   list-style: none;

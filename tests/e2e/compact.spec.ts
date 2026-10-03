@@ -48,6 +48,40 @@ async function fitsOneScreen(page: Page): Promise<void> {
   expect(metrics.scrollY).toBe(0);
 }
 
+test('the picker may scroll, but Start never leaves the screen', async ({
+  page,
+}, testInfo) => {
+  phoneOnly(testInfo);
+  await open(page);
+  // The picker is the one band allowed to scroll on this view, and the dock sits
+  // outside it. Walk the picker to its end and back: Start must not move, and
+  // nothing may paint over it — the earlier layout let a longer control column
+  // push it out of sight behind the saved games.
+  const start = page.locator('.start-button');
+  await expect(start).toBeInViewport();
+  const resting = await start.boundingBox();
+  if (!resting) throw new Error('Start is not on screen.');
+  const options = page.locator('.home-options');
+  const depth = await options.evaluate((node) => node.scrollHeight);
+  for (const step of [0.5, 1]) {
+    await options.evaluate((node, ratio) => {
+      node.scrollTop = (node.scrollHeight - node.clientHeight) * ratio;
+    }, step);
+    await expect(start).toBeInViewport();
+    const moved = await start.boundingBox();
+    if (!moved) throw new Error('Start left the screen with the picker.');
+    expect(Math.abs(moved.y - resting.y)).toBeLessThanOrEqual(1);
+  }
+  expect(depth).toBeGreaterThanOrEqual(
+    await options.evaluate((n) => n.clientHeight),
+  );
+  const rail = await page.locator('.rail').boundingBox();
+  if (!rail) throw new Error('No rail.');
+  expect(resting.y + resting.height).toBeLessThanOrEqual(rail.y + 1);
+  expect(resting.height).toBeGreaterThanOrEqual(44);
+  await fitsOneScreen(page);
+});
+
 test('Home, play and study each hold still on one screen', async ({
   page,
 }, testInfo) => {
