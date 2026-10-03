@@ -42,6 +42,12 @@ export async function panel(page: Page): Promise<void> {
   await expect(page.locator('dialog.sheet[open]')).toHaveCount(1);
 }
 
+/** A rail button: the sheet is modal, so it stands aside first. */
+export async function rail(page: Page, name: string): Promise<void> {
+  await closePanel(page);
+  await page.getByRole('button', { name, exact: true }).click();
+}
+
 export async function closePanel(page: Page): Promise<void> {
   const sheet = page.locator('dialog.sheet[open]');
   if (!(await sheet.count())) return;
@@ -184,8 +190,12 @@ export async function drag(
   }
 }
 
-/** Wait for exactly `count` recorded plies in the notes. */
+/** Wait for exactly `count` recorded plies in the notes. On a phone the notes
+ * live in the sheet, so bring it up first; the sheet stays open afterwards until
+ * a move or a navigation closes it. */
 export async function plies(page: Page, count: number): Promise<void> {
+  if (await page.evaluate(() => document.body.dataset.compact === 'true'))
+    await panel(page);
   await expect(page.locator('.move-cell:not(.missing)')).toHaveCount(count, {
     timeout: 20000,
   });

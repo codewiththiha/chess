@@ -294,6 +294,8 @@ body[data-compact] .sheet.modal {
   display: flex;
   flex-direction: column;
   margin: auto auto 0;
+  /* Stop above the rail, so the navigation stays in sight while a sheet is up. */
+  margin-block-end: calc(58px + env(safe-area-inset-bottom, 0px));
   width: 100%;
   max-width: none;
   height: auto;
@@ -304,6 +306,9 @@ body[data-compact] .sheet.modal {
   border-block-start: 1px solid var(--line);
   border-radius: 16px 16px 0 0;
   overflow: hidden;
+}
+body[data-compact] .sheet .modal-action {
+  margin: 0;
 }
 /* daisyUI paints its scrim as the dialog's own background and hides the
    backdrop, which only works for a dialog that fills the screen. The sheet is a

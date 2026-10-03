@@ -1,14 +1,21 @@
 // Exercise dynamic controls, browser backends, appearance persistence, and live limit updates.
 import { test, expect } from '@playwright/test';
-import { open, start, move, exchange, panel, plies, study } from './helpers';
+import {
+  exchange,
+  move,
+  open,
+  panel,
+  plies,
+  rail,
+  start,
+  study,
+} from './helpers';
 
 test('all discovered behaviors and parameters are editable and persisted', async ({
   page,
 }) => {
   await open(page);
-  await page
-    .getByRole('button', { name: 'Engine settings', exact: true })
-    .click();
+  await rail(page, 'Engine settings');
   await page.getByRole('tab', { name: 'Advanced', exact: true }).click();
   await expect(page.locator('.behavior-row input')).toHaveCount(11);
   await expect(page.locator('.parameter-grid input')).toHaveCount(38);
@@ -23,9 +30,7 @@ test('all discovered behaviors and parameters are editable and persisted', async
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.reload();
   await expect(page.locator('.rail')).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Engine settings', exact: true })
-    .click();
+  await rail(page, 'Engine settings');
   await page.getByRole('tab', { name: 'Advanced', exact: true }).click();
   await expect(page.getByLabel('AspStartWindow', { exact: true })).toHaveValue(
     '30',
@@ -39,9 +44,7 @@ test('portable backend and nominal Elo/seed still configure the real engine', as
   page,
 }) => {
   await open(page);
-  await page
-    .getByRole('button', { name: 'Engine settings', exact: true })
-    .click();
+  await rail(page, 'Engine settings');
   await page
     .getByLabel('Personality', { exact: true })
     .selectOption('human-like');
@@ -59,9 +62,7 @@ test('portable backend and nominal Elo/seed still configure the real engine', as
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.reload();
   await expect(page.locator('.rail')).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Engine settings', exact: true })
-    .click();
+  await rail(page, 'Engine settings');
   await expect(page.getByLabel('WASM backend', { exact: true })).toHaveValue(
     'portable',
   );
@@ -79,9 +80,7 @@ test('invalid ranges remain staged and do not overwrite saved settings', async (
   page,
 }) => {
   await open(page);
-  await page
-    .getByRole('button', { name: 'Engine settings', exact: true })
-    .click();
+  await rail(page, 'Engine settings');
   await page.getByLabel('Hash memory, MiB', { exact: true }).fill('65');
   await page
     .getByRole('button', { name: 'Save settings', exact: true })
@@ -91,9 +90,7 @@ test('invalid ranges remain staged and do not overwrite saved settings', async (
   );
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
-  await page
-    .getByRole('button', { name: 'Engine settings', exact: true })
-    .click();
+  await rail(page, 'Engine settings');
   // Hash lives on the default Engine tab; the rejected value must not have landed.
   await expect(
     page.getByLabel('Hash memory, MiB', { exact: true }),
@@ -104,9 +101,7 @@ test('board/pieces/theme and all motion/aids persist without external downloads'
   page,
 }) => {
   await open(page);
-  await page
-    .getByRole('button', { name: 'Board appearance', exact: true })
-    .click();
+  await rail(page, 'Board appearance');
   await page.getByRole('button', { name: 'Walnut', exact: true }).click();
   await page.getByRole('button', { name: /Classic Colin/ }).click();
   await page.getByRole('button', { name: 'Dark', exact: true }).click();
@@ -139,9 +134,7 @@ test('live performance changes and cancellation do not produce stale analysis mo
   await open(page);
   await start(page, { preset: '3 min' });
   await study(page, 'Analyze');
-  await page
-    .getByRole('button', { name: 'Engine settings', exact: true })
-    .click();
+  await rail(page, 'Engine settings');
   await page.getByRole('tab', { name: 'Performance', exact: true }).click();
   await page
     .getByRole('button', {
@@ -159,9 +152,7 @@ test('live performance changes and cancellation do not produce stale analysis mo
   await expect(
     page.locator('.study-card').getByRole('button', { name: 'Stop' }),
   ).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Engine settings', exact: true })
-    .click();
+  await rail(page, 'Engine settings');
   await page.getByRole('tab', { name: 'Performance', exact: true }).click();
   await page.getByLabel('Maximum depth', { exact: true }).fill('2');
   await page.getByLabel('Maximum nodes', { exact: true }).fill('1000');

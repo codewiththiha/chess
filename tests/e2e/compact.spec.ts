@@ -23,7 +23,7 @@ function phoneOnly(testInfo: TestInfo): void {
 
 /** A control the reader must reach is wholly inside the screen. */
 async function onScreen(page: Page, selector: string): Promise<void> {
-  const box = await page.locator(selector).boundingBox();
+  const box = await page.locator(selector).first().boundingBox();
   if (!box) throw new Error(`${selector} is not on screen.`);
   const height = await page.evaluate(() => window.innerHeight);
   expect(box.y).toBeGreaterThanOrEqual(0);
@@ -81,12 +81,14 @@ test('the board never moves under the reader while the game runs', async ({
   await start(page, { preset: '3 min' });
   await move(page, 'e2', 'e4');
   await exchange(page, 2);
+  await closePanel(page);
   const before = await page.locator('.board-surface').boundingBox();
   // A second move brings a fresh line of talk in. The strip keeps its place, so
   // the board gives up nothing and nothing shifts under the reader.
   await move(page, 'd2', 'd4');
   await exchange(page, 4);
   await expect(page.locator('.bot-bubble')).toBeVisible();
+  await closePanel(page);
   const after = await page.locator('.board-surface').boundingBox();
   if (!before || !after) throw new Error('The board is not on screen.');
   expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
@@ -110,6 +112,7 @@ test('the move data and the game controls open from the kebab', async ({
   await move(page, 'e2', 'e4');
   await exchange(page, 2);
   // Nothing of the notes is on screen until the reader asks for it.
+  await closePanel(page);
   await expect(page.locator('.move-cell')).toHaveCount(0);
   await panel(page);
   await expect(page.locator('.move-cell:not(.missing)')).toHaveCount(2);

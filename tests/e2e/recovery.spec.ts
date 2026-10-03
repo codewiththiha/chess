@@ -1,6 +1,15 @@
 // Exercise continuous clocks, exact expiry, engine-asset recovery, and setting persistence.
 import { test, expect } from '@playwright/test';
-import { open, start, move, exchange, go, panel, savedGames } from './helpers';
+import {
+  exchange,
+  go,
+  move,
+  open,
+  panel,
+  rail,
+  savedGames,
+  start,
+} from './helpers';
 
 test('restored clocks keep running and expire by elapsed time', async ({
   page,
@@ -39,9 +48,7 @@ test('engine settings survive a reload as one local record each time', async ({
   page,
 }) => {
   await open(page);
-  await page
-    .getByRole('button', { name: 'Engine settings', exact: true })
-    .click();
+  await rail(page, 'Engine settings');
   await page.getByRole('tab', { name: 'Advanced', exact: true }).click();
   await page.getByLabel('Null-move pruning', { exact: true }).uncheck();
   await page.getByLabel('AspStartWindow', { exact: true }).fill('30');
@@ -51,9 +58,7 @@ test('engine settings survive a reload as one local record each time', async ({
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.reload();
   await expect(page.locator('.rail')).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Engine settings', exact: true })
-    .click();
+  await rail(page, 'Engine settings');
   await page.getByRole('tab', { name: 'Advanced', exact: true }).click();
   await expect(page.getByLabel('AspStartWindow', { exact: true })).toHaveValue(
     '30',

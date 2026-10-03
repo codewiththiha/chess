@@ -1,7 +1,7 @@
 // Audit real rendered states, reduced motion, device widths, and same-origin asset loading.
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { open, start, go, study, move, exchange, panel } from './helpers';
+import { exchange, go, move, open, panel, rail, start, study } from './helpers';
 
 test('all runtime assets are local and the initial screen has no serious accessibility violations', async ({
   page,
@@ -36,9 +36,7 @@ test('the desktop shell fits the viewport without page scrolling', async ({
       () => document.documentElement.scrollHeight > window.innerHeight + 1,
     );
   expect(await scrolls()).toBe(false);
-  await page
-    .getByRole('button', { name: 'Board appearance', exact: true })
-    .click();
+  await rail(page, 'Board appearance');
   // Dialogs mount after the stored preferences land, so wait for the modal
   // before driving it with the keyboard.
   await expect(page.getByRole('dialog')).toHaveCount(1);
@@ -62,7 +60,7 @@ test('settings and appearance dialogs preserve keyboard focus and accessible lab
     name: 'Engine settings',
     exact: true,
   });
-  await trigger.click();
+  await rail(page, 'Engine settings');
   await page.getByRole('tab', { name: 'Advanced', exact: true }).click();
   let results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
@@ -70,9 +68,7 @@ test('settings and appearance dialogs preserve keyboard focus and accessible lab
   expect(results.violations).toEqual([]);
   await page.keyboard.press('Escape');
   await expect(trigger).toBeFocused();
-  await page
-    .getByRole('button', { name: 'Board appearance', exact: true })
-    .click();
+  await rail(page, 'Board appearance');
   results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
     .analyze();
@@ -88,9 +84,7 @@ test('320px layouts and reduced-motion preferences retain all functional control
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBe(320);
-  await page
-    .getByRole('button', { name: 'Board appearance', exact: true })
-    .click();
+  await rail(page, 'Board appearance');
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBe(320);
@@ -115,9 +109,7 @@ test('dark Home, play, study and review remain accessible', async ({
   page,
 }) => {
   await open(page);
-  await page
-    .getByRole('button', { name: 'Board appearance', exact: true })
-    .click();
+  await rail(page, 'Board appearance');
   await page.getByRole('button', { name: 'Dark', exact: true }).click();
   await page
     .getByRole('button', { name: 'Save appearance', exact: true })
