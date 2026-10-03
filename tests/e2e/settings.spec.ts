@@ -217,3 +217,26 @@ test('a bot on the board plays to its own card, so the strength controls rest', 
   await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
+
+test('an engine reply leaves the panel the reader opened alone', async ({
+  page,
+}) => {
+  await open(page);
+  await start(page, { preset: '3 min' });
+  await move(page, 'e2', 'e4');
+  await closePanel(page);
+  // Open settings while the reply is still being searched for. Committing used
+  // to clear whichever dialog was up, so the engine's own answer took the panel
+  // away mid-edit and the reader had to open it again.
+  await rail(page, 'Engine settings');
+  await expect(page.getByRole('dialog')).toHaveCount(1);
+  await expect(page.locator('.play-status')).toContainText('Your move', {
+    timeout: 30000,
+  });
+  await expect(page.getByRole('dialog')).toHaveCount(1);
+  await expect(page.locator('#engine-elo')).toBeDisabled();
+  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  // The game went on underneath: the reply is in the record and it is playable.
+  await expect(page.locator('.play-status')).toContainText('Your move');
+});

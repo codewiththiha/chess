@@ -239,7 +239,10 @@ export class Session {
   closeDialog(): void {
     this.state.dialog = null;
     this.state.promotion = null;
-    if (this.state.view === 'study') this.search.run();
+    // A modal holds the search back, and play can owe a reply too - a premove
+    // queued behind the engine's answer still needs one - so closing a modal
+    // always offers the search back.
+    this.search.run();
   }
 
   confirm(

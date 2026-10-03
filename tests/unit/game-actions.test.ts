@@ -8,6 +8,37 @@ import { studyGame } from '../../src/lib/domain/games';
 afterEach(() => vi.restoreAllMocks());
 
 describe('game orchestration', () => {
+  it('keeps a dialog the reader opened when a move lands', () => {
+    const state = new AppState();
+    state.ready = true;
+    state.view = 'play';
+    const game = studyGame();
+    game.kind = 'play';
+    const actions = new GameActions(state);
+    actions.load(game, 'play');
+    // The engine answers through commit too, so the opponent's reply must not
+    // take a panel away from the reader: only the promotion picker belongs to a
+    // move, and it is cleared by the move itself below.
+    state.dialog = 'settings';
+    actions.commit('e2e4');
+    expect(state.record.moves).toHaveLength(1);
+    expect(state.dialog).toBe('settings');
+  });
+  it('clears the promotion picker with the move it answered', () => {
+    const state = new AppState();
+    state.ready = true;
+    state.view = 'play';
+    const game = studyGame('7k/P5r1/8/8/8/8/8/7K w - - 0 1');
+    game.kind = 'play';
+    const actions = new GameActions(state);
+    actions.load(game, 'play');
+    actions.attempt('a7', 'a8');
+    expect(state.dialog).toBe('promotion');
+    actions.attempt('a7', 'a8', 'q');
+    expect(state.record.moves).toHaveLength(1);
+    expect(state.dialog).toBeNull();
+    expect(state.promotion).toBeNull();
+  });
   it('checks exact elapsed time before accepting a move, even between clock ticks', () => {
     const state = new AppState();
     state.ready = true;

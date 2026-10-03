@@ -199,7 +199,10 @@ export class GameActions {
     s.record.result = '*';
     s.record.termination = '';
     s.promotion = null;
-    s.dialog = null;
+    // The moved piece answers the promotion question and nothing else: the
+    // engine commits its reply through here too, so a panel the reader has open
+    // must not be taken away by the opponent's move.
+    if (s.dialog === 'promotion') s.dialog = null;
     s.hint = null;
     s.report = null;
     s.review = null;
