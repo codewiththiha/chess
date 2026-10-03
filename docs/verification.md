@@ -795,9 +795,71 @@ Evidence for the fixes is the same audit run: `37110162975`, `37110401956`,
 on the pushed commit, each eight of eight jobs green. The final screenshots were
 re-captured from the reviewed build and replace the set in `docs/`.
 
+A second pass, over the screenshots of the reviewed build at full size rather
+than scaled down, found three more and fixed them too.
+
+- **A message never sits over a control, on either size.** The desktop notice
+  "Nay Chi · Blitz · 3 min" floated over the board's own control strip and took
+  taps away from it for three seconds: the first-move arrow could not be clicked
+  while it was up. Play and study now carry the message in the card that owns the
+  game's state, exactly as the phone's strip already does, and any floating
+  message is `pointer-events: none` besides, so a message can never intercept a
+  click again. Home keeps its floating message — there is no card to hold it —
+  and errors keep theirs everywhere (`cafd345`).
+- **The landing page fills its column.** The picker used only the top of the
+  column on a desktop, leaving some 400 px of dead page under Start while the
+  library panel beside it ran the full height; the picker fills the column now
+  and centres its own content in the room it has, so the dock keeps its place at
+  the panel's foot whatever the picker's height, and a window shorter than the
+  picker falls back to the top and scrolls rather than clipping a row. On a phone
+  the leftover room above the dock is split above and below the picker instead of
+  banding in one place, and the empty library shows the icon its centred state
+  was styled for (`14c2551`).
+- **The other theme is looked at too.** The audit grew a dark pass: Home, play
+  and study are captured with the dark theme on, so the screens the
+  accessibility suite proves by contrast are also checked by eye (`cafd345`).
+
+Evidence for the second pass: `37112963458` (both projects, with the dark pass)
+and `37113136593` (both projects), each eight of eight jobs green. The
+screenshots in `docs/` are from `37113136593`.
+
 One oddity is recorded rather than fixed: on a phone the play strip repeats the
 opponent's name that the header already shows, within the same 660 px frame. The
 strip's label and the clocks have to share one row, and the label is what says
 which game the controls belong to once the header is scrolled past on a taller
 screen; dropping the name would leave the time control with no owner. The
 duplication was judged the lesser cost and is left in place deliberately.
+
+### The reviewed screens, in order
+
+Every screen of the app as it now stands, and what the review found there.
+
+**Desktop, 1440×1000.** Home: the picker fills its column and centres its own
+content in it, the dock holds its place at the panel's foot, the library panel
+runs the full height beside it, and an untouched library shows the icon its
+centred state was made for. Play: the board is square and centred with both
+player rows, the evaluation bar, and the tool strip directly under the board;
+the side card opens with the state line, then the clock row, then the move list
+with its grade columns. Study/Review: the tabs, the walkthrough sentence, the
+analysis summary, the turning points and the move list all sit in one column
+with the board beside them; graded moves read as `+0.25` and `+0.22`, never as
+jargon. Dialogs: solid cards at full opacity, centred, with their footer on one
+row. Dark theme: the same three screens, with the theme's own surfaces and no
+control moved.
+
+**Phone, 390×664.** Home: four time controls in a 2×2, the custom row, the
+opponent picker, and the dock with "Your games" and a full-width Start pinned
+above the rail; the leftover room is split above and below the picker. Home's
+library: a bottom sheet with search, import and export, hugging its content.
+Play: the board fills the width under the header's player and clock, the strip
+carries the state line and the ply control, the rail sits under it. The game
+sheet: time controls, New game/Study/Hint, the move list with the current move
+filled, the ply count, and the four tools, the whole sheet no taller than what
+it holds. Study/Review: the sheet's tabs, the walkthrough, the turn points, the
+review budget and the move list, with the review's own summary visible above the
+rail. Dialogs: Add a bot and Engine settings are solid cards that clear the rail,
+with their footers whole. Dark theme: the same frames with the dark surfaces.
+
+**What is not claimed.** The dark pass is Chromium only. The phone frames remain
+390×664 Chromium emulation, not physical hardware. Screenshots are the audit's
+own attachments, so they show exactly the state the assertions ran against.
