@@ -250,18 +250,23 @@ main {
 .home-start {
   display: flex;
   flex-direction: column;
-  /* Top-aligned: a column that re-centres itself whenever the picker changes
-     height (two players, Chess960) reads as the page jumping. */
-  justify-content: flex-start;
   gap: 14px;
   min-width: 0;
 }
-/* The picker scrolls, the dock does not: the primary action is never off screen. */
+/* The picker takes the room the column has and centres its own content in it:
+   the dock stays at the column's foot, so the primary action holds its place
+   whatever the picker's height, and no band of dead page is left under it. */
 .home-options {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: 14px;
   min-width: 0;
+  justify-content: safe center;
+  /* A window shorter than the picker scrolls it rather than clipping a row. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .start-dock {
   display: flex;

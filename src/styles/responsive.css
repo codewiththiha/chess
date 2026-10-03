@@ -452,6 +452,10 @@ body[data-compact] .home-options {
   gap: 8px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* Whatever room is left over is split above and below the picker rather than
+     banding above the dock; `safe` keeps the top row reachable when the picker
+     is taller than the room there is for it. */
+  justify-content: safe center;
 }
 /* Four categories in a 2x2 block keeps the whole picker on one screen. */
 body[data-compact] .time-groups {

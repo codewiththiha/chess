@@ -165,6 +165,7 @@
     </div>
     {#if !games.length}
       <p class="games-empty">
+        <FolderOpen size={22} aria-hidden="true" />
         {s.library.length
           ? 'No saved game matches that search.'
           : 'Played games and imported PGNs appear here with their reviews.'}
