@@ -184,3 +184,52 @@ test('live performance changes and cancellation do not produce stale analysis mo
     'e2, white pawn',
   );
 });
+
+test('a bot on the board plays to its own card, so the strength controls rest', async ({
+  page,
+}) => {
+  await open(page);
+  // Home picks the opponent first: the default is a shipped character, whose
+  // style and strength are the bot's own and not this dialog's to change.
+  await expect(
+    page.getByRole('group', { name: 'Bot', exact: true }),
+  ).toBeVisible();
+  await rail(page, 'Engine settings');
+  await expect(page.locator('#engine-elo')).toBeDisabled();
+  await expect(page.getByLabel('Personality', { exact: true })).toBeDisabled();
+  await expect(
+    page.getByLabel('Full strength', { exact: true }),
+  ).toBeDisabled();
+  await expect(page.locator('.settings-content')).toContainText(
+    'plays with the style and strength on their own card',
+  );
+  // A dead control is worse than a disabled one, so nothing here silently
+  // pretends to apply: the settings still save.
+  await page
+    .getByRole('button', { name: 'Save settings', exact: true })
+    .click();
+  await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 30000 });
+  // Two players means no bot: the engine's own target is the reader's to set.
+  await page.getByRole('button', { name: 'Two players', exact: true }).click();
+  await rail(page, 'Engine settings');
+  await expect(page.locator('#engine-elo')).toBeEnabled();
+  await expect(page.getByLabel('Personality', { exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
+test('a game against a character reports whose card governs it', async ({
+  page,
+}) => {
+  await open(page);
+  await start(page, { preset: '3 min' });
+  await move(page, 'e2', 'e4');
+  await closePanel(page);
+  await rail(page, 'Engine settings');
+  await expect(page.locator('#engine-elo')).toBeDisabled();
+  await expect(page.locator('.settings-content')).toContainText(
+    'plays with the style and strength on their own card',
+  );
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});

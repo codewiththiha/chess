@@ -8,12 +8,14 @@ import type {
   Color,
   GameRecord,
   Grade,
+  Opponent,
   Preferences,
   ReviewRecord,
   View,
 } from '../domain/types';
 import type { BotProfile } from '../domain/bots';
 import type { BotLine } from '../domain/chat';
+import { remarkFor } from '../domain/coach';
 import type { CoachMessage } from '../domain/coach';
 import type { Discovery, Report } from '../engine/types';
 import type { GameSummary } from '../data/database';
@@ -43,6 +45,8 @@ export class AppState {
   view = $state<View>('home');
   /** True when the viewport is too small for the stacked layout. */
   compact = $state(false);
+  /** Who Home is set to start the next game against, bot or second player. */
+  homeOpponent = $state<Opponent>('bot');
   /** The sheet the compact layout is showing, if any. */
   sheet = $state<Sheet | null>(null);
   studyTab = $state<StudyTab>('analyze');
@@ -133,6 +137,16 @@ export class AppState {
     return this.record.opponent === 'bot'
       ? botById(this.bots, this.record.botId)
       : null;
+  }
+  /**
+   * The review line the board keeps beside it while a game is studied: the
+   * remark about the ply on screen, holding the last one until a new moment
+   * arrives. Nothing at all until a review exists — a game without one keeps
+   * just the board and its arrows.
+   */
+  get remark(): CoachMessage | null {
+    if (this.view !== 'study' || !this.review) return null;
+    return remarkFor(this.coach, this.cursor);
   }
   getClock(color: Color): number {
     return remaining(this.record.clock, color, this.now);

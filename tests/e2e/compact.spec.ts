@@ -249,9 +249,11 @@ test('review keeps the board, the ply control, and the sentence together', async
   await moment.click();
   await expect(page.locator('dialog.sheet[open]')).toHaveCount(0);
   await expect(page.locator('.ply-counter')).toContainText('/4');
-  // The strip reads out that same remark, word for word, beside the board.
-  const remark = page.locator('.compact-remark');
+  // The review's own line sits beside the board, word for word with the
+  // remark the reader just tapped, and it is not the character's talk.
+  const remark = page.locator('.study-remark');
   await expect(remark).toBeVisible();
+  await expect(page.locator('.bot-bubble')).toHaveCount(0);
   const strip = ((await remark.textContent()) ?? '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -277,5 +279,92 @@ test('review keeps the board, the ply control, and the sentence together', async
   await expect(page.locator('.board-surface')).toBeVisible();
   await expect(remark).toBeVisible();
   await plies(page, 4);
+  await fitsOneScreen(page);
+});
+
+test('the review line holds its place from move to move', async ({
+  page,
+}, testInfo) => {
+  phoneOnly(testInfo);
+  await open(page);
+  await start(page, { preset: '3 min' });
+  await move(page, 'e2', 'e4');
+  await exchange(page, 2);
+  await move(page, 'd2', 'd4');
+  await exchange(page, 4);
+  await study(page, 'Review');
+  await page.getByLabel('Review search budget').selectOption('quick');
+  await page
+    .locator('.study-card')
+    .getByRole('button', { name: 'Review', exact: true })
+    .click();
+  await expect(page.locator('.review-progress')).toContainText('Reviewed', {
+    timeout: 25000,
+  });
+  await closePanel(page);
+  const remark = page.locator('.study-remark');
+  await expect(remark).toBeVisible();
+  // Walk the whole game: a ply the review has nothing about keeps the line the
+  // reader was already on, so the sentence never disappears between moments.
+  let previous = ((await remark.textContent()) ?? '').trim();
+  expect(previous.length).toBeGreaterThan(0);
+  for (let ply = 1; ply <= 4; ply += 1) {
+    await page
+      .getByRole('button', { name: 'Previous move', exact: true })
+      .click();
+    await expect(remark).toBeVisible();
+    const text = ((await remark.textContent()) ?? '').trim();
+    expect(text.length).toBeGreaterThan(0);
+    if (text !== previous) expect(text.length).toBeGreaterThan(20);
+    previous = text;
+  }
+  await expect(remark).toBeVisible();
+  await expect(page.locator('.ply-counter')).toContainText('/4');
+  await fitsOneScreen(page);
+});
+
+test('the play strip resigns without opening the sheet', async ({
+  page,
+}, testInfo) => {
+  phoneOnly(testInfo);
+  await open(page);
+  await start(page, { preset: '3 min' });
+  await move(page, 'e2', 'e4');
+  await closePanel(page);
+  // One tap on the strip, one confirmation, and the game is over and recorded.
+  await page.locator('[data-quick-resign]').click();
+  await expect(page.locator('dialog.sheet[open]')).toHaveCount(0);
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Resign', exact: true })
+    .click();
+  await expect(page.locator('.compact-bar .play-status strong')).toHaveText(
+    'Resignation',
+  );
+  await expect(page.locator('[data-quick-resign]')).toBeDisabled();
+  await fitsOneScreen(page);
+});
+
+test('every opponent is on the phone screen at once', async ({
+  page,
+}, testInfo) => {
+  phoneOnly(testInfo);
+  await open(page);
+  const picker = page.locator('.bot-picker');
+  await expect(picker).toBeVisible();
+  // The picker is a wrap, not a sideways scroll: nothing hides off to the side.
+  const scroll = await picker.evaluate((node) => ({
+    width: node.clientWidth,
+    content: node.scrollWidth,
+  }));
+  expect(scroll.content).toBeLessThanOrEqual(scroll.width + 1);
+  const screen = await page.evaluate(() => window.innerWidth);
+  for (const card of await page.locator('.bot-card').all()) {
+    const box = await card.boundingBox();
+    if (!box) throw new Error('A bot card is not on screen.');
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(screen + 1);
+    expect(box.width).toBeGreaterThan(80);
+  }
   await fitsOneScreen(page);
 });

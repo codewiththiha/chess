@@ -1,21 +1,26 @@
-<!-- The phone's board chrome: the state of the game, the ply control, one menu button. -->
+<!-- The phone's board chrome: the state of the game, the ply control, quick actions. -->
 <script lang="ts">
-  import { Menu } from '@lucide/svelte';
+  import { Flag, Menu } from '@lucide/svelte';
   import GameStatus from './GameStatus.svelte';
   import HistoryControls from './HistoryControls.svelte';
   import type { Session } from '../controllers/session';
   let { session }: { session: Session } = $props();
   const s = $derived(session.state);
-  // The remark about the ply on the board is the sentence the reader is on, so
-  // it is the one the strip carries; the rest of the conversation is a tap away.
-  const remark = $derived(
-    s.coach.find((message) => message.ply === s.cursor) ??
-      (s.cursor === 0
-        ? s.coach.find((message) => message.walk && !message.ply)
-        : undefined),
-  );
   function openSheet(): void {
     s.sheet = 'panel';
+  }
+  /** Resigning is a real result in the record, so it asks before it happens. */
+  function resign(): void {
+    session.confirm(
+      'Resign this game?',
+      'Your game is saved with the result.',
+      'Resign',
+      () =>
+        session.game.finish(
+          s.record.human === 'white' ? '0-1' : '1-0',
+          'Resignation',
+        ),
+    );
   }
 </script>
 
@@ -25,22 +30,21 @@
       <!-- A message about the game belongs where the game's state is, not in a
            layer over the controls. -->
       <p class="notice-line" role="status">{s.notice.text}</p>
-    {:else if s.view === 'play'}
-      <GameStatus {session} />
     {:else}
-      <!-- In study the strip carries the sentence about the move on the board,
-           or an invitation when the review has nothing to say about it. Either
-           way a tap brings up the study card. -->
+      <!-- The strip states the game in both views; what the review has to say
+           about the board sits beside the board, under the row above it. -->
+      <GameStatus {session} />
+    {/if}
+    {#if s.view === 'play'}
+      <!-- Resigning is the one game action a reader may need in a hurry, so it
+           is not behind the sheet: one confirmed tap ends the game. -->
       <button
-        class="compact-remark"
-        class:quiet={!remark}
-        aria-haspopup="dialog"
-        title={remark ? 'Open the walkthrough' : 'Open the study card'}
-        onclick={openSheet}
-        >{remark?.text ??
-          (s.review
-            ? 'Step through the game to read each remark.'
-            : 'Open the study card to analyze or review this game.')}</button
+        class="tool-button resign-button"
+        aria-label="Resign game"
+        title="Resign"
+        data-quick-resign
+        disabled={s.record.result !== '*'}
+        onclick={resign}><Flag size={18} /></button
       >
     {/if}
   </div>

@@ -26,7 +26,15 @@
   }
   let systemDark = $state(false);
   let frame: HTMLDivElement | undefined = $state();
-  const talk = $derived(s.record.opponent === 'bot' && s.botChat.length > 0);
+  // One line beside the board either way: the character's talk while a game is
+  // played, the review's remark while it is studied. The board gives that line
+  // its height back, so whichever arrives, the square stays square.
+  const talk = $derived(
+    (s.view === 'play' &&
+      s.record.opponent === 'bot' &&
+      s.botChat.length > 0) ||
+      Boolean(s.remark),
+  );
   const dark = $derived(
     s.preferences.appearance === 'dark' ||
       (s.preferences.appearance === 'system' && systemDark),

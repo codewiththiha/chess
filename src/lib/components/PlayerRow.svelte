@@ -6,6 +6,7 @@
   import { roleToChar } from 'chessops/util';
   import { gameOpponentLabel } from '../domain/bots';
   import BotTalk from './BotTalk.svelte';
+  import StudyTalk from './StudyTalk.svelte';
   import type { Session } from '../controllers/session';
   import type { Color } from '../domain/types';
   let { session, color }: { session: Session; color: Color } = $props();
@@ -81,5 +82,10 @@
       <div class="untimed"><InfinityIcon size={16} /></div>
     {/if}
   </div>
-  <BotTalk {session} {color} />
+  <!-- The character talks while a game is played; the review talks while it is
+       studied. A game never shows two conversations at once. -->
+  {#if s.view === 'play'}<BotTalk {session} {color} />{:else}<StudyTalk
+      {session}
+      {color}
+    />{/if}
 </div>

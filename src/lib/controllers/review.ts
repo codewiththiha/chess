@@ -14,6 +14,8 @@ export const REVIEW_PRESETS = {
 };
 export class ReviewController {
   onStored: () => void = () => {};
+  /** Called when the review's own points change, so the walkthrough follows. */
+  onPoints: () => void = () => {};
   private engine: EngineClient | null = null;
   private generation = 0;
   constructor(
@@ -140,6 +142,7 @@ export class ReviewController {
       if (token === this.generation) {
         s.review.complete = true;
         await this.save();
+        this.onPoints();
       }
     } catch (error) {
       if (token === this.generation && !(error instanceof Cancelled))

@@ -53,6 +53,9 @@ export class Session {
     this.storage.onMerged = () =>
       this.notify('That game was already saved, so it was kept as one game.');
     this.review.onStored = () => void this.storage.refresh();
+    // The board's review line and the study card read the same walkthrough, and
+    // both must follow a review that finishes while the card is closed.
+    this.review.onPoints = () => this.coach.open();
   }
 
   mount(): Promise<void> {
@@ -136,6 +139,9 @@ export class Session {
     if (view === 'study') {
       void this.review.restore();
       this.state.studyTab = this.state.review ? 'review' : 'analyze';
+      // The board carries the review's line in this view, so the walkthrough is
+      // built on the way in rather than when the card is first opened.
+      this.coach.open();
     }
   }
 
@@ -310,6 +316,7 @@ export class Session {
       if (view === 'study') {
         await this.review.restore();
         this.state.studyTab = this.state.review ? 'review' : 'analyze';
+        this.coach.open();
       } else this.game.resumeClock();
     } catch (error) {
       this.notify(error instanceof Error ? error.message : String(error), true);

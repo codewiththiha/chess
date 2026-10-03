@@ -8,12 +8,16 @@
     discovery,
     chess960,
     onvariant,
+    /** The bot whose own card outranks this policy, when one does. */
+    governedBy = null,
   }: {
     engine: EngineSettings;
     discovery: Discovery | null;
     chess960: boolean;
     onvariant: () => void;
+    governedBy?: string | null;
   } = $props();
+  const governed = $derived(Boolean(governedBy));
   const fallback: EngineMode[] = [
     'balanced',
     'aggressive',
@@ -41,16 +45,24 @@
       id="engine-mode"
       aria-label="Personality"
       class="select"
+      disabled={governed}
       bind:value={engine.mode}
       >{#each discovery?.capabilities.modes ?? fallback as mode}<option
           value={mode}>{labels[mode]}</option
         >{/each}</select
     ></label
   >
-  <p class="fine-print">
-    {notes[engine.mode]} Analysis and review views use full-strength analysis regardless
-    of this playing preset.
-  </p>
+  {#if governedBy}
+    <p class="fine-print" role="note">
+      {governedBy} plays with the style and strength on their own card, so this does
+      not apply to a game against them.
+    </p>
+  {:else}
+    <p class="fine-print">
+      {notes[engine.mode]} Analysis and review views use full-strength analysis regardless
+      of this playing preset.
+    </p>
+  {/if}
 </div>
 <div class="settings-block">
   <h3>Strength</h3>
@@ -67,7 +79,7 @@
     max={discovery?.capabilities.eloMax ?? 3000}
     step="25"
     aria-label="Nominal Elo"
-    disabled={engine.strength === 'full'}
+    disabled={governed || engine.strength === 'full'}
     bind:value={engine.elo}
   />
   <div class="range-captions">
@@ -85,16 +97,24 @@
       class="toggle toggle-primary"
       type="checkbox"
       aria-label="Full strength"
+      disabled={governed}
       checked={engine.strength === 'full'}
       onchange={(event) => {
         engine.strength = event.currentTarget.checked ? 'full' : 'elo';
       }}
     /></label
   >
-  <p class="honesty-note">
-    <Info size={15} />Elo targets are nominal and uncalibrated—not measured
-    ratings. A bot from the library plays at the strength printed on its card.
-  </p>
+  {#if governedBy}
+    <p class="fine-print" role="note">
+      {governedBy} plays at the strength printed on their card. Pick another opponent,
+      or no bot at all, to set a target here.
+    </p>
+  {:else}
+    <p class="honesty-note">
+      <Info size={15} />Elo targets are nominal and uncalibrated—not measured
+      ratings. A bot from the library plays at the strength printed on its card.
+    </p>
+  {/if}
 </div>
 <div class="settings-block">
   <h3>Memory & variations</h3>

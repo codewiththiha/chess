@@ -3,7 +3,16 @@
 // attribution anywhere. A remark belongs to the character that said it, so the
 // review no longer lists quotes under a name.
 import { test, expect } from '@playwright/test';
-import { open, start, study, go, move, plies, exchange } from './helpers';
+import {
+  closePanel,
+  open,
+  start,
+  study,
+  go,
+  move,
+  plies,
+  exchange,
+} from './helpers';
 import type { Page } from '@playwright/test';
 
 function bubble(page: Page) {
@@ -64,6 +73,11 @@ test('study never credits a remark to a character', async ({ page }) => {
   await exchange(page, 4);
   const said = (await bubble(page).innerText()).trim();
   await study(page, 'Analyze');
+  // Study is the review's ground: the character's bubble is not on it at all,
+  // and with no review stored there is nothing beside the board but the arrows.
+  await closePanel(page);
+  await expect(page.locator('.bot-bubble')).toHaveCount(0);
+  await expect(page.locator('.study-remark')).toHaveCount(0);
   // The remarks list that ran under a name heading is gone from every tab.
   await expect(page.getByLabel('Opponent remarks')).toHaveCount(0);
   await expect(page.locator('.opponent-line')).toHaveCount(0);

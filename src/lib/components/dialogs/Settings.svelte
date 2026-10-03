@@ -12,6 +12,16 @@
   let { session }: { session: Session } = $props();
   const s = $derived(session.state);
   let draft = $state<Preferences>(defaultPreferences());
+  // A bot on the board, or the one Home has picked for the next game, plays to
+  // its own card: the strength controls below cannot change that, so they stop
+  // offering to.
+  const bot = $derived(
+    s.view === 'home'
+      ? s.homeOpponent === 'bot'
+        ? s.selectedBot
+        : null
+      : s.gameBot,
+  );
   let tab = $state('engine');
   let error = $state('');
   let busy = $state(false);
@@ -86,6 +96,7 @@
           engine={draft.engine}
           discovery={s.discovery}
           chess960={s.record.chess960}
+          governedBy={bot?.name ?? null}
           onvariant={() => {
             session.closeDialog();
             session.navigate('home');

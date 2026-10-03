@@ -29,6 +29,9 @@
   }: { session: Session; notice?: boolean } = $props();
   const s = $derived(session.state);
   let preset = $state<keyof typeof REVIEW_PRESETS>('balanced');
+  // A phone gives the graph a tap of its own rather than a wall of chart: it is
+  // the one part of the review that reads as detail, so it is asked for.
+  let chart = $state(false);
   const tabs: { id: StudyTab; label: string; icon: typeof ScanSearch }[] = [
     { id: 'analyze', label: 'Analyze', icon: ScanSearch },
     { id: 'review', label: 'Review', icon: ChartNoAxesCombined },
@@ -192,7 +195,20 @@
           max="100"
           aria-label="Review progress"
         ></progress>
-        <EvaluationChart {session} />
+        {#if s.compact}
+          <button
+            type="button"
+            class="text-action chart-toggle"
+            aria-expanded={chart}
+            aria-controls="review-chart"
+            onclick={() => {
+              chart = !chart;
+            }}>{chart ? 'Hide the graph' : 'Show the graph'}</button
+          >
+        {/if}
+        {#if !s.compact || chart}
+          <div id="review-chart"><EvaluationChart {session} /></div>
+        {/if}
         <p class="fine-print">
           depth {s.review.depth} · {Number(
             s.review.nodeBudget,

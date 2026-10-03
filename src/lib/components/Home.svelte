@@ -50,9 +50,14 @@
   let minutes = $state(10);
   let increment = $state(0);
   let side = $state<Color | 'random'>('white');
-  let opponent = $state<Opponent>('bot');
   let chess960 = $state(false);
   let position = $state(518);
+  // The choice lives in the session state so the engine settings can see who it
+  // is that would outrank them.
+  const opponent = $derived(s.homeOpponent);
+  function setOpponent(next: Opponent): void {
+    s.homeOpponent = next;
+  }
   let query = $state('');
   // On a phone the saved games live in a sheet, so the picker and the primary
   // action keep the whole screen for themselves.
@@ -341,15 +346,11 @@
           <button
             class:active={opponent === 'bot'}
             aria-pressed={opponent === 'bot'}
-            onclick={() => {
-              opponent = 'bot';
-            }}>Play a bot</button
+            onclick={() => setOpponent('bot')}>Play a bot</button
           ><button
             class:active={opponent === 'human'}
             aria-pressed={opponent === 'human'}
-            onclick={() => {
-              opponent = 'human';
-            }}>Two players</button
+            onclick={() => setOpponent('human')}>Two players</button
           >
         </div>
         {#if opponent === 'bot'}

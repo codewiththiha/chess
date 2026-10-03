@@ -4,7 +4,9 @@ import {
   answer,
   classify,
   greeting,
+  remarkFor,
   topicsFor,
+  type CoachMessage,
   type CoachPosition,
 } from '../../src/lib/domain/coach';
 
@@ -187,5 +189,54 @@ describe('suggested questions', () => {
     expect(topicsFor(context({ grade: null, turn: 'black' }))).toContain(
       'Where did I go wrong?',
     );
+  });
+});
+
+describe('the line the board keeps beside it', () => {
+  const walk: CoachMessage[] = [
+    {
+      id: 'summary',
+      role: 'coach',
+      text: 'Here is the game.',
+      walk: true,
+      ply: null,
+    },
+    {
+      id: 'm3',
+      role: 'coach',
+      text: 'Move three was the turn.',
+      walk: true,
+      ply: 3,
+    },
+    {
+      id: 'm7',
+      role: 'coach',
+      text: 'Move seven cost you.',
+      walk: true,
+      ply: 7,
+    },
+  ];
+
+  it('shows the remark about the position on screen', () => {
+    expect(remarkFor(walk, 3)?.id).toBe('m3');
+    expect(remarkFor(walk, 7)?.id).toBe('m7');
+  });
+
+  it('holds the last remark while a ply has none of its own', () => {
+    // The complaint this answers: the sentence vanished between moments.
+    for (const ply of [4, 5, 6]) expect(remarkFor(walk, ply)?.id).toBe('m3');
+    for (const ply of [8, 12, 40]) expect(remarkFor(walk, ply)?.id).toBe('m7');
+  });
+
+  it('stands on the summary before the first remark, and on nothing at all', () => {
+    expect(remarkFor(walk, 0)?.id).toBe('summary');
+    expect(remarkFor(walk, 2)?.id).toBe('summary');
+    expect(remarkFor([], 4)).toBeNull();
+    // A question the reader asked is a reply, not a remark about the board.
+    const asked: CoachMessage[] = [
+      { id: 'q', role: 'you', text: 'Why?' },
+      { id: 'a', role: 'coach', text: 'Because.' },
+    ];
+    expect(remarkFor(asked, 4)).toBeNull();
   });
 });

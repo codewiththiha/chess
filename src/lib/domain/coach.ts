@@ -286,3 +286,31 @@ export function answer(question: string, context: CoachPosition): CoachAnswer {
   if (intent === 'worst') return worst(context);
   return help(context);
 }
+
+/**
+ * The walkthrough line the board keeps beside it: the newest remark about the
+ * position on screen, or the last one before it. A ply the walkthrough has
+ * nothing to say about keeps the line it was already showing — the remark steps
+ * with the reader instead of blinking out between moments — and before the first
+ * remark the summary stands in.
+ */
+export function remarkFor(
+  messages: CoachMessage[],
+  ply: number,
+): CoachMessage | null {
+  let latest: CoachMessage | null = null;
+  let summary: CoachMessage | null = null;
+  for (const message of messages) {
+    if (!message.walk || message.role !== 'coach') continue;
+    if (message.ply == null) {
+      summary ??= message;
+      continue;
+    }
+    if (
+      message.ply <= ply &&
+      (latest === null || message.ply > (latest.ply ?? 0))
+    )
+      latest = message;
+  }
+  return latest ?? summary;
+}

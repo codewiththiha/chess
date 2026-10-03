@@ -203,10 +203,18 @@ cg-board piece.dragging {
 .bot-talk {
   padding: 0 18px 6px;
 }
-.bot-talk.idle {
+/* The review keeps the same place beside the board as the opponent's talk: one
+   line, under the row above the board, about the position on it. */
+.study-talk {
+  position: relative;
+  padding: 0 18px 6px;
+}
+.bot-talk.idle,
+.study-talk.idle {
   display: none;
 }
-.bot-bubble {
+.bot-bubble,
+.study-remark {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -219,6 +227,17 @@ cg-board piece.dragging {
   background: var(--color-base-100);
   border: 1px solid var(--line);
   color: var(--color-base-content);
+}
+.study-remark {
+  position: relative;
+  cursor: default;
+}
+/* The whole remark is the target: tapping it takes the board to the move it is
+   about, which is the one thing a reader wants next. */
+.remark-jump {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
 }
 .player-details {
   flex: 1;

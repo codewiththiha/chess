@@ -275,6 +275,13 @@
   font-size: 11px;
   min-height: 30px;
 }
+/* The graph is behind this on a phone: a full-width text action, tall enough to
+   hit without looking. */
+.chart-toggle {
+  margin-top: 12px;
+  min-height: 30px;
+  font-size: 11px;
+}
 .turning-points {
   padding-top: 20px;
   margin-bottom: 20px;
