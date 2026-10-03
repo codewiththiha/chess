@@ -702,11 +702,12 @@ longer line of state resized the board while the reader was looking at it. The
 fix is one shell for narrow or short views, verified on the real iPhone 13
 viewport rather than by eye.
 
-- **`ci.yml` dispatch 37093591157 on `efcabc3`, all eight jobs green** in about
+- **`ci.yml` dispatch 37093823506 on `d2a123b`, all eight jobs green** in about
   three minutes: Selection, Quality (28 CI-script tests, strict Svelte/TS,
   oxlint/provenance, Prettier, actionlint 1.7.12), Production build, Commit
   messages, Unit and WASM, Browser (desktop) and Browser (mobile), and Full
-  verification.
+  verification. The push of `efcabc3` ran the same workflow green on its own,
+  and the first full run, 37093591157, was green too.
 - **Unit and WASM: 189 tests in 19 files** — the previous 184 in 18 plus
   `tests/unit/viewport.test.ts`, which pins the compact rule (phones and short
   windows in, 1000px and up out) and `fitSquare` (the smaller axis less the
@@ -721,8 +722,10 @@ viewport rather than by eye.
   three-dash button and finds them gone again once it closes; watches a resigned
   game bring its own move data up; walks every move row to prove five children
   still fit one line; and in review checks the board, the ply control and the
-  sentence about the current move are all on screen together with the sheet shut.
-  The six skips on desktop are that spec, which is about the phone layout alone.
+  sentence about the current move are all on screen together with the sheet shut,
+  and that tapping a moment closes the sheet so the board it talks about is in
+  view. The six skips on desktop are that spec, which is about the phone layout
+  alone.
 - **Three CI iterations to get there, each failure a real bug.** The first run
   failed 23 specs because they waited on `.move-cell`, which on a phone only
   exists inside the sheet: the helpers now open it, and rail buttons go through a
