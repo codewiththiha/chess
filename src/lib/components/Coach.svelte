@@ -14,6 +14,12 @@
     s.review?.points.length;
     session.coach.open();
   });
+  // The remark is about the board, so on a phone reading it steps out of the
+  // sheet: the move is on screen and the strip repeats the sentence beside it.
+  function read(ply: number): void {
+    session.game.jump(ply);
+    if (s.compact) s.sheet = null;
+  }
   function ask(text: string): void {
     session.coach.ask(text);
     draft = '';
@@ -69,7 +75,7 @@
             class="coach-jump"
             aria-label={`Go to move ${move}`}
             title={`Go to move ${move}`}
-            onclick={() => session.game.jump(message.ply ?? 0)}
+            onclick={() => read(message.ply ?? 0)}
           ></button>{/if}
       </p>
     {/each}

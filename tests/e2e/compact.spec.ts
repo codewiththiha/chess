@@ -210,9 +210,10 @@ test('review keeps the board, the ply control, and the sentence together', async
   const sentence = ((await moment.textContent()) ?? '')
     .replace(/\s+/g, ' ')
     .trim();
-  // Tapping the moment takes the board to that move.
+  // Tapping the moment takes the board to that move, and the sheet steps out of
+  // the way so the reader sees it.
   await moment.click();
-  await closePanel(page);
+  await expect(page.locator('dialog.sheet[open]')).toHaveCount(0);
   await expect(page.locator('.ply-counter')).toContainText('/4');
   // The strip reads out that same remark, word for word, beside the board.
   const remark = page.locator('.compact-remark');
