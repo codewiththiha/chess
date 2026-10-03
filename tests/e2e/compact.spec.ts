@@ -332,7 +332,9 @@ test('the play strip resigns without opening the sheet', async ({
   await move(page, 'e2', 'e4');
   await closePanel(page);
   // One tap on the strip, one confirmation, and the game is over and recorded.
-  await page.locator('[data-quick-resign]').click();
+  const quick = page.locator('[data-quick-resign]');
+  await expect(quick).toHaveAttribute('aria-label', 'Resign this game');
+  await quick.click();
   await expect(page.locator('dialog.sheet[open]')).toHaveCount(0);
   await page
     .getByRole('dialog')
@@ -359,12 +361,15 @@ test('every opponent is on the phone screen at once', async ({
   }));
   expect(scroll.content).toBeLessThanOrEqual(scroll.width + 1);
   const screen = await page.evaluate(() => window.innerWidth);
-  for (const card of await page.locator('.bot-card').all()) {
+  const cards = await page.locator('.bot-card').all();
+  expect(cards.length).toBeGreaterThan(3);
+  for (const card of cards) {
+    const name = ((await card.innerText()) ?? 'card').split('\n')[0];
     const box = await card.boundingBox();
-    if (!box) throw new Error('A bot card is not on screen.');
-    expect(box.x).toBeGreaterThanOrEqual(0);
-    expect(box.x + box.width).toBeLessThanOrEqual(screen + 1);
-    expect(box.width).toBeGreaterThan(80);
+    if (!box) throw new Error(`${name} is not on screen.`);
+    expect(box.x, name).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width, name).toBeLessThanOrEqual(screen + 1);
+    expect(box.width, name).toBeGreaterThan(80);
   }
   await fitsOneScreen(page);
 });

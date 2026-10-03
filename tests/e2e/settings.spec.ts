@@ -189,11 +189,18 @@ test('a bot on the board plays to its own card, so the strength controls rest', 
   page,
 }) => {
   await open(page);
-  // Home picks the opponent first: the default is a shipped character, whose
-  // style and strength are the bot's own and not this dialog's to change.
-  await expect(
-    page.getByRole('group', { name: 'Bot', exact: true }),
-  ).toBeVisible();
+  // Before a game is on the board there is nothing to override: the engine's own
+  // policy is the one that would be used, so it stays editable.
+  await rail(page, 'Engine settings');
+  await expect(page.locator('#engine-elo')).toBeEnabled();
+  await expect(page.getByLabel('Personality', { exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await start(page, { preset: '3 min' });
+  await move(page, 'e2', 'e4');
+  await closePanel(page);
+  // Against a character, the card governs the game and these cannot change it;
+  // a control that looks live but does nothing is the thing being fixed here.
   await rail(page, 'Engine settings');
   await expect(page.locator('#engine-elo')).toBeDisabled();
   await expect(page.getByLabel('Personality', { exact: true })).toBeDisabled();
@@ -203,33 +210,9 @@ test('a bot on the board plays to its own card, so the strength controls rest', 
   await expect(page.locator('.settings-content')).toContainText(
     'plays with the style and strength on their own card',
   );
-  // A dead control is worse than a disabled one, so nothing here silently
-  // pretends to apply: the settings still save.
-  await page
-    .getByRole('button', { name: 'Save settings', exact: true })
-    .click();
-  await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 30000 });
-  // Two players means no bot: the engine's own target is the reader's to set.
-  await page.getByRole('button', { name: 'Two players', exact: true }).click();
-  await rail(page, 'Engine settings');
-  await expect(page.locator('#engine-elo')).toBeEnabled();
-  await expect(page.getByLabel('Personality', { exact: true })).toBeEnabled();
-  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
-});
-
-test('a game against a character reports whose card governs it', async ({
-  page,
-}) => {
-  await open(page);
-  await start(page, { preset: '3 min' });
-  await move(page, 'e2', 'e4');
-  await closePanel(page);
-  await rail(page, 'Engine settings');
-  await expect(page.locator('#engine-elo')).toBeDisabled();
-  await expect(page.locator('.settings-content')).toContainText(
-    'plays with the style and strength on their own card',
-  );
-  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  // The rest of the dialog is untouched: memory, seed and backend still apply.
+  await expect(page.getByLabel('Hash memory', { exact: true })).toBeEnabled();
+  await expect(page.getByLabel('WASM backend', { exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });

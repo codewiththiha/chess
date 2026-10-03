@@ -40,7 +40,7 @@
            is not behind the sheet: one confirmed tap ends the game. -->
       <button
         class="tool-button resign-button"
-        aria-label="Resign game"
+        aria-label="Resign this game"
         title="Resign"
         data-quick-resign
         disabled={s.record.result !== '*'}

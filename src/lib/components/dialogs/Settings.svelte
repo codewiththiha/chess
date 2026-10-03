@@ -12,16 +12,10 @@
   let { session }: { session: Session } = $props();
   const s = $derived(session.state);
   let draft = $state<Preferences>(defaultPreferences());
-  // A bot on the board, or the one Home has picked for the next game, plays to
-  // its own card: the strength controls below cannot change that, so they stop
-  // offering to.
-  const bot = $derived(
-    s.view === 'home'
-      ? s.homeOpponent === 'bot'
-        ? s.selectedBot
-        : null
-      : s.gameBot,
-  );
+  // A bot on the board plays to its own card, and that is the only time these
+  // settings would not be the ones in force: so it is the only time the dialog
+  // stops offering them.
+  const bot = $derived(s.gameBot);
   let tab = $state('engine');
   let error = $state('');
   let busy = $state(false);

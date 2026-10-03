@@ -531,6 +531,10 @@ body[data-compact] .bot-picker {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
   gap: 7px;
+  /* A column flex item is sized by its own content unless it is told otherwise,
+     and the grid's content is wider than a phone. */
+  width: 100%;
+  min-width: 0;
 }
 body[data-compact] .bot-card {
   min-width: 0;
