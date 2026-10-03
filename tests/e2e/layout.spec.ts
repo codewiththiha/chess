@@ -35,7 +35,8 @@ async function spill(page: Page): Promise<Spill[]> {
   return page.evaluate(() => {
     const offenders: Spill[] = [];
     const width = window.innerWidth;
-    const scroller = (node: Element): boolean => {
+    /** A carousel is allowed to hold content out of view. */
+    function scrollsSideways(node: Element): boolean {
       let current: Element | null = node.parentElement;
       while (current && current !== document.body) {
         const style = getComputedStyle(current);
@@ -47,14 +48,14 @@ async function spill(page: Page): Promise<Spill[]> {
         current = current.parentElement;
       }
       return false;
-    };
+    }
     for (const element of document.querySelectorAll('body *')) {
       const box = element.getBoundingClientRect();
       if (box.width === 0 || box.height === 0) continue;
       if (box.right <= width + 1 && box.left >= -1) continue;
       if (element.closest('[hidden], dialog:not([open]), .skip-link')) continue;
       if (box.height <= 1 || box.width <= 1) continue;
-      if (scroller(element)) continue;
+      if (scrollsSideways(element)) continue;
       offenders.push({
         tag: element.tagName.toLowerCase(),
         cls: typeof element.className === 'string' ? element.className : '',
